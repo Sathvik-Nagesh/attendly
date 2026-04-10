@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, CalendarIcon, CheckCircle2, AlertCircle, Bell } from "lucide-react";
+import { Search, CalendarIcon, CheckCircle2, AlertCircle, Bell, Download } from "lucide-react";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -150,6 +150,19 @@ export default function AttendancePage() {
                   />
                 </PopoverContent>
               </Popover>
+
+              <Button 
+                variant="outline" 
+                className="h-10 rounded-xl border-slate-200 bg-white shadow-sm font-semibold gap-2"
+                onClick={() => {
+                  toast.success("CSV generated!", {
+                    description: "Student attendance sheet has been exported."
+                  });
+                }}
+              >
+                <Download className="w-4 h-4 text-slate-500" />
+                Export
+              </Button>
             </div>
 
             <div className="relative">

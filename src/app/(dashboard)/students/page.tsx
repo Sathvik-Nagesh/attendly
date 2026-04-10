@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { fuzzySearch } from "@/lib/utils";
+import { fuzzySearch, cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const students = [
   { id: "1", name: "Alena Smith", roll: "CS-01", email: "alena@example.com", class: "Computer Science 101", attendance: "98%" },
@@ -33,13 +34,34 @@ export default function StudentsPage() {
     fuzzySearch(search, `${s.name} ${s.roll} ${s.email}`)
   );
 
-  const handleImport = () => {
+  const [importStatus, setImportStatus] = useState<'idle' | 'reading' | 'mapping' | 'success'>('idle');
+  const [importProgress, setImportProgress] = useState(0);
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    
     setIsUploading(true);
+    setImportStatus('reading');
+    setImportProgress(20);
+    
     setTimeout(() => {
-      setIsUploading(false);
-      setIsImportOpen(false);
-      toast.success("Import successful!", { description: "Imported 45 students from your CSV file."});
-    }, 1500);
+      setImportStatus('mapping');
+      setImportProgress(65);
+    }, 1200);
+
+    setTimeout(() => {
+      setImportStatus('success');
+      setImportProgress(100);
+      toast.success("Import successful!", { 
+        description: `Successfully imported 142 students from ${e.target.files?.[0].name}.`
+      });
+      setTimeout(() => {
+        setIsUploading(false);
+        setIsImportOpen(false);
+        setImportStatus('idle');
+        setImportProgress(0);
+      }, 500);
+    }, 2800);
   };
 
   const handleAction = (type: 'edit' | 'history' | 'delete', student: any) => {
@@ -74,25 +96,53 @@ export default function StudentsPage() {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px] rounded-2xl p-0 overflow-hidden bg-white text-slate-900 border border-slate-200">
                   <div className="p-6">
-                    <DialogHeader className="mb-4">
-                      <DialogTitle className="text-xl">Import Students</DialogTitle>
-                      <DialogDescription>
-                        Upload your CSV or Excel file to quickly import your roster.
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors">
-                      <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 border border-slate-100">
-                        <FileSpreadsheet className="w-6 h-6 text-blue-500" />
-                      </div>
-                      <p className="text-sm font-medium text-slate-700 mb-1">Click to upload or drag and drop</p>
-                      <p className="text-xs text-slate-500">CSV, XLS, XLSX (Max 10MB)</p>
-                    </div>
+                    <motion.div
+                      key={importStatus}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <DialogHeader className="mb-4">
+                        <DialogTitle className="text-xl">Import Students</DialogTitle>
+                        <DialogDescription>
+                          Upload your CSV or Excel file to quickly import your roster.
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      {importStatus === 'idle' ? (
+                        <label className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors group">
+                          <input type="file" className="hidden" accept=".csv,.xlsx" onChange={handleImport} />
+                          <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 border border-slate-100 group-hover:scale-110 transition-transform">
+                            <FileSpreadsheet className="w-6 h-6 text-blue-500" />
+                          </div>
+                          <p className="text-sm font-medium text-slate-700 mb-1">Click to upload or drag and drop</p>
+                          <p className="text-xs text-slate-500">CSV, XLS, XLSX (Max 10MB)</p>
+                        </label>
+                      ) : (
+                        <div className="py-10 text-center space-y-6">
+                           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden max-w-[200px] mx-auto">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${importProgress}%` }}
+                                className="h-full bg-blue-600 rounded-full"
+                              />
+                           </div>
+                           <div className="space-y-1">
+                              <p className="text-sm font-bold text-slate-900">
+                                {importStatus === 'reading' && 'Reading File Data...'}
+                                {importStatus === 'mapping' && 'Mapping Roll Numbers...'}
+                                {importStatus === 'success' && 'Ready!'}
+                              </p>
+                              <p className="text-xs text-slate-400">Please do not refresh the page</p>
+                           </div>
+                        </div>
+                      )}
+                    </motion.div>
                   </div>
                   <div className="p-6 pt-0 flex justify-end gap-3 outline-none">
-                    <Button variant="ghost" className="rounded-xl" onClick={() => setIsImportOpen(false)}>Cancel</Button>
-                    <Button onClick={handleImport} disabled={isUploading} className="rounded-xl bg-slate-900 text-white hover:bg-slate-800">
-                      {isUploading ? "Importing..." : "Process Import"}
+                    <Button variant="ghost" className="rounded-xl font-semibold" onClick={() => setIsImportOpen(false)}>Cancel</Button>
+                    <Button disabled={isUploading || importStatus === 'idle'} className="rounded-xl bg-slate-900 text-white hover:bg-slate-800 px-6 font-bold">
+                      {isUploading ? "Processing..." : "Finish Import"}
                     </Button>
                   </div>
                 </DialogContent>
