@@ -1,4 +1,5 @@
 import { Sidebar } from "@/components/layout/sidebar";
+import { CommandMenu } from "@/components/ui/command-menu";
 
 export default function DashboardLayout({
   children,
@@ -6,7 +7,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      <CommandMenu />
       <Sidebar />
       <main className="flex-1 pl-64 flex flex-col">
         {/* We add header at the page level to customize the title, 

@@ -7,15 +7,48 @@ import { Card } from "@/components/ui/card";
 import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const data = [
+const weeklyData = [
   { name: "Mon", present: 45, absent: 5 },
   { name: "Tue", present: 48, absent: 2 },
   { name: "Wed", present: 42, absent: 8 },
   { name: "Thu", present: 47, absent: 3 },
   { name: "Fri", present: 49, absent: 1 },
 ];
+
+const monthlyData = [
+  { name: "Week 1", present: 220, absent: 30 },
+  { name: "Week 2", present: 240, absent: 10 },
+  { name: "Week 3", present: 190, absent: 60 },
+  { name: "Week 4", present: 245, absent: 5 },
+];
+
+const SMS_QUEUE = [
+  { id: "1", roll: "CS-02", parent: "Mr. Cooper", status: "Sending", progress: 65, time: "Just now" },
+  { id: "2", roll: "CS-14", parent: "Dr. Sharma", status: "Queued", progress: 0, time: "Queued" },
+  { id: "3", roll: "CS-28", parent: "Mrs. Davis", status: "Delivered", progress: 100, time: "2m ago" },
+];
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-4 rounded-2xl shadow-xl">
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{label}</p>
+        <div className="space-y-1">
+          <p className="text-sm font-bold text-emerald-600 flex items-center justify-between gap-4">
+            Present: <span>{payload[0].value}</span>
+          </p>
+          <p className="text-sm font-bold text-red-500 flex items-center justify-between gap-4">
+            Absent: <span>{payload[1].value}</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 const recentActivity = [
   { id: 1, text: "Computer Science 101 marked by Alex", time: "10 mins ago", type: "success" },
@@ -51,6 +84,8 @@ const StatCard = ({ title, value, label, icon: Icon, delay = 0, trendClass = "te
 
 export default function DashboardPage() {
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
+  const activeData = timeframe === 'week' ? weeklyData : monthlyData;
 
   const generateReport = (name: string) => {
     setIsGenerating(name);
@@ -104,27 +139,63 @@ export default function DashboardPage() {
               transition={{ delay: 0.4 }}
               className="lg:col-span-2"
             >
-              <Card className="p-6 border-slate-200 shadow-sm rounded-2xl bg-white h-[400px] flex flex-col">
-                <div className="mb-6">
-                  <h3 className="text-base font-semibold text-slate-900">Attendance Trend</h3>
-                  <p className="text-sm text-slate-500">Weekly present vs absent ratio</p>
+              <Card className="p-6 border-slate-200 shadow-sm rounded-2xl bg-white h-[450px] flex flex-col">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">Attendance Trend</h3>
+                    <p className="text-sm text-slate-500">View performance over {timeframe}</p>
+                  </div>
+                  <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100">
+                    <button 
+                      onClick={() => setTimeframe('week')}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${timeframe === 'week' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                      Week
+                    </button>
+                    <button 
+                      onClick={() => setTimeframe('month')}
+                      className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${timeframe === 'month' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                      Month
+                    </button>
+                  </div>
                 </div>
-                <div className="flex-1 min-h-[250px] w-full">
+                <div className="flex-1 min-h-[300px] w-full min-w-0 relative">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={activeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
                           <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                         </linearGradient>
+                        <linearGradient id="colorAbsent" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1} />
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                        </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                      <Tooltip
-                        contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }} />
+                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }} />
+                      <Area 
+                        type="monotone" 
+                        dataKey="present" 
+                        stroke="#10b981" 
+                        strokeWidth={4} 
+                        fillOpacity={1} 
+                        fill="url(#colorPresent)" 
+                        animationDuration={1000}
                       />
-                      <Area type="monotone" dataKey="present" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorPresent)" />
+                      <Area 
+                        type="monotone" 
+                        dataKey="absent" 
+                        stroke="#ef4444" 
+                        strokeWidth={2} 
+                        strokeDasharray="5 5"
+                        fillOpacity={1} 
+                        fill="url(#colorAbsent)" 
+                        animationDuration={1000}
+                      />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -211,6 +282,53 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </Card>
+              <Card className="p-6 border-slate-200 shadow-sm rounded-2xl bg-white h-auto flex flex-col">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">Live SMS Outbox</h3>
+                    <p className="text-sm text-slate-500">Real-time gateway status</p>
+                  </div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                </div>
+                
+                <div className="space-y-4 flex-1">
+                  {SMS_QUEUE.map((msg) => (
+                    <div key={msg.id} className="space-y-2">
+                       <div className="flex items-center justify-between text-xs font-bold">
+                          <span className="text-slate-700">{msg.roll} → {msg.parent}</span>
+                          <span className={cn(
+                             msg.status === 'Delivered' ? 'text-emerald-600' :
+                             msg.status === 'Sending' ? 'text-blue-600' : 'text-slate-400'
+                          )}>
+                             {msg.status}
+                          </span>
+                       </div>
+                       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${msg.progress}%` }}
+                            transition={{ duration: 1 }}
+                            className={cn(
+                               "h-full rounded-full",
+                               msg.status === 'Delivered' ? 'bg-emerald-500' : 'bg-blue-600'
+                            )}
+                          />
+                       </div>
+                       <div className="flex items-center justify-between text-[10px] text-slate-400">
+                          <span>MSG91 Gateway</span>
+                          <span>{msg.time}</span>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-slate-50">
+                    <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Total Today</span>
+                        <span className="font-bold text-slate-900">142 Messages</span>
+                    </div>
                 </div>
               </Card>
             </motion.div>

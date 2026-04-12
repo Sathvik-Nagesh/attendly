@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "sonner";
 import { cn, fuzzySearch } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { StudentProfile } from "@/components/students/student-profile";
 
 const MOCK_STUDENTS = [
   { id: "1", name: "Alena Smith", rollNumber: "CS-01", avatar: "AS", attendance: 92, batch: "A" },
@@ -38,6 +39,9 @@ export default function AttendancePage() {
   const [onDutyIds, setOnDutyIds] = useState<Set<string>>(new Set());
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [selectedLecture, setSelectedLecture] = useState("L1");
 
   const filteredStudents = useMemo(() => {
     return MOCK_STUDENTS.filter((s) => {
@@ -130,16 +134,16 @@ export default function AttendancePage() {
                 </SelectContent>
               </Select>
 
-              <Select defaultValue="L1">
-                <SelectTrigger className="w-[140px] h-10 border-slate-200 bg-white shadow-sm font-medium rounded-xl">
-                  <SelectValue placeholder="Lecture" />
+              <Select value={selectedLecture} onValueChange={setSelectedLecture}>
+                <SelectTrigger className="w-[180px] h-10 border-slate-200 bg-white shadow-sm font-semibold rounded-xl text-slate-700">
+                  <SelectValue placeholder="Select Lecture" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-slate-200 bg-white p-1">
                   <SelectItem value="L1">Lecture 1</SelectItem>
                   <SelectItem value="L2">Lecture 2</SelectItem>
                   <SelectItem value="L3">Lecture 3</SelectItem>
-                  <SelectItem value="L4">Lecture 4</SelectItem>
-                  <SelectItem value="L5">Lecture 5</SelectItem>
+                  <SelectItem value="DP1">Lecture 1 + 2 (Double)</SelectItem>
+                  <SelectItem value="DP2">Lecture 3 + 4 (Double)</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -455,7 +459,7 @@ export default function AttendancePage() {
                        <div className="pt-3 border-t border-slate-200/60">
                           <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Message Preview</p>
                           <div className="bg-white p-3 rounded-lg border border-slate-200 text-xs text-slate-600 italic leading-relaxed">
-                            "Dear Parent, your ward was absent for <strong>Lecture 1</strong> (CS-101) today, {format(date, 'dd MMM')}. Regards, Attendly."
+                            "Dear Parent, your ward was absent for <strong>{selectedLecture.startsWith('DP') ? (selectedLecture === 'DP1' ? 'Lectures 1 & 2' : 'Lectures 3 & 4') : 'Lecture ' + selectedLecture.replace('L', '')}</strong> today, {format(date, 'dd MMM')}. Regards, Attendly."
                           </div>
                        </div>
                     </div>
@@ -481,6 +485,11 @@ export default function AttendancePage() {
               </DialogContent>
             </Dialog>
         </div>
+
+        <StudentProfile 
+          student={selectedStudent} 
+          onClose={() => setIsProfileOpen(false)} 
+        />
       </div>
     </PageTransition>
   );

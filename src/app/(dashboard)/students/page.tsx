@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { fuzzySearch, cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { StudentProfile } from "@/components/students/student-profile";
 
 const students = [
   { id: "1", name: "Alena Smith", roll: "CS-01", email: "alena@example.com", class: "Computer Science 101", attendance: "98%" },
@@ -28,6 +29,7 @@ export default function StudentsPage() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const filteredStudents = students.filter(s => 
@@ -204,7 +206,14 @@ export default function StudentsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredStudents.map((st) => (
-                    <tr key={st.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <tr 
+                      key={st.id} 
+                      onClick={() => {
+                        setSelectedStudent(st);
+                        setIsProfileOpen(true);
+                      }}
+                      className="hover:bg-slate-50/50 transition-colors group cursor-pointer"
+                    >
                       <td className="px-6 py-4">
                         <div className="font-medium text-slate-900">{st.name}</div>
                         <div className="text-xs text-slate-500 mt-0.5">{st.email}</div>
@@ -342,6 +351,11 @@ export default function StudentsPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        <StudentProfile 
+          student={selectedStudent} 
+          onClose={() => setIsProfileOpen(false)} 
+        />
       </div>
     </PageTransition>
   );
