@@ -67,18 +67,27 @@ export default function AttendancePage() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    
+    // Simulate API Call to MSG91
+    console.log("-----------------------------------------");
+    console.log("MSG91 API GATEWAY: Initiating Sync");
+    console.log(`Payload: { type: 'absent_alert', count: ${absentIds.size}, recipients: [${Array.from(absentIds).join(', ')}] }`);
+    
     setTimeout(() => {
+      console.log("MSG91 RESPONSE: 200 OK - Message Sent Successfully");
+      console.log("-----------------------------------------");
+      
       setIsSaving(false);
       setIsConfirmOpen(false);
       toast.success("Attendance synced successfully!", {
-        description: `${absentIds.size} parents notified via SMS/WhatsApp.`
+        description: `${absentIds.size} parents notified via MSG91 SMS Gateway.`
       });
       setAbsentIds(new Set());
       setOnDutyIds(new Set());
-    }, 1500);
+    }, 2000);
   };
 
-  const presentCount = MOCK_STUDENTS.length - absentIds.size;
+  const presentCount = MOCK_STUDENTS.length - absentIds.size - onDutyIds.size;
   const isAllPresent = absentIds.size === 0;
 
   return (
@@ -155,13 +164,20 @@ export default function AttendancePage() {
                 variant="outline" 
                 className="h-10 rounded-xl border-slate-200 bg-white shadow-sm font-semibold gap-2"
                 onClick={() => {
-                  toast.success("CSV generated!", {
-                    description: "Student attendance sheet has been exported."
+                  const csvContent = "data:text/csv;charset=utf-8,Roll Number,Name,Status,Date\nCS-01,Alena Smith,Present,2023-10-10\nCS-02,Brandon Cooper,Absent,2023-10-10";
+                  const encodedUri = encodeURI(csvContent);
+                  const link = document.createElement("a");
+                  link.setAttribute("href", encodedUri);
+                  link.setAttribute("download", `attendance_${format(date, 'yyyy-MM-dd')}_L1.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  toast.success("CSV Downloaded!", {
+                    description: "Attendance ledger for today is ready."
                   });
                 }}
               >
                 <Download className="w-4 h-4 text-slate-500" />
-                Export
+                Export CSV
               </Button>
             </div>
 

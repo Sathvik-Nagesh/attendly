@@ -1,0 +1,174 @@
+"use client";
+
+import { useState } from "react";
+import { Header } from "@/components/layout/header";
+import { PageTransition } from "@/components/ui/page-transition";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { GraduationCap, ArrowRight, ShieldCheck, AlertTriangle, History, RefreshCcw } from "lucide-react";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+
+const CLASSES = [
+  { id: "1", name: "CS-Year 1", students: 54, year: 2023 },
+  { id: "2", name: "CS-Year 2", students: 48, year: 2023 },
+  { id: "3", name: "Physics-Final", students: 32, year: 2023, isFinal: true },
+];
+
+export default function PromotionPage() {
+  const [selectedClasses, setSelectedClasses] = useState<Set<string>>(new Set());
+  const [isPromoting, setIsPromoting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const toggleClass = (id: string) => {
+    const next = new Set(selectedClasses);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedClasses(next);
+  };
+
+  const handlePromote = () => {
+    setIsPromoting(true);
+    setTimeout(() => {
+      setIsPromoting(false);
+      setShowConfirm(false);
+      setSelectedClasses(new Set());
+      toast.success("Batch Promotion Successful!", {
+        description: "Year 2023 records archived. Students moved to Year 2024 classes."
+      });
+    }, 2500);
+  };
+
+  return (
+    <PageTransition>
+      <div className="flex flex-col h-full">
+        <Header title="Promotion Center" />
+        
+        <div className="flex-1 py-8 space-y-8 max-w-5xl mx-auto w-full pb-20">
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Academic Year Transition</h2>
+            <p className="text-slate-500">Bulk promote students or manage graduation for the 2023-24 batch.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="p-6 md:col-span-2 border-slate-200 shadow-sm rounded-2xl bg-white space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                  <RefreshCcw className="w-4 h-4 text-blue-500" />
+                  Select Batches to Promote
+                </h3>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedClasses.size} Selected</span>
+              </div>
+
+              <div className="space-y-3">
+                {CLASSES.map((c) => (
+                  <div 
+                    key={c.id} 
+                    onClick={() => toggleClass(c.id)}
+                    className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between ${
+                      selectedClasses.has(c.id) 
+                        ? 'border-blue-500 bg-blue-50/50' 
+                        : 'border-slate-100 hover:border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedClasses.has(c.id) ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-400'}`}>
+                        {c.isFinal ? <GraduationCap className="w-5 h-5" /> : <RefreshCcw className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-900">{c.name}</p>
+                        <p className="text-xs text-slate-500">{c.students} Students • Batch {c.year}</p>
+                      </div>
+                    </div>
+                    {selectedClasses.has(c.id) && <ShieldCheck className="w-6 h-6 text-blue-600" />}
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <Button 
+                    disabled={selectedClasses.size === 0}
+                    onClick={() => setShowConfirm(true)}
+                    className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-8 font-bold h-12 shadow-lg shadow-slate-200"
+                >
+                    Review Promotion
+                </Button>
+              </div>
+            </Card>
+
+            <div className="space-y-6">
+               <Card className="p-6 border-slate-200 shadow-sm rounded-2xl bg-slate-900 text-white">
+                  <h4 className="font-bold mb-4 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                    Crucial Notes
+                  </h4>
+                  <ul className="text-xs space-y-3 text-slate-300">
+                    <li>• History will be archived. Attendance resets to 0% for the new year.</li>
+                    <li>• Roll numbers remain unchanged.</li>
+                    <li>• Graduation status will be applied to Final Year students.</li>
+                  </ul>
+               </Card>
+               
+               <Card className="p-6 border-slate-200 shadow-sm rounded-2xl bg-white">
+                  <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <History className="w-4 h-4 text-slate-400" />
+                    Recent Logs
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="text-[10px] text-slate-400 font-bold uppercase pb-1 border-b border-slate-100">June 2023</div>
+                    <div className="text-xs">
+                        <p className="font-bold text-slate-700">Medical Batch Promoted</p>
+                        <p className="text-slate-400">120 students moved to Year 3</p>
+                    </div>
+                  </div>
+               </Card>
+            </div>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {showConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl"
+                >
+                    <div className="p-8 text-center space-y-6">
+                        <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto ring-8 ring-blue-50/50">
+                            {isPromoting ? <RefreshCcw className="w-10 h-10 animate-spin" /> : <GraduationCap className="w-10 h-10" />}
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-2xl font-bold text-slate-900">Final Confirmation</h3>
+                            <p className="text-slate-500 text-sm">
+                                You are about to promote <strong>{selectedClasses.size} batches</strong>. This will finalize current academic records.
+                            </p>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-3 text-left">
+                           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                           <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                             This action is irreversible. All current attendance percentages will be cleared for selected students.
+                           </p>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <Button 
+                                onClick={handlePromote} 
+                                disabled={isPromoting}
+                                className="h-14 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl"
+                            >
+                                {isPromoting ? "Promoting..." : "Confirm & Execute"}
+                            </Button>
+                            <Button variant="ghost" className="h-10 text-slate-400" onClick={() => setShowConfirm(false)}>Cancel</Button>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </PageTransition>
+  );
+}

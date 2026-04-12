@@ -12,6 +12,7 @@ import {
   Settings,
   SearchCode,
   Activity,
+  RefreshCcw,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -21,6 +22,7 @@ const sidebarLinks = [
   { name: "Attendance", href: "/attendance", icon: CheckCircle },
   { name: "Students", href: "/students", icon: Users },
   { name: "Classes", href: "/classes", icon: GraduationCap },
+  { name: "Promotion Center", href: "/promotion", icon: RefreshCcw },
   { name: "Pattern Audit", href: "/audit", icon: SearchCode },
   { name: "Notifications", href: "/notifications", icon: Bell },
 ];
