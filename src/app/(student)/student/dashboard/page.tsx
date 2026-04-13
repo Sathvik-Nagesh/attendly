@@ -12,7 +12,9 @@ import {
   GraduationCap, 
   FileCheck,
   ClipboardList,
-  Trophy
+  Trophy,
+  RefreshCcw,
+  Trophy as TrophyIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { 

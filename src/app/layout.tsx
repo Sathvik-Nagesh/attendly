@@ -11,9 +11,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "Attendly",
   },
+  icons: {
+    apple: "/icons/icon-192.png",
+  }
 };
 
 export const viewport: Viewport = {
@@ -21,6 +24,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover", // For notch devices and full-screen PWA
 };
 
 export default function RootLayout({
@@ -33,7 +37,25 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-full flex flex-col text-slate-900`}>
         {children}
         <Toaster />
+        
+        {/* PWA Service Worker Registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('SW registered: ', registration.scope);
+                  }, function(err) {
+                    console.log('SW registration failed: ', err);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
 }
+

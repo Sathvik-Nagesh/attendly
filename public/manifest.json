@@ -1,22 +1,45 @@
 {
-  "name": "Attendly - Premium Attendance & Academic Portal",
+  "name": "Attendly — Academic Management Suite",
   "short_name": "Attendly",
-  "description": "The ultimate campus management system for students, parents, and faculty.",
-  "start_url": "/dashboard",
+  "description": "High-performance attendance and academic tracking for modern educational institutions.",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "orientation": "any",
+  "background_color": "#f8fafc",
   "theme_color": "#2563eb",
+  "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Attendance",
+      "url": "/attendance",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Students",
+      "url": "/students",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/hero-preview.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Admin Dashboard",
+      "form_factor": "wide"
     }
   ]
 }
