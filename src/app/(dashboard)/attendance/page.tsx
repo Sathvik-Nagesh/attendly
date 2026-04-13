@@ -134,7 +134,7 @@ export default function AttendancePage() {
                 </SelectContent>
               </Select>
 
-              <Select value={selectedLecture} onValueChange={setSelectedLecture}>
+              <Select value={selectedLecture} onValueChange={(val) => val && setSelectedLecture(val)}>
                 <SelectTrigger className="w-[180px] h-10 border-slate-200 bg-white shadow-sm font-semibold rounded-xl text-slate-700">
                   <SelectValue placeholder="Select Lecture" />
                 </SelectTrigger>
