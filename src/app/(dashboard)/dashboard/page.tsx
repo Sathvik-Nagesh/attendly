@@ -4,12 +4,17 @@ import { useState } from "react";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Card } from "@/components/ui/card";
-import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight, MessageSquare, AlertCircle } from "lucide-react";
+import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight, MessageSquare, AlertCircle, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+
+// Import export libraries
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 const weeklyData = [
   { name: "Mon", present: 45, absent: 5 },
@@ -96,13 +101,74 @@ export default function DashboardPage() {
   const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
   const activeData = timeframe === 'week' ? weeklyData : monthlyData;
 
-  const generateReport = (name: string) => {
-    setIsGenerating(name);
+  const handleExportPDF = () => {
+    setIsGenerating('PDF');
+    toast.loading("Generating Defaulter List...");
+
     setTimeout(() => {
-      setIsGenerating(null);
-      toast.success(`${name} downloaded.`, {
-        description: "Checking system directories for ledger completion."
-      });
+        const doc = new jsPDF() as any;
+        
+        // College Header
+        doc.setFontSize(22);
+        doc.setTextColor(15, 23, 42); // slate-900
+        doc.text("Attendly College Portal", 105, 20, { align: "center" });
+        
+        doc.setFontSize(12);
+        doc.setTextColor(100);
+        doc.text("Official Defaulter List - Attendance below 75%", 105, 30, { align: "center" });
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 38, { align: "center" });
+        
+        // Line
+        doc.setDrawColor(226, 232, 240);
+        doc.line(20, 45, 190, 45);
+
+        // Sample Data for PDF Table
+        const defaulterData = [
+            ["1", "Brandon Cooper", "CS-02", "B.Tech CS", "68%"],
+            ["2", "George Harris", "CS-07", "Physics Hons", "61%"],
+            ["3", "Vihaan Gupta", "CS-13", "B.Tech CS", "72%"],
+            ["4", "Derek Evans", "CS-04", "Physics Hons", "74%"],
+        ];
+
+        doc.autoTable({
+            startY: 55,
+            head: [['#', 'Student Name', 'Roll Number', 'Department', 'Attendance']],
+            body: defaulterData,
+            theme: 'grid',
+            headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+            styles: { fontSize: 10, cellPadding: 5 },
+        });
+
+        doc.save("attendly_defaulter_list.pdf");
+        setIsGenerating(null);
+        toast.dismiss();
+        toast.success("Defaulter List (PDF) exported successfully!");
+    }, 1500);
+  };
+
+  const handleExportExcel = () => {
+    setIsGenerating('XLS');
+    toast.loading("Compiling Monthly Ledger...");
+
+    setTimeout(() => {
+        const ledgerData = [
+            { id: "1", name: "Alena Smith", roll: "CS-01", department: "B.Tech CS", attendance: "98%", status: "Safe" },
+            { id: "2", name: "Brandon Cooper", roll: "CS-02", department: "B.Tech CS", attendance: "68%", status: "Risk" },
+            { id: "3", name: "Cynthia Davis", roll: "CS-03", department: "B.Tech CS", attendance: "92%", status: "Safe" },
+            { id: "4", name: "Derek Evans", roll: "CS-04", department: "Physics Hons", attendance: "74%", status: "Risk" },
+        ];
+
+        const worksheet = XLSX.utils.json_to_sheet(ledgerData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Ledger");
+        
+        // Fix headers
+        XLSX.utils.sheet_add_aoa(worksheet, [["ID", "Student Name", "Roll Number", "Department", "Attendance %", "Status"]], { origin: "A1" });
+
+        XLSX.writeFile(workbook, "attendly_monthly_ledger.xlsx");
+        setIsGenerating(null);
+        toast.dismiss();
+        toast.success("Monthly Ledger (XLS) exported successfully!");
     }, 1500);
   };
 
@@ -112,7 +178,6 @@ export default function DashboardPage() {
         <Header title="Dashboard" />
 
         <div className="flex-1 py-8 space-y-6">
-          {/* Top Headline Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatCard
               title="Students Enrolled"
@@ -141,7 +206,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Chart Section (2/3 width) */}
             <div className="lg:col-span-2 space-y-6">
               <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
                 <div className="mb-8 flex items-center justify-between">
@@ -178,18 +242,18 @@ export default function DashboardPage() {
               </Card>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Reports simplified */}
                 <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
                   <h3 className="text-sm font-bold text-slate-900 mb-4">Quick Exports</h3>
                   <div className="space-y-3">
                     <Button 
                         variant="outline" 
                         size="sm"
+                        disabled={isGenerating !== null}
                         className="w-full justify-between h-12 rounded-lg border-slate-100 font-semibold group"
-                        onClick={() => generateReport('Defaulters')}
+                        onClick={handleExportPDF}
                     >
                         <div className="flex items-center gap-2">
-                             <FileText className="w-4 h-4 text-rose-500" />
+                             {isGenerating === 'PDF' ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4 text-rose-500" />}
                              <span>Defaulter List (PDF)</span>
                         </div>
                         <ArrowRight className="w-3 h-3 text-slate-300 group-hover:translate-x-1 transition-transform" />
@@ -197,11 +261,12 @@ export default function DashboardPage() {
                     <Button 
                         variant="outline" 
                         size="sm"
+                        disabled={isGenerating !== null}
                         className="w-full justify-between h-12 rounded-lg border-slate-100 font-semibold group"
-                        onClick={() => generateReport('Ledger')}
+                        onClick={handleExportExcel}
                     >
                         <div className="flex items-center gap-2">
-                             <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                             {isGenerating === 'XLS' ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 text-emerald-500" />}
                              <span>Monthly Sheet (XLS)</span>
                         </div>
                         <ArrowRight className="w-3 h-3 text-slate-300 group-hover:translate-x-1 transition-transform" />
@@ -209,7 +274,6 @@ export default function DashboardPage() {
                   </div>
                 </Card>
 
-                {/* Activity Feed simplified */}
                 <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
                     <h3 className="text-sm font-bold text-slate-900 mb-4">Recent Activity</h3>
                     <div className="space-y-4">
@@ -229,9 +293,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Sidebar Section (1/3 width) */}
             <div className="space-y-6">
-              {/* SMS Gateway status */}
               <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
                 <div className="flex items-center justify-between mb-6">
                    <h3 className="text-sm font-bold text-slate-900">SMS Outbox</h3>
@@ -264,7 +326,6 @@ export default function DashboardPage() {
                 </div>
               </Card>
 
-              {/* Quick Summary Card */}
               <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white flex flex-col gap-4">
                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-blue-600 shadow-sm">
