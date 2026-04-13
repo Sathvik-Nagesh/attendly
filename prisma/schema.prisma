@@ -17,16 +17,27 @@ model Class {
 }
 
 model Student {
-  id          String          @id @default(cuid())
-  name        String
-  rollNumber  String
-  phone       String?
-  batch       String?         // "Batch A", "Batch B", etc.
-  classId     String
-  class       Class           @relation(fields: [classId], references: [id])
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  attendances AttendanceLog[]
+  id              String          @id @default(cuid())
+  name            String
+  rollNumber      String          @unique
+  phone           String?
+  batch           String?         // "Batch A", "Batch B", etc.
+  classId         String
+  class           Class           @relation(fields: [classId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  attendances     AttendanceLog[]
+
+  // Marks Data
+  cia1Marks       Float?          @default(0)
+  cia2Marks       Float?          @default(0)
+  test1Marks      Float?          @default(0)
+  test2Marks      Float?          @default(0)
+  assignmentMarks Float?          @default(0)
+  
+  // Auth
+  password        String?         @default("student123")
+  role            String          @default("STUDENT")
 }
 
 model AttendanceLog {
