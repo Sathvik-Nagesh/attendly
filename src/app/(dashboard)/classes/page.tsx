@@ -91,7 +91,11 @@ export default function ClassesPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredClasses.map((cls) => (
-              <Card key={cls.id} className="p-6 border-slate-200 shadow-sm rounded-2xl bg-white hover:shadow-md transition-shadow group relative overflow-hidden">
+              <Card 
+                key={cls.id} 
+                className="p-6 border-slate-200 shadow-sm rounded-2xl bg-white hover:shadow-md transition-shadow group relative overflow-hidden cursor-pointer"
+                onClick={() => handleAction('edit', cls)}
+              >
                 <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500 pointer-events-none" />
                 
                 <div className="flex justify-between items-start mb-4 relative z-10">
@@ -100,7 +104,10 @@ export default function ClassesPage() {
                   </div>
                   
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 opacity-0 group-hover:opacity-100 transition-all outline-none">
+                    <DropdownMenuTrigger 
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 opacity-0 group-hover:opacity-100 transition-all outline-none"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40 rounded-xl p-1 bg-white border border-slate-200 shadow-xl">

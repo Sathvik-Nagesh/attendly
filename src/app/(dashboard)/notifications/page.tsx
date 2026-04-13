@@ -6,8 +6,9 @@ import { Card } from "@/components/ui/card";
 import { CheckCircle2, XCircle, Clock, MessageSquare, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
-const notifications = [
+const INITIAL_NOTIFICATIONS = [
   {
     id: 1,
     title: "Attendance saved for Computer Science 101",
@@ -32,6 +33,23 @@ const notifications = [
 ];
 
 export default function NotificationsPage() {
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newNotif = {
+        id: Date.now(),
+        title: "System Update: Syncing External Data",
+        description: "Successfully updated student roll data from central database.",
+        timestamp: new Date(),
+        status: "success" as const
+      };
+      setNotifications(prev => [newNotif, ...prev.slice(0, 4)]);
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <PageTransition>
       <div className="flex flex-col min-h-full">

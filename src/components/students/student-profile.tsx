@@ -49,11 +49,14 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
           className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col border-l border-slate-100"
         >
           {/* Header */}
-          <div className="p-6 pb-0 flex items-center justify-between">
+          <div className="p-6 pb-0 flex items-center justify-between relative z-10">
             <h3 className="text-xl font-bold text-slate-900">Student Profile</h3>
             <button 
-                onClick={onClose}
-                className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
             >
                 <X className="w-5 h-5" />
             </button>

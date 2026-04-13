@@ -47,8 +47,22 @@ export default function ProxyAuditPage() {
             <div>
               <h3 className="text-amber-900 font-semibold mb-1">Pattern Recognition Active</h3>
               <p className="text-amber-700 text-sm">
-                Our system has detected specific lecture-wise absence patterns. These students might be skipping specific periods even if they attend others.
+                Our pattern recognition engine analyzes attendance data in batches to identify anomalies and suspicious trends.
               </p>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3 bg-white/50 rounded-xl border border-amber-200/50">
+                  <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1">How it works</p>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    We compare timestamps and lecture sequences across sessions. If a student is marked present in early lectures but absent later, it triggers a "Late Departure" pattern.
+                  </p>
+                </div>
+                <div className="p-3 bg-white/50 rounded-xl border border-amber-200/50">
+                  <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1">Status</p>
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    Analysis is currently performing batch processing on today's session data. Notifications are sent to HODs daily at 5:00 PM.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
