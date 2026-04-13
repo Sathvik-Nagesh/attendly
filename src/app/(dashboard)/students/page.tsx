@@ -109,21 +109,6 @@ export default function StudentsPage() {
                   <UploadCloud className="w-4 h-4 mr-2 text-slate-500" />
                   Import CSV
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] rounded-2xl p-0 overflow-hidden bg-white text-slate-900 border border-slate-200">
-                  <div className="p-6">
-                    <motion.div
-                      key={importStatus}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <DialogHeader className="mb-4">
-                        <DialogTitle className="text-xl">Import Students</DialogTitle>
-                        <DialogDescription>
-                          Upload your CSV or Excel file to quickly import your roster.
-                        </DialogDescription>
-                      </DialogHeader>
-                      
                 <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] p-0 overflow-hidden bg-white text-slate-900 border border-slate-200 shadow-2xl">
                   <div className="p-8 space-y-6">
                     <DialogHeader>
@@ -133,7 +118,6 @@ export default function StudentsPage() {
                       </DialogDescription>
                     </DialogHeader>
                     
-                    {/* Format Guide */}
                     <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-2xl space-y-3">
                         <div className="flex items-center gap-2 text-blue-700">
                              <AlertCircle className="w-4 h-4" />
@@ -147,7 +131,6 @@ export default function StudentsPage() {
                             onClick={(e) => {
                                 e.preventDefault();
                                 toast.success("Sample template downloaded!");
-                                // Simulating download
                                 const blob = new Blob(["name,roll,email,class,attendance\nJohn Doe,CS-01,john@edu.com,CS 101,95%"], {type: 'text/csv'});
                                 const url = window.URL.createObjectURL(blob);
                                 const a = document.createElement('a');
@@ -194,11 +177,10 @@ export default function StudentsPage() {
                                 className="h-full bg-blue-600 rounded-full"
                               />
                            </div>
-                              <p className="text-xs text-slate-400">Please do not refresh the page</p>
-                           </div>
+                           <p className="text-xs text-slate-400">Please do not refresh the page</p>
                         </div>
                       )}
-                    </motion.div>
+                    </div>
                   </div>
                   <div className="p-6 pt-0 flex justify-end gap-3 outline-none">
                     <Button variant="ghost" className="rounded-xl font-semibold" onClick={() => setIsImportOpen(false)}>Cancel</Button>
