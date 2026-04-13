@@ -15,6 +15,12 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+// Mock Profile for Autofill
+const USER_PROFILE = {
+    name: "Prof. Srushti",
+    role: "Teacher / Admin"
+};
+
 const INITIAL_REGISTRY = [
   { id: "1", name: "B.Tech CS", section: "A", year: "2", studentsCount: 45, owner: "Prof. Sneha" },
   { id: "2", name: "B.Tech CS", section: "B", year: "2", studentsCount: 38, owner: "Prof. Amit" },
@@ -47,11 +53,11 @@ export default function ClassesPage() {
   const [isClaimOpen, setIsClaimOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   
-  // New Registry Form State
+  // New Registry Form State - Autofilled with Profile Name
   const [newRegName, setNewRegName] = useState("");
   const [newRegSection, setNewRegSection] = useState("");
   const [newRegYear, setNewRegYear] = useState("1");
-  const [newRegTeacher, setNewRegTeacher] = useState("");
+  const [newRegTeacher, setNewRegTeacher] = useState(USER_PROFILE.name);
 
   const [claimSubject, setClaimSubject] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,8 +75,9 @@ export default function ClassesPage() {
           return;
       }
 
+      const generatedId = `reg-${Date.now()}`;
       const newEntry = {
-          id: `reg-${Date.now()}`,
+          id: generatedId,
           name: newRegName,
           section: newRegSection,
           year: newRegYear,
@@ -78,16 +85,32 @@ export default function ClassesPage() {
           owner: newRegTeacher
       };
 
+      // Add to Global Registry
       setRegistry(prev => [newEntry, ...prev]);
+
+      // Add to "My Portfolio" automatically for the creator
+      const myPortfolioEntry = {
+          ...newEntry,
+          role: "Class Teacher",
+          subject: "Class Coordination"
+      };
+      setMyClasses(prev => [myPortfolioEntry, ...prev]);
+
       setIsAddOpen(false);
       
-      // Reset form
+      // Navigate to My Portfolio to show the result
+      setActiveTab('my');
+
+      // Feedback with choice to import now
+      toast.success(`${newRegName} created & pinned to your portfolio!`, {
+          description: "Click into the class to import students.",
+          duration: 5000,
+      });
+
+      // Reset form (keep teacher name for next time)
       setNewRegName("");
       setNewRegSection("");
       setNewRegYear("1");
-      setNewRegTeacher("");
-
-      toast.success(`Successfully created registry for ${newRegName}`);
   };
 
   const handleClaim = () => {
@@ -142,10 +165,15 @@ export default function ClassesPage() {
 
         setStudents(prev => [...newStudents, ...prev]);
         
-        // Update registry count
+        // Update registry counts for both global and local tabs
         setRegistry(prev => prev.map(c => 
             c.id === selectedClass?.id 
             ? { ...c, studentsCount: c.studentsCount + newStudents.length } 
+            : c
+        ));
+        setMyClasses(prev => prev.map(c => 
+            c.id === selectedClass?.id 
+            ? { ...c, studentsCount: (c.studentsCount || 0) + newStudents.length } 
             : c
         ));
 
@@ -278,7 +306,7 @@ export default function ClassesPage() {
                                     <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <Users className="w-3.5 h-3.5 text-slate-400" />
-                                            <span className="text-xs font-semibold text-slate-700">{cls.studentsCount} Students</span>
+                                            <span className="text-xs font-semibold text-slate-700">{cls.studentsCount || 0} Students</span>
                                         </div>
                                         <div className="flex items-center gap-1 font-bold text-slate-300 text-[9px] uppercase">
                                             SEC {cls.section} <ChevronRight className="w-3 h-3" />
@@ -349,14 +377,14 @@ export default function ClassesPage() {
                                     Year {selectedClass?.year}
                                 </span>
                             </div>
-                            <p className="text-xs text-slate-400">Class Teacher: {selectedClass?.owner || selectedClass?.role}</p>
+                            <p className="text-xs text-slate-400">Class Teacher: {selectedClass?.owner || selectedClass?.role || USER_PROFILE.name}</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <Card className="p-5 rounded-xl border-slate-200">
                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Students</p>
-                            <p className="text-xl font-bold text-slate-900">{students.filter(s => s.classId === selectedClass?.id).length || selectedClass?.studentsCount}</p>
+                            <p className="text-xl font-bold text-slate-900">{students.filter(s => s.classId === selectedClass?.id).length || selectedClass?.studentsCount || 0}</p>
                         </Card>
                         <Card className="p-5 rounded-xl border-slate-200">
                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Section</p>
@@ -472,9 +500,9 @@ export default function ClassesPage() {
                     <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold text-sm">Cancel</Button>
                     <Button 
                         onClick={handleCreateRegistry}
-                        className="rounded-xl bg-slate-900 text-white font-bold px-8 hover:bg-slate-800"
+                        className="rounded-xl bg-slate-900 text-white font-bold px-8 hover:bg-slate-800 shadow-md"
                     >
-                        Create Registry
+                        Create & Pin
                     </Button>
                 </DialogFooter>
             </DialogContent>
