@@ -54,24 +54,5 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash);
 }
 
-// ─── Security Headers ─────────────────────────────────────────
 
-/**
- * Returns a CSP header string.
- */
-export function getCSPHeader(): string {
-  const isDev = process.env.NODE_ENV === "development";
-  
-  const policies = {
-    "default-src": ["'self'"],
-    "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // unsafe-eval needed for Next.js dev
-    "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-    "img-src": ["'self'", "data:", "https://i.pravatar.cc", "https://images.unsplash.com"],
-    "font-src": ["'self'", "https://fonts.gstatic.com"],
-    "connect-src": ["'self'"],
-  };
-
-  return Object.entries(policies)
-    .map(([key, val]) => `${key} ${val.join(" ")}`)
-    .join("; ");
-}
+// Note: getCSPHeader moved to @/lib/middleware-utils.ts for Edge Compatibility

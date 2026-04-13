@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { PUBLIC_ROUTES, ROLE_ROUTE_MAP } from "@/lib/constants";
 import type { Role } from "@/types";
-import { getCSPHeader } from "@/lib/security";
+import { getCSPHeader } from "@/lib/middleware-utils";
 
 /**
  * Extract user session from the request.
