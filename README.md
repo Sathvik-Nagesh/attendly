@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Attendly (Gradence) - Premium Academic Ecosystem
 
-## Getting Started
+**Attendly** is a state-of-the-art, 360-degree campus management platform designed for modern educational institutions. It bridges the gap between faculty, students, and parents with a high-performance, real-time interface.
 
-First, run the development server:
+![Attendly Dashboard Mockup](https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1200)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ The Triple-Portal Ecosystem
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 👨‍🏫 1. Faculty Command Center
+*   **Rapid Marking**: Dense grid-mode for attendance marking in under 30 seconds.
+*   **Double Period Support**: Single-click marking for multi-lecture sessions.
+*   **Live SMS Queue**: Real-time tracking of parent notifications via simulated MSG91/WhatsApp API.
+*   **Promotion Center**: Manage academic lifecycles with bulk batch transitions and graduation logic.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🎓 2. Student Growth Portal
+*   **Internal Assessment Focus**: Real-time tracking of CIA, Test, and Assignment marks.
+*   **Attendance Recovery Goal**: An intelligent calculator that tells students exactly how many next classes they must attend to hit eligibility.
+*   **Digital Hall Ticket Eligibility**: Automated locking/unlocking of exam permits based on real-time data.
+*   **Performance Stability**: Interactive Recharts visualizations showing weekly engagement trends.
 
-## Learn More
+### 🏠 3. Parent Family Hub
+*   **Risk Mitigation**: Instant colored alerts (Red/Yellow/Green) for attendance shortages or performance drops.
+*   **Smart Insights**: Human-readable academic advice generated from raw student data.
+*   **Faculty Direct**: Quick-actions to contact department heads or school admin regarding leave.
+*   **Presence Timeline**: A transparent view of their child's daily period-by-period location.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Technical Excellence
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+*   **Core**: [Next.js 15+](https://nextjs.org/) (App Router & Turbopack)
+*   **Database**: [Prisma](https://www.prisma.io/) with PostgreSQL
+*   **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Framer Motion](https://www.framer.com/motion/)
+*   **Charts**: [Recharts](https://recharts.org/) for academic analytics
+*   **PWA**: Fully installable on iOS/Android with offline caching and standalone mode.
+*   **Components**: Radix UI + Shadcn/UI for a premium, accessible interface.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Getting Started
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Clone & Install**:
+   ```bash
+   npm install
+   ```
+
+2. **Environment Setup**:
+   Copy `.env.example` to `.env` and configure your Database URL and SMS API keys.
+
+3. **Database Migration**:
+   ```bash
+   npx prisma migrate dev
+   ```
+
+4. **Run Development**:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 📱 PWA Features
+Attendly is built as a **Progressive Web App**. Visit the site on your mobile browser and select **"Add to Home Screen"** to experience a zero-latency native feel.
+
+---
+
+## 🏷️ Brand Vision
+Attendly (internally code-named **Gradence**) aims to reduce institutional friction by 40% through automated notifications and real-time academic transparency.
+
+---
+
+**Built with ❤️ for Modern Education.**

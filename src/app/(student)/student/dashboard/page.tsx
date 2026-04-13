@@ -11,7 +11,8 @@ import {
   TrendingUp, 
   GraduationCap, 
   FileCheck,
-  ClipboardList
+  ClipboardList,
+  Trophy
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { 
@@ -239,11 +240,35 @@ export default function StudentDashboard() {
                  </div>
 
                  {isLowAttendance && (
-                    <div className="mt-8 p-4 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
-                        <div>
-                            <p className="text-sm font-bold text-red-900">Low Attendance Warning</p>
-                            <p className="text-xs text-red-600">Your attendance is below 75%. You may experience issues in final hall ticket generation.</p>
+                    <div className="mt-8 p-6 rounded-[2rem] bg-rose-50 border border-rose-100 space-y-4">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-rose-200">
+                                <Activity className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-rose-900">Attendance Recovery Goal</p>
+                                <p className="text-xs text-rose-600/80 font-medium">You need <strong>3% more</strong> to hit the 75% exam eligibility threshold.</p>
+                            </div>
+                        </div>
+                        <div className="bg-white/50 p-4 rounded-2xl border border-rose-200/50">
+                             <p className="text-xs font-bold text-rose-800 flex items-center gap-2">
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                Must attend next <strong>4 lectures</strong> consecutively.
+                             </p>
+                        </div>
+                    </div>
+                 )}
+
+                 {!isLowAttendance && (
+                    <div className="mt-8 p-6 rounded-[2rem] bg-emerald-50 border border-emerald-100 space-y-4">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-200">
+                                <Trophy className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-emerald-900">Exam Eligibility Locked</p>
+                                <p className="text-xs text-emerald-600/80 font-medium">You have maintained ≥75% attendance. Hall ticket will be available soon.</p>
+                            </div>
                         </div>
                     </div>
                  )}
