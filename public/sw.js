@@ -1,4 +1,4 @@
-const CACHE_NAME = 'attendly-v2';
+const CACHE_NAME = 'Attendex-v2';
 const APP_ASSETS = [
   '/',
   '/manifest.json',
@@ -46,9 +46,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then(response => {
-           const copy = response.clone();
-           caches.open('attendly-data').then(cache => cache.put(request, copy));
-           return response;
+          const copy = response.clone();
+          caches.open('Attendex-data').then(cache => cache.put(request, copy));
+          return response;
         })
         .catch(() => caches.match(request))
     );

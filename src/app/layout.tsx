@@ -6,13 +6,13 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Attendly - Premium Attendance System",
+  title: "Attendex - Premium Attendance System",
   description: "Advanced college attendance and academic monitoring system",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Attendly",
+    title: "Attendex",
   },
   icons: {
     apple: "/icons/icon-192.png",
@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-full flex flex-col text-slate-900`}>
         {children}
         <Toaster />
-        
+
         {/* PWA Service Worker Registration */}
         <script
           dangerouslySetInnerHTML={{

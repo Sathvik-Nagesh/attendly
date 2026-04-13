@@ -1,5 +1,5 @@
 /**
- * Attendly — Notification Service
+ * Attendex — Notification Service
  * 
  * Provider-agnostic notification abstraction.
  * Swappable between MSG91, WhatsApp, Email, or Console (dev).

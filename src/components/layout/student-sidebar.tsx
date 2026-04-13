@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  History, 
-  User, 
-  Settings, 
+import {
+  LayoutDashboard,
+  BookOpen,
+  History,
+  User,
+  Settings,
   LogOut,
   Sparkles,
   PieChart
@@ -31,7 +31,7 @@ export function StudentSidebar() {
           <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
             <Sparkles className="w-5 h-5 fill-current" />
           </div>
-          <span className="text-xl font-extrabold text-slate-900 tracking-tight">Attendly</span>
+          <span className="text-xl font-extrabold text-slate-900 tracking-tight">Attendex</span>
         </div>
 
         <nav className="space-y-1">
@@ -58,15 +58,15 @@ export function StudentSidebar() {
 
       <div className="mt-auto p-8 pt-4 space-y-4">
         <div className="p-5 bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2rem] text-white overflow-hidden relative group">
-           <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-500" />
-           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Status</p>
-           <p className="text-sm font-bold">Good Standing</p>
-           <div className="mt-3 flex items-center gap-2">
-              <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
-                 <div className="h-full bg-emerald-400 w-[85%] rounded-full" />
-              </div>
-              <span className="text-[10px] font-bold">85%</span>
-           </div>
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-500" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Status</p>
+          <p className="text-sm font-bold">Good Standing</p>
+          <div className="mt-3 flex items-center gap-2">
+            <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-400 w-[85%] rounded-full" />
+            </div>
+            <span className="text-[10px] font-bold">85%</span>
+          </div>
         </div>
 
         <button className="flex items-center w-full px-4 py-3 text-sm font-semibold text-slate-500 rounded-2xl hover:bg-red-50 hover:text-red-600 transition-all group">

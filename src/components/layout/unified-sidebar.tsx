@@ -1,5 +1,5 @@
 /**
- * Attendly — Unified Sidebar Component
+ * Attendex — Unified Sidebar Component
  * 
  * Replaces 3 near-identical sidebar files (sidebar.tsx, student-sidebar.tsx,
  * parent-sidebar.tsx) with a single configurable component.
@@ -33,9 +33,11 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 // ─── Route Configurations ────────────────────────────────────
 
@@ -46,51 +48,63 @@ interface SidebarLink {
 }
 
 const ADMIN_LINKS: SidebarLink[] = [
-  { name: "Dashboard",        href: "/dashboard",     icon: LayoutDashboard },
-  { name: "Campus Pulse",     href: "/pulse",         icon: Activity },
-  { name: "Attendance",       href: "/attendance",    icon: CheckCircle },
-  { name: "Students",         href: "/students",      icon: Users },
-  { name: "Classes",          href: "/classes",        icon: GraduationCap },
-  { name: "Promotion Center", href: "/promotion",     icon: RefreshCcw },
-  { name: "Pattern Audit",    href: "/audit",         icon: SearchCode },
-  { name: "Notifications",    href: "/notifications", icon: Bell },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Campus Pulse", href: "/pulse", icon: Activity },
+  { name: "Students", href: "/students", icon: Users },
+  { name: "Classes", href: "/classes", icon: GraduationCap },
+  { name: "Promotion Center", href: "/promotion", icon: RefreshCcw },
+  { name: "Pattern Audit", href: "/audit", icon: SearchCode },
+  { name: "Notifications", href: "/notifications", icon: Bell },
 ];
 
 const STUDENT_LINKS: SidebarLink[] = [
-  { name: "Dashboard",        href: "/student/dashboard", icon: LayoutDashboard },
-  { name: "Marks & Grades",   href: "/student/marks",     icon: BookOpen },
-  { name: "Attendance Log",   href: "/student/history",   icon: History },
-  { name: "My Profile",       href: "/student/profile",   icon: UserRound },
+  { name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
+  { name: "Marks & Grades", href: "/student/marks", icon: BookOpen },
+  { name: "Attendance Log", href: "/student/history", icon: History },
+  { name: "My Profile", href: "/student/profile", icon: UserRound },
 ];
 
 const PARENT_LINKS: SidebarLink[] = [
-  { name: "Overview",         href: "/parent/dashboard",     icon: Home },
-  { name: "Academic Standing",href: "/parent/marks",         icon: BookOpen },
-  { name: "Attendance History",href: "/parent/history",      icon: History },
-  { name: "Notifications",    href: "/parent/notifications", icon: Bell },
+  { name: "Overview", href: "/parent/dashboard", icon: Home },
+  { name: "Academic Standing", href: "/parent/marks", icon: BookOpen },
+  { name: "Attendance History", href: "/parent/history", icon: History },
+  { name: "Notifications", href: "/parent/notifications", icon: Bell },
 ];
 
 const VARIANT_CONFIG = {
   admin: {
     links: ADMIN_LINKS,
-    title: "Attendly",
+    title: "Attendex",
     subtitle: "Administration",
     showSettings: true,
     accentColor: "blue",
   },
   student: {
     links: STUDENT_LINKS,
-    title: "Attendly",
+    title: "Attendex",
     subtitle: "Student Portal",
     showSettings: false,
     accentColor: "indigo",
   },
   parent: {
     links: PARENT_LINKS,
-    title: "Attendly",
+    title: "Attendex",
     subtitle: "Family Portal",
     showSettings: false,
     accentColor: "rose",
+  },
+  teacher: {
+    links: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Attendance", href: "/attendance", icon: CheckCircle },
+      { name: "Students", href: "/students", icon: Users },
+      { name: "Classes", href: "/classes", icon: GraduationCap },
+      { name: "Alerts", href: "/notifications", icon: Bell },
+    ],
+    title: "Attendex",
+    subtitle: "Faculty Portal",
+    showSettings: true,
+    accentColor: "blue",
   },
 } as const;
 
@@ -107,7 +121,7 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const config = VARIANT_CONFIG[variant];
-  
+
   const accentBg = `bg-${config.accentColor}-600`;
   const activeClasses = {
     blue: { bg: "bg-blue-50", border: "border-blue-100/50", text: "text-blue-700", icon: "text-blue-600" },
@@ -154,7 +168,7 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
             Principal Menu
           </div>
         )}
-        
+
         {config.links.map((link) => {
           const isActive = pathname.startsWith(link.href);
           return (
@@ -190,8 +204,24 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
             {!isCollapsed && <span>Settings</span>}
           </Link>
         )}
-        
-        <button 
+
+        <button
+          onClick={() => {
+            // Logout logic
+            document.cookie = "Attendex-session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+            // Force a full refresh to clear server cache and re-trigger middleware
+            window.location.href = "/login";
+          }}
+          className={cn(
+            "flex items-center gap-3 h-12 rounded-2xl text-sm font-bold text-red-500 hover:text-red-600 hover:bg-red-50 transition-all",
+            isCollapsed ? "px-0 justify-center w-12 mx-auto" : "px-4"
+          )}
+        >
+          <LogOut className="w-5 h-5" />
+          {!isCollapsed && <span>Log Out</span>}
+        </button>
+
+        <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="w-full h-10 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors hidden xl:flex"
         >
@@ -205,7 +235,7 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
     <>
       {/* Mobile Toggle Button */}
       {!isMobileOpen && (
-        <button 
+        <button
           onClick={() => setIsMobileOpen(true)}
           className="fixed top-4 left-4 z-[60] p-3 bg-white border border-slate-200 rounded-2xl shadow-xl text-slate-600 md:hidden hover:scale-110 active:scale-95 transition-all"
         >
@@ -217,14 +247,14 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
       <AnimatePresence>
         {isMobileOpen && (
           <div className="fixed inset-0 z-[70] md:hidden">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            <motion.aside 
+            <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
@@ -232,9 +262,9 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
               className="absolute left-0 top-0 bottom-0 w-[280px] bg-white shadow-2xl flex flex-col pt-2"
             >
               <div className="flex justify-end p-4">
-                 <button onClick={() => setIsMobileOpen(false)} className="p-2 text-slate-400">
-                    <X className="w-6 h-6" />
-                 </button>
+                <button onClick={() => setIsMobileOpen(false)} className="p-2 text-slate-400">
+                  <X className="w-6 h-6" />
+                </button>
               </div>
               <div className="flex-1 overflow-hidden">
                 {SidebarContent}

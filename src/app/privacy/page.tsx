@@ -1,5 +1,5 @@
 /**
- * Attendly — Privacy Policy
+ * Attendex — Privacy Policy
  */
 
 import { Header } from "@/components/layout/header";
@@ -73,13 +73,13 @@ export default function PrivacyPage() {
           <section className="space-y-4">
             <h2 className="text-2xl font-bold text-slate-900">3. Contact Us</h2>
             <p className="text-slate-600 leading-relaxed">
-              If you have any questions about this Privacy Policy or how we handle your data, please contact your institution's administrator or email us at <span className="font-bold text-blue-600">privacy@attendly.edu</span>.
+              If you have any questions about this Privacy Policy or how we handle your data, please contact your institution's administrator or email us at <span className="font-bold text-blue-600">privacy@Attendex.edu</span>.
             </p>
           </section>
         </div>
 
         <div className="pt-12 border-t border-slate-200 text-center">
-          <p className="text-sm text-slate-400 font-medium">© 2026 Attendly Systems. All rights reserved.</p>
+          <p className="text-sm text-slate-400 font-medium">© 2026 Attendex Systems. All rights reserved.</p>
         </div>
       </div>
     </div>

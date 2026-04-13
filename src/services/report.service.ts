@@ -1,5 +1,5 @@
 /**
- * Attendly — Report Generation Service
+ * Attendex — Report Generation Service
  * 
  * Centralizes all report logic (Defaulter List, Monthly Sheet, etc.)
  * Previously this was inline setTimeout calls scattered across 3 pages.

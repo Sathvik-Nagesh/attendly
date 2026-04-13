@@ -1,4 +1,4 @@
-# 🎯 Attendly: Production-Grade Attendance Ecosystem
+# 🎯 Attendex: Production-Grade Attendance Ecosystem
 
 [![Next.js](https://img.shields.io/badge/Next.js-16+-black?logo=next.js)](https://nextjs.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma)](https://prisma.io/)
@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://typescriptlang.org/)
 [![Security](https://img.shields.io/badge/Security-Audit_Passed-emerald)](./SECURITY.md)
 
-Attendly is a premium, multi-tenant attendance and academic management system designed for modern colleges. It bridges the gap between faculty, administration, students, and parents with a high-fidelity, professional interface and automated notification systems.
+Attendex is a premium, multi-tenant attendance and academic management system designed for modern colleges. It bridges the gap between faculty, administration, students, and parents with a high-fidelity, professional interface and automated notification systems.
 
 ---
 
@@ -27,7 +27,7 @@ Attendly is a premium, multi-tenant attendance and academic management system de
 
 ## 🛡️ Security Architecture
 
-Attendly follows a "Security-First" philosophy with multiple hardened layers:
+Attendex follows a "Security-First" philosophy with multiple hardened layers:
 
 | Layer | Implementation |
 |-------|----------------|
@@ -58,8 +58,8 @@ Attendly follows a "Security-First" philosophy with multiple hardened layers:
 ### 2. Installation
 ```powershell
 # Clone the repository
-git clone https://github.com/attendly/system.git
-cd attendly
+git clone https://github.com/Attendex/system.git
+cd Attendex
 
 # Install dependencies
 npm install
@@ -68,7 +68,7 @@ npm install
 ### 3. Environment Setup
 Copy `.env.example` to `.env` and fill in your credentials.
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/attendly"
+DATABASE_URL="postgresql://user:password@localhost:5432/Attendex"
 NEXTAUTH_SECRET="your-secret-key"
 MSG91_AUTH_KEY="your-api-key"
 ```
@@ -98,5 +98,5 @@ npm run dev
 ---
 
 ## 📄 License
-© 2026 Attendly Systems Private Limited. All rights reserved. 
+© 2026 Attendex Systems Private Limited. All rights reserved. 
 Internal use only for registered partner institutions.

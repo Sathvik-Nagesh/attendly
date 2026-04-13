@@ -1,5 +1,5 @@
 /**
- * Attendly — Route Protection Middleware
+ * Attendex — Route Protection Middleware
  * 
  * Enforces authentication and role-based access control.
  * Currently uses a cookie-based stub; swap for NextAuth.js session check.
@@ -16,7 +16,7 @@ import { getCSPHeader } from "@/lib/middleware-utils";
  * STUB: Replace with NextAuth getToken() or custom JWT verification.
  */
 function getSessionFromRequest(req: NextRequest): { role: Role; orgId: string } | null {
-  const sessionCookie = req.cookies.get("attendly-session")?.value;
+  const sessionCookie = req.cookies.get("Attendex-session")?.value;
 
   if (!sessionCookie) return null;
 
@@ -32,7 +32,7 @@ function getSessionFromRequest(req: NextRequest): { role: Role; orgId: string } 
   }
 }
 
-export function middleware(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 1. Allow public routes

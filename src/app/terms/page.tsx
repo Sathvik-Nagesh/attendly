@@ -1,5 +1,5 @@
 /**
- * Attendly — Terms and Conditions
+ * Attendex — Terms and Conditions
  */
 
 import Link from "next/link";
@@ -30,32 +30,32 @@ export default function TermsPage() {
               <h2 className="text-2xl font-bold text-slate-900 m-0">1. Acceptance of Terms</h2>
             </div>
             <p className="text-slate-600 leading-relaxed">
-              By accessing or using Attendly, you agree to be bound by these Terms and Conditions. These terms apply to all faculty members, students, and parents who use our platform.
+              By accessing or using Attendex, you agree to be bound by these Terms and Conditions. These terms apply to all faculty members, students, and parents who use our platform.
             </p>
           </section>
 
           <section className="space-y-4">
-             <div className="flex items-center gap-3 text-indigo-600 mb-2">
+            <div className="flex items-center gap-3 text-indigo-600 mb-2">
               <Scale className="w-8 h-8" />
               <h2 className="text-2xl font-bold text-slate-900 m-0">2. Institutional Responsibility</h2>
             </div>
             <p className="text-slate-600 leading-relaxed">
-              Educational institutions are responsible for ensuring they have the legal right from students and parents to upload their data to Attendly. The accuracy of attendance records is the sole responsibility of the marking faculty member.
+              Educational institutions are responsible for ensuring they have the legal right from students and parents to upload their data to Attendex. The accuracy of attendance records is the sole responsibility of the marking faculty member.
             </p>
           </section>
 
           <Card className="p-6 bg-amber-50 border-amber-100 rounded-3xl flex items-start gap-4">
-             <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-1" />
-             <div>
-                <h4 className="font-bold text-amber-900 mb-1">Important Notice</h4>
-                <p className="text-sm text-amber-800 leading-relaxed">
-                  Attendly provides automated notifications as a courtesy service. We are not liable for any technical failures that prevent an SMS or notification from being delivered.
-                </p>
-             </div>
+            <AlertCircle className="w-6 h-6 text-amber-600 shrink-0 mt-1" />
+            <div>
+              <h4 className="font-bold text-amber-900 mb-1">Important Notice</h4>
+              <p className="text-sm text-amber-800 leading-relaxed">
+                Attendex provides automated notifications as a courtesy service. We are not liable for any technical failures that prevent an SMS or notification from being delivered.
+              </p>
+            </div>
           </Card>
 
           <section className="space-y-4">
-             <div className="flex items-center gap-3 text-emerald-600 mb-2">
+            <div className="flex items-center gap-3 text-emerald-600 mb-2">
               <FileText className="w-8 h-8" />
               <h2 className="text-2xl font-bold text-slate-900 m-0">3. Usage Restrictions</h2>
             </div>
@@ -73,7 +73,7 @@ export default function TermsPage() {
         </div>
 
         <div className="pt-12 border-t border-slate-200 text-center">
-          <p className="text-sm text-slate-400 font-medium">© 2026 Attendly Systems. All rights reserved.</p>
+          <p className="text-sm text-slate-400 font-medium">© 2026 Attendex Systems. All rights reserved.</p>
         </div>
       </div>
     </div>

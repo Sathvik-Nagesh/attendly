@@ -1,5 +1,5 @@
 /**
- * Attendly — Centralized Mock Data
+ * Attendex — Centralized Mock Data
  * 
  * Single source of truth for all demo data.
  * Previously duplicated across attendance/page.tsx, students/page.tsx,
@@ -13,14 +13,14 @@ import type { Student, ClassInfo, AttendanceStatus } from "@/types";
 // ─── Students ────────────────────────────────────────────────
 
 export const MOCK_STUDENTS: (Student & { avatar: string; email: string })[] = [
-  { id: "1", name: "Alena Smith",     rollNumber: "CS-01", avatar: "AS", email: "alena@college.edu",   attendancePercentage: 92, batch: "A", classId: "cs101", organizationId: "org1" },
-  { id: "2", name: "Brandon Cooper",  rollNumber: "CS-02", avatar: "BC", email: "brandon@college.edu", attendancePercentage: 68, batch: "A", classId: "cs101", organizationId: "org1" },
-  { id: "3", name: "Cynthia Davis",   rollNumber: "CS-03", avatar: "CD", email: "cynthia@college.edu", attendancePercentage: 85, batch: "B", classId: "cs101", organizationId: "org1" },
-  { id: "4", name: "Derek Evans",     rollNumber: "CS-04", avatar: "DE", email: "derek@college.edu",   attendancePercentage: 72, batch: "B", classId: "cs101", organizationId: "org1" },
-  { id: "5", name: "Elena Ford",      rollNumber: "CS-05", avatar: "EF", email: "elena@college.edu",   attendancePercentage: 95, batch: "A", classId: "cs101", organizationId: "org1" },
-  { id: "6", name: "Fiona Garcia",    rollNumber: "CS-06", avatar: "FG", email: "fiona@college.edu",   attendancePercentage: 88, batch: "B", classId: "cs101", organizationId: "org1" },
-  { id: "7", name: "George Harris",   rollNumber: "CS-07", avatar: "GH", email: "george@college.edu",  attendancePercentage: 61, batch: "A", classId: "cs101", organizationId: "org1" },
-  { id: "8", name: "Hannah Iles",     rollNumber: "CS-08", avatar: "HI", email: "hannah@college.edu",  attendancePercentage: 99, batch: "B", classId: "cs101", organizationId: "org1" },
+  { id: "1", name: "Alena Smith", rollNumber: "CS-01", avatar: "AS", email: "alena@college.edu", attendancePercentage: 92, batch: "A", classId: "cs101", organizationId: "org1" },
+  { id: "2", name: "Brandon Cooper", rollNumber: "CS-02", avatar: "BC", email: "brandon@college.edu", attendancePercentage: 68, batch: "A", classId: "cs101", organizationId: "org1" },
+  { id: "3", name: "Cynthia Davis", rollNumber: "CS-03", avatar: "CD", email: "cynthia@college.edu", attendancePercentage: 85, batch: "B", classId: "cs101", organizationId: "org1" },
+  { id: "4", name: "Derek Evans", rollNumber: "CS-04", avatar: "DE", email: "derek@college.edu", attendancePercentage: 72, batch: "B", classId: "cs101", organizationId: "org1" },
+  { id: "5", name: "Elena Ford", rollNumber: "CS-05", avatar: "EF", email: "elena@college.edu", attendancePercentage: 95, batch: "A", classId: "cs101", organizationId: "org1" },
+  { id: "6", name: "Fiona Garcia", rollNumber: "CS-06", avatar: "FG", email: "fiona@college.edu", attendancePercentage: 88, batch: "B", classId: "cs101", organizationId: "org1" },
+  { id: "7", name: "George Harris", rollNumber: "CS-07", avatar: "GH", email: "george@college.edu", attendancePercentage: 61, batch: "A", classId: "cs101", organizationId: "org1" },
+  { id: "8", name: "Hannah Iles", rollNumber: "CS-08", avatar: "HI", email: "hannah@college.edu", attendancePercentage: 99, batch: "B", classId: "cs101", organizationId: "org1" },
 ];
 
 // ─── Classes ─────────────────────────────────────────────────

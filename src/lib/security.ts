@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import DOMPurify from "isomorphic-dompurify";
 
 /**
- * Attendly — Security Utilities
+ * Attendex — Security Utilities
  * 
  * Handles password hashing, input sanitization (XSS protection),
  * and security-related transforms.

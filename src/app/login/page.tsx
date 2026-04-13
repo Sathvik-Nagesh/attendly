@@ -23,7 +23,7 @@ export default function LoginPage() {
 
     // 1. Validate Input (Security Component)
     const validation = validateLoginInput({ identifier: email, password });
-    
+
     if (!validation.success) {
       Object.values(validation.errors || {}).forEach(err => toast.error(err));
       setIsLoading(false);
@@ -31,16 +31,34 @@ export default function LoginPage() {
     }
 
     // 2. Mock Authentication Logic
-    // In production, this would be: await signIn("credentials", { email, password })
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    let role = "";
+    let redirectPath = "";
 
     if (password === "password123") {
+      role = "ADMIN";
+      redirectPath = "/dashboard";
+    } else if (password === "teacher123") {
+      role = "TEACHER";
+      redirectPath = "/dashboard";
+    } else if (password === "student123") {
+      role = "STUDENT";
+      redirectPath = "/student/dashboard";
+    } else if (password === "parent123") {
+      role = "PARENT";
+      redirectPath = "/parent/dashboard";
+    }
+
+    if (role) {
       // Create session cookie (stub for middleware)
-      document.cookie = `attendly-session=${JSON.stringify({ role: "ADMIN", orgId: "demo-org-1" })}; path=/`;
-      toast.success("Welcome, Admin");
-      router.push("/dashboard");
+      document.cookie = `Attendex-session=${JSON.stringify({ role, orgId: "demo-org-1" })}; path=/`;
+      toast.success(`Welcome back! Logged in as ${role}`);
+      router.push(redirectPath);
     } else {
-      toast.error("Invalid credentials", { description: "Try password123 for the demo." });
+      toast.error("Invalid credentials", {
+        description: "Try password123 (Admin), teacher123, student123, or parent123."
+      });
       setIsLoading(false);
     }
   };
@@ -60,7 +78,7 @@ export default function LoginPage() {
                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
               </svg>
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight text-center">Attendly Portal</h1>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight text-center">Attendex Portal</h1>
             <p className="text-sm font-bold text-slate-500 mt-3 text-center uppercase tracking-widest">Academic Management Suite</p>
           </div>
 
@@ -70,10 +88,10 @@ export default function LoginPage() {
                 <Label htmlFor="email" className="text-xs font-black text-slate-400 uppercase tracking-[0.15em] ml-1">Identity</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Username or Institutional Email"
+                  placeholder="Username, Email or Phone"
                   required
                   className="h-14 rounded-2xl border-slate-200 bg-white shadow-none focus-visible:ring-blue-500 font-bold px-5 text-base transition-all"
                 />
@@ -105,7 +123,7 @@ export default function LoginPage() {
               </Button>
             </form>
           </Card>
-          
+
           <div className="mt-10 text-center">
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
               Secured by Gradence Ecosystem

@@ -1,5 +1,5 @@
 /**
- * Attendly — Prisma Client Singleton
+ * Attendex — Prisma Client Singleton
  * 
  * Prevents multiple Prisma Client instances in development (hot reload).
  * Standard Next.js pattern from Prisma docs.

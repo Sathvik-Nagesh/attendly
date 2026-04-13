@@ -1,13 +1,16 @@
 {
-  "name": "Attendly — Academic Management Suite",
-  "short_name": "Attendly",
+  "name": "Attendex — Academic Management Suite",
+  "short_name": "Attendex",
   "description": "High-performance attendance and academic tracking for modern educational institutions.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#f8fafc",
   "theme_color": "#2563eb",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -25,12 +28,22 @@
     {
       "name": "Attendance",
       "url": "/attendance",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Students",
       "url": "/students",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "screenshots": [

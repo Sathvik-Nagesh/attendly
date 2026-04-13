@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { 
-  Home, 
-  BarChart2, 
-  Bell, 
-  Settings, 
+import {
+  Home,
+  BarChart2,
+  Bell,
+  Settings,
   LogOut,
   Heart,
   Calendar
@@ -30,7 +30,7 @@ export function ParentSidebar() {
           <div className="w-9 h-9 bg-rose-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-rose-200">
             <Heart className="w-5 h-5 fill-current" />
           </div>
-          <span className="text-xl font-extrabold text-slate-900 tracking-tight">Attendly</span>
+          <span className="text-xl font-extrabold text-slate-900 tracking-tight">Attendex</span>
         </div>
 
         <nav className="space-y-1">
@@ -57,11 +57,11 @@ export function ParentSidebar() {
 
       <div className="mt-auto p-8 pt-4 space-y-4">
         <div className="p-5 bg-slate-50 border border-slate-100 rounded-[2rem] relative overflow-hidden group">
-           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Support</p>
-           <p className="text-sm font-bold text-slate-900 leading-tight">Need help contacting faculty?</p>
-           <button className="mt-4 w-full py-2 bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
-              Contact School
-           </button>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Support</p>
+          <p className="text-sm font-bold text-slate-900 leading-tight">Need help contacting faculty?</p>
+          <button className="mt-4 w-full py-2 bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
+            Contact School
+          </button>
         </div>
 
         <button className="flex items-center w-full px-4 py-3 text-sm font-semibold text-slate-500 rounded-2xl hover:bg-red-50 hover:text-red-600 transition-all group">

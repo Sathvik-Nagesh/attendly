@@ -1,5 +1,5 @@
 /**
- * Attendly — Marks Calculation Service (Refactored)
+ * Attendex — Marks Calculation Service (Refactored)
  * 
  * Changes from original:
  * - Uses constants instead of magic numbers

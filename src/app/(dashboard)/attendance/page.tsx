@@ -71,16 +71,16 @@ export default function AttendancePage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    
+
     // Simulate API Call to MSG91
     console.log("-----------------------------------------");
     console.log("MSG91 API GATEWAY: Initiating Sync");
     console.log(`Payload: { type: 'absent_alert', count: ${absentIds.size}, recipients: [${Array.from(absentIds).join(', ')}] }`);
-    
+
     setTimeout(() => {
       console.log("MSG91 RESPONSE: 200 OK - Message Sent Successfully");
       console.log("-----------------------------------------");
-      
+
       setIsSaving(false);
       setIsConfirmOpen(false);
       toast.success("Attendance synced successfully!", {
@@ -109,13 +109,13 @@ export default function AttendancePage() {
 
         <div className="flex-1 overflow-hidden flex flex-col pt-6 pb-24 px-4 md:px-0">
           {/* Controls Bar - Scrollable on small tablets */}
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 overflow-x-auto custom-scrollbar no-scrollbar">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 overflow-x-auto custom-scrollbar no-scrollbar text-sm font-medium">
             <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
               <Select defaultValue="cs101">
-                <SelectTrigger className="w-[180px] md:w-[200px] h-12 border-slate-200 bg-white shadow-sm font-bold rounded-2xl">
+                <SelectTrigger className="w-[180px] md:w-[200px] h-12 border-slate-200 bg-white shadow-sm font-bold rounded-xl text-slate-700">
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   <SelectItem value="cs101">Computer Science 101</SelectItem>
                   <SelectItem value="phy202">Physics 202</SelectItem>
                   <SelectItem value="eng303">English Lit 303</SelectItem>
@@ -123,10 +123,10 @@ export default function AttendancePage() {
               </Select>
 
               <Select value={selectedBatch} onValueChange={(val) => val && setSelectedBatch(val)}>
-                <SelectTrigger className="w-[110px] md:w-[120px] h-12 border-slate-200 bg-white shadow-sm font-bold rounded-2xl">
+                <SelectTrigger className="w-[110px] md:w-[120px] h-12 border-slate-200 bg-white shadow-sm font-bold rounded-xl text-slate-700">
                   <SelectValue placeholder="Batch" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   <SelectItem value="all">All Batches</SelectItem>
                   <SelectItem value="A">Batch A</SelectItem>
                   <SelectItem value="B">Batch B</SelectItem>
@@ -135,10 +135,10 @@ export default function AttendancePage() {
               </Select>
 
               <Select value={selectedLecture} onValueChange={(val) => val && setSelectedLecture(val)}>
-                <SelectTrigger className="w-[160px] md:w-[180px] h-12 border-slate-200 bg-white shadow-sm font-bold rounded-2xl text-slate-700">
+                <SelectTrigger className="w-[160px] md:w-[180px] h-12 border-slate-200 bg-white shadow-sm font-bold rounded-xl text-slate-700">
                   <SelectValue placeholder="Select Lecture" />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-200 bg-white p-1">
+                <SelectContent className="rounded-xl border-slate-200 bg-white p-1">
                   <SelectItem value="L1">Lecture 1</SelectItem>
                   <SelectItem value="L2">Lecture 2</SelectItem>
                   <SelectItem value="L3">Lecture 3</SelectItem>
@@ -164,8 +164,8 @@ export default function AttendancePage() {
                 </PopoverContent>
               </Popover>
 
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="h-12 rounded-2xl border-slate-200 bg-white shadow-sm font-bold gap-2 shrink-0 hidden md:flex"
                 onClick={() => {
                   const csvContent = "data:text/csv;charset=utf-8,Roll Number,Name,Status,Date\nCS-01,Alena Smith,Present,2023-10-10\nCS-02,Brandon Cooper,Absent,2023-10-10";
@@ -175,14 +175,93 @@ export default function AttendancePage() {
                   link.setAttribute("download", `attendance_${format(date, 'yyyy-MM-dd')}_L1.csv`);
                   document.body.appendChild(link);
                   link.click();
-                  toast.success("CSV Downloaded!", {
-                    description: "Attendance ledger for today is ready."
-                  });
+                  toast.success("CSV Downloaded!");
                 }}
               >
                 <Download className="w-5 h-5 text-slate-500" />
                 Export
               </Button>
+
+              <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                <DialogTrigger render={
+                  <Button className="h-12 px-6 rounded-2xl bg-blue-600 text-white font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/10 flex items-center gap-2 border-none active:scale-95">
+                    <CheckCircle2 className="w-5 h-5" />
+                    Finalize Sync
+                  </Button>
+                } />
+                <DialogContent className="sm:max-w-[450px] rounded-[3rem] p-0 overflow-hidden bg-white border border-slate-200 text-slate-900">
+                  <div className="p-10">
+                    <DialogHeader className="mb-8">
+                      <DialogTitle className="text-3xl font-black tracking-tight">Confirm Sync</DialogTitle>
+                      <DialogDescription className="text-slate-500 font-bold text-base mt-2">
+                        Review attendance for <strong>Lecture 1</strong> before pushing to MSG91 gateway.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="p-5 rounded-[2rem] bg-emerald-50 border-2 border-emerald-100 text-center">
+                          <div className="text-3xl font-black text-emerald-700">{filteredStudents.length - absentIds.size - onDutyIds.size}</div>
+                          <div className="text-[10px] font-black text-emerald-600 uppercase tracking-wider mt-1">Present</div>
+                        </div>
+                        <div className="p-5 rounded-[2rem] bg-red-50 border-2 border-red-100 text-center">
+                          <div className="text-3xl font-black text-red-700">{absentIds.size}</div>
+                          <div className="text-[10px] font-black text-red-600 uppercase tracking-wider mt-1">Absent</div>
+                        </div>
+                        <div className="p-5 rounded-[2rem] bg-blue-50 border-2 border-blue-100 text-center">
+                          <div className="text-3xl font-black text-blue-700">{onDutyIds.size}</div>
+                          <div className="text-[10px] font-black text-blue-600 uppercase tracking-wider mt-1">OD</div>
+                        </div>
+                      </div>
+
+                      <div className="p-6 rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 space-y-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-200 flex items-center justify-center text-blue-600 shadow-sm">
+                            <Bell className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="text-base font-black text-slate-900">Cloud SMS Broadcast</p>
+                            <p className="text-sm font-bold text-slate-400">{absentIds.size} parents will be notified</p>
+                          </div>
+                        </div>
+                        <div className="pt-4 border-t-2 border-slate-200/50">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Broadcast Preview</p>
+                          <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 text-xs font-bold text-slate-600 italic leading-relaxed shadow-sm">
+                            "Attendex Notice: Student (Roll {Array.from(absentIds)[0] || '...'}) was ABSENT for Lect. {selectedLecture.replace('L', '')} on {format(date, 'MMM d')}. Please acknowledge."
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-10 pt-0 flex flex-col gap-4">
+                    <Button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="h-16 w-full rounded-[2rem] bg-slate-900 text-white font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-slate-900/20 active:scale-95"
+                    >
+                      {isSaving ? (
+                        <>
+                          <RefreshCcw className="w-6 h-6 animate-spin" />
+                          Pushing to Cloud...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-6 h-6" />
+                          Execute Sync
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-12 w-full rounded-2xl text-slate-400 font-black uppercase tracking-widest text-xs hover:text-slate-900 transition-colors"
+                      onClick={() => setIsConfirmOpen(false)}
+                    >
+                      Cancel Transaction
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <div className="relative w-full lg:w-[300px]">
@@ -198,7 +277,7 @@ export default function AttendancePage() {
 
           {/* Stats Bar */}
           <div className="flex items-center justify-between py-4 px-1 mb-2">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <Badge variant="outline" className={cn("px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border-2", isAllPresent ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-600")}>
                 {isAllPresent ? (
                   <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> All Present</span>
@@ -206,8 +285,14 @@ export default function AttendancePage() {
                   <span className="flex items-center gap-2"><AlertCircle className="w-4 h-4" /> {absentIds.size} Absent</span>
                 )}
               </Badge>
+              {!isAllPresent && (
+                <div className="hidden md:flex items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-400" /> {filteredStudents.length - absentIds.size - onDutyIds.size} Present</span>
+                  <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-400" /> {onDutyIds.size} OD</span>
+                </div>
+              )}
             </div>
-            
+
             {!isAllPresent && (
               <button onClick={markAllPresent} className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors px-4 py-2 hover:bg-blue-50 rounded-xl">
                 Mark all present
@@ -215,84 +300,85 @@ export default function AttendancePage() {
             )}
           </div>
 
-          {/* Main List */}
-          <Card className="flex-1 overflow-auto bg-white border-slate-200 shadow-xl shadow-slate-200/50 rounded-[2rem] flex flex-col relative">
-            
-            {/* Fast Entry & Grid Toggle */}
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-6 sticky top-0 z-20 backdrop-blur-md">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Fast Marking Mode</h4>
-                  <p className="text-xs text-slate-500 mt-1">Touch-optimized for rapid entry</p>
+          {/* Main List Container - Using a double-wrapper for perfect clipping */}
+          <Card className="flex-1 rounded-[2rem] overflow-hidden bg-white border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col relative">
+            <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+
+              {/* Fast Entry & Grid Toggle - Sticky at the absolute top of the scroll container */}
+              <div className="p-6 border-b border-slate-100 bg-white flex flex-col gap-6 sticky top-0 z-50 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Fast Marking Mode</h4>
+                    <p className="text-xs text-slate-500 mt-1">Touch-optimized for rapid entry</p>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+                    <button
+                      onClick={() => setEntryMode('list')}
+                      className={cn("px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all", entryMode === 'list' ? "bg-slate-900 text-white shadow-md shadow-slate-900/20" : "text-slate-400 hover:text-slate-600")}
+                    >List</button>
+                    <button
+                      onClick={() => setEntryMode('grid')}
+                      className={cn("px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all", entryMode === 'grid' ? "bg-slate-900 text-white shadow-md shadow-slate-900/20" : "text-slate-400 hover:text-slate-600")}
+                    >Grid</button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
-                  <button 
-                    onClick={() => setEntryMode('list')}
-                    className={cn("px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all", entryMode === 'list' ? "bg-slate-900 text-white shadow-md shadow-slate-900/20" : "text-slate-400 hover:text-slate-600")}
-                  >List</button>
-                  <button 
-                    onClick={() => setEntryMode('grid')}
-                    className={cn("px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all", entryMode === 'grid' ? "bg-slate-900 text-white shadow-md shadow-slate-900/20" : "text-slate-400 hover:text-slate-600")}
-                  >Grid</button>
-                </div>
+
+                {entryMode === 'list' ? (
+                  <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Input
+                      placeholder="Type absent roll numbers (e.g. 02, 05)..."
+                      className="flex-1 bg-white h-12 text-sm rounded-2xl border-slate-200 font-medium px-5"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = (e.target as HTMLInputElement).value;
+                          if (!val.trim()) return;
+                          const rolls = val.split(',').map(r => r.trim().toLowerCase());
+                          const newAbsent = new Set(absentIds);
+                          MOCK_STUDENTS.forEach(s => {
+                            const simpleRoll = s.rollNumber.split('-')[1].toLowerCase();
+                            if (rolls.includes(s.rollNumber.toLowerCase()) || rolls.includes(simpleRoll)) {
+                              newAbsent.add(s.id);
+                            }
+                          });
+                          setAbsentIds(newAbsent);
+                          (e.target as HTMLInputElement).value = '';
+                          toast.success("Absentees updated!");
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-3 animate-in fade-in zoom-in-95 duration-300">
+                    {MOCK_STUDENTS.map((s) => {
+                      const isAbsent = absentIds.has(s.id);
+                      const isOD = onDutyIds.has(s.id);
+                      return (
+                        <button
+                          key={s.id}
+                          onClick={() => toggleAttendance(s.id, isAbsent ? 'present' : 'absent')}
+                          className={cn(
+                            "h-14 rounded-xl text-[11px] font-bold border transition-all flex items-center justify-center shadow-sm active:scale-95",
+                            isAbsent ? "bg-red-500 text-white border-red-600 shadow-sm" :
+                              isOD ? "bg-blue-500 text-white border-blue-600 shadow-sm" :
+                                "bg-white text-slate-800 border-slate-200 hover:border-slate-300"
+                          )}
+                        >
+                          {s.rollNumber.split('-')[1]}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
-              {entryMode === 'list' ? (
-                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <Input 
-                    placeholder="Type absent roll numbers (e.g. 02, 05)..." 
-                    className="flex-1 bg-white h-12 text-sm rounded-2xl border-slate-200 font-medium px-5"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const val = (e.target as HTMLInputElement).value;
-                        if (!val.trim()) return;
-                        const rolls = val.split(',').map(r => r.trim().toLowerCase());
-                        const newAbsent = new Set(absentIds);
-                        MOCK_STUDENTS.forEach(s => {
-                          const simpleRoll = s.rollNumber.split('-')[1].toLowerCase();
-                          if (rolls.includes(s.rollNumber.toLowerCase()) || rolls.includes(simpleRoll)) {
-                            newAbsent.add(s.id);
-                          }
-                        });
-                        setAbsentIds(newAbsent);
-                        (e.target as HTMLInputElement).value = '';
-                        toast.success("Absentees updated!");
-                      }
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-3 animate-in fade-in zoom-in-95 duration-300">
-                  {MOCK_STUDENTS.map((s) => {
-                    const isAbsent = absentIds.has(s.id);
-                    const isOD = onDutyIds.has(s.id);
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => toggleAttendance(s.id, isAbsent ? 'present' : 'absent')}
-                        className={cn(
-                          "h-14 rounded-2xl text-xs font-black border-2 transition-all flex items-center justify-center shadow-sm active:scale-95",
-                          isAbsent ? "bg-red-500 text-white border-red-600 shadow-red-200" : 
-                          isOD ? "bg-blue-500 text-white border-blue-600 shadow-blue-200" :
-                          "bg-white text-slate-800 border-slate-100 hover:border-slate-300"
-                        )}
-                      >
-                        {s.rollNumber.split('-')[1]}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="min-w-full inline-block align-middle flex-1">
-              <div className="border-b border-slate-100 bg-slate-50/80 sticky top-[154px] lg:top-[122px] z-10 px-8 py-4 flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              {/* Sub-Header (Student Information) - Sticky relative to the top container */}
+              <div className="border-b border-slate-100 bg-slate-50/95 backdrop-blur-sm sticky top-[var(--header-offset,154px)] lg:top-[var(--lg-header-offset,122px)] z-40 px-8 py-4 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 <div className="flex-1">Student Information</div>
                 <div className="w-[180px] text-center">Status Action</div>
               </div>
-              
-              <div className="divide-y divide-slate-100">
+
+              <div className="divide-y divide-slate-100 relative">
                 <AnimatePresence mode="popLayout">
                   {filteredStudents.map((student, i) => {
                     const isAbsent = absentIds.has(student.id);
@@ -314,26 +400,26 @@ export default function AttendancePage() {
                       >
                         <div className="flex items-center gap-5 flex-1 min-w-0">
                           <div className={cn(
-                            "w-12 h-12 rounded-[1.25rem] flex items-center justify-center text-sm font-black transition-all border-2 shrink-0 shadow-sm",
-                            isAbsent ? "bg-red-100 text-red-600 border-red-200" : 
-                            isOD ? "bg-blue-100 text-blue-600 border-blue-200" :
-                            "bg-slate-50 text-slate-600 border-slate-100 group-hover:bg-white"
+                            "w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-all border shrink-0 shadow-sm",
+                            isAbsent ? "bg-red-100 text-red-600 border-red-200" :
+                              isOD ? "bg-blue-100 text-blue-600 border-blue-200" :
+                                "bg-slate-50 text-slate-600 border-slate-100 group-hover:bg-white"
                           )}>
                             {student.avatar}
                           </div>
                           <div className="min-w-0">
-                            <div className={cn("font-bold text-base transition-colors flex items-center gap-3 truncate", 
-                              isAbsent ? "text-red-900" : 
-                              isOD ? "text-blue-900" : "text-slate-900"
+                            <div className={cn("font-bold text-base transition-colors flex items-center gap-3 truncate",
+                              isAbsent ? "text-red-900" :
+                                isOD ? "text-blue-900" : "text-slate-900"
                             )}>
                               {student.name}
                               {student.attendance < 75 && (
-                                <span className="text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg border border-amber-200 shrink-0">
+                                <span className="text-[9px] font-bold uppercase tracking-widest bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg border border-amber-200 shrink-0">
                                   Risk
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs font-bold text-slate-400 flex items-center gap-2 mt-1">
+                            <div className="text-xs font-semibold text-slate-400 flex items-center gap-2 mt-1">
                               {student.rollNumber}
                               <span className="text-slate-200">/</span>
                               <span className={cn(student.attendance < 75 ? "text-amber-600" : "text-slate-500")}>
@@ -343,13 +429,13 @@ export default function AttendancePage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200 shrink-0">
+                        <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-xl border border-slate-200 shrink-0">
                           <button
                             onClick={() => toggleAttendance(student.id, 'present')}
                             className={cn(
-                              "w-12 h-12 rounded-xl text-xs font-black transition-all flex items-center justify-center",
-                              !isAbsent && !isOD 
-                                ? "bg-white text-emerald-600 shadow-md shadow-emerald-600/10 scale-105" 
+                              "w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
+                              !isAbsent && !isOD
+                                ? "bg-white text-emerald-600 shadow-sm scale-105"
                                 : "text-slate-400 hover:text-slate-600"
                             )}
                           >
@@ -358,9 +444,9 @@ export default function AttendancePage() {
                           <button
                             onClick={() => toggleAttendance(student.id, 'absent')}
                             className={cn(
-                              "w-12 h-12 rounded-xl text-xs font-black transition-all flex items-center justify-center",
-                              isAbsent 
-                                ? "bg-white text-red-600 shadow-md shadow-red-600/10 scale-105" 
+                              "w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
+                              isAbsent
+                                ? "bg-white text-red-600 shadow-sm scale-105"
                                 : "text-slate-400 hover:text-slate-600"
                             )}
                           >
@@ -370,8 +456,8 @@ export default function AttendancePage() {
                             onClick={() => toggleAttendance(student.id, 'od')}
                             className={cn(
                               "w-12 h-12 rounded-xl text-xs font-black transition-all flex items-center justify-center",
-                              isOD 
-                                ? "bg-white text-blue-600 shadow-md shadow-blue-600/10 scale-105" 
+                              isOD
+                                ? "bg-white text-blue-600 shadow-md shadow-blue-600/10 scale-105"
                                 : "text-slate-400 hover:text-slate-600"
                             )}
                           >
@@ -382,7 +468,7 @@ export default function AttendancePage() {
                     );
                   })}
                 </AnimatePresence>
-                
+
                 {filteredStudents.length === 0 && (
                   <div className="py-24 text-center">
                     <div className="w-20 h-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mx-auto mb-6">
@@ -397,116 +483,12 @@ export default function AttendancePage() {
           </Card>
         </div>
 
-        {/* Bottom Action Bar - Floating Style */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] md:w-[calc(100%-25rem)] xl:w-[calc(100%-40rem)] max-w-5xl z-40">
-          <Card className="bg-slate-900/95 backdrop-blur-xl border-t border-white/10 p-4 md:p-6 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-between">
-            <div className="flex items-center gap-4 md:gap-8 px-4">
-              <div className="flex flex-col">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-0.5 mb-1">Present</span>
-                <span className="text-2xl font-black text-emerald-400 tabular-nums">
-                  {filteredStudents.length - absentIds.size - onDutyIds.size}
-                </span>
-              </div>
-              <div className="w-px h-10 bg-white/10" />
-              <div className="flex flex-col">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-0.5 mb-1">Absent</span>
-                <span className="text-2xl font-black text-red-400 tabular-nums">{absentIds.size}</span>
-              </div>
-              <div className="w-px h-10 bg-white/10 hidden sm:block" />
-              <div className="flex flex-col hidden sm:flex">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-0.5 mb-1">On Duty</span>
-                <span className="text-2xl font-black text-blue-400 tabular-nums">{onDutyIds.size}</span>
-              </div>
-            </div>
-            
-            <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-              <DialogTrigger render={
-                <Button className="h-14 md:h-16 px-10 rounded-3xl bg-blue-600 text-white font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 flex items-center gap-3 border-none group">
-                  <CheckCircle2 className="w-6 h-6 group-hover:scale-125 transition-transform" />
-                  <span className="hidden sm:inline">Finalize Sync</span>
-                  <span className="sm:hidden text-lg">Save</span>
-                </Button>
-              } />
-              <DialogContent className="sm:max-w-[450px] rounded-[3rem] p-0 overflow-hidden bg-white border border-slate-200 text-slate-900">
-                <div className="p-10">
-                  <DialogHeader className="mb-8">
-                    <DialogTitle className="text-3xl font-black tracking-tight">Confirm Sync</DialogTitle>
-                    <DialogDescription className="text-slate-500 font-bold text-base mt-2">
-                      Review attendance for <strong>Lecture 1</strong> before pushing to MSG91 gateway.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="p-5 rounded-[2rem] bg-emerald-50 border-2 border-emerald-100 text-center">
-                         <div className="text-3xl font-black text-emerald-700">{filteredStudents.length - absentIds.size - onDutyIds.size}</div>
-                         <div className="text-[10px] font-black text-emerald-600 uppercase tracking-wider mt-1">Present</div>
-                      </div>
-                      <div className="p-5 rounded-[2rem] bg-red-50 border-2 border-red-100 text-center">
-                         <div className="text-3xl font-black text-red-700">{absentIds.size}</div>
-                         <div className="text-[10px] font-black text-red-600 uppercase tracking-wider mt-1">Absent</div>
-                      </div>
-                      <div className="p-5 rounded-[2rem] bg-blue-50 border-2 border-blue-100 text-center">
-                         <div className="text-3xl font-black text-blue-700">{onDutyIds.size}</div>
-                         <div className="text-[10px] font-black text-blue-600 uppercase tracking-wider mt-1">OD</div>
-                      </div>
-                    </div>
-
-                    <div className="p-6 rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 space-y-4">
-                       <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-white border-2 border-slate-200 flex items-center justify-center text-blue-600 shadow-sm">
-                             <Bell className="w-6 h-6" />
-                          </div>
-                          <div>
-                             <p className="text-base font-black text-slate-900">Cloud SMS Broadcast</p>
-                             <p className="text-sm font-bold text-slate-400">{absentIds.size} parents will be notified</p>
-                          </div>
-                       </div>
-                       <div className="pt-4 border-t-2 border-slate-200/50">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Broadcast Preview</p>
-                          <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 text-xs font-bold text-slate-600 italic leading-relaxed shadow-sm">
-                            "Attendly Notice: Student (Roll {Array.from(absentIds)[0] || '...'}) was ABSENT for Lect. {selectedLecture.replace('L', '')} on {format(date, 'MMM d')}. Please acknowledge."
-                          </div>
-                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-10 pt-0 flex flex-col gap-4">
-                  <Button 
-                    onClick={handleSave} 
-                    disabled={isSaving}
-                    className="h-16 w-full rounded-[2rem] bg-slate-900 text-white font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-slate-900/20 active:scale-95"
-                  >
-                    {isSaving ? (
-                      <>
-                        <RefreshCcw className="w-6 h-6 animate-spin" />
-                        Pushing to Cloud...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="w-6 h-6" />
-                        Execute Sync
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="h-12 w-full rounded-2xl text-slate-400 font-black uppercase tracking-widest text-xs hover:text-slate-900 transition-colors"
-                    onClick={() => setIsConfirmOpen(false)}
-                  >
-                    Cancel Transaction
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </Card>
-        </div>
+        {/* Hidden Dialog for Confirmation logic removed from fixed bar to trigger above */}
 
 
-        <StudentProfile 
-          student={selectedStudent} 
-          onClose={() => setIsProfileOpen(false)} 
+        <StudentProfile
+          student={selectedStudent}
+          onClose={() => setIsProfileOpen(false)}
         />
       </div>
     </PageTransition>

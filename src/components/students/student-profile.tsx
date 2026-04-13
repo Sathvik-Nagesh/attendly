@@ -25,15 +25,29 @@ interface StudentProfileProps {
   onClose: () => void;
 }
 
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+
 export function StudentProfile({ student, onClose }: StudentProfileProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Lock body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   if (!student) return null;
 
   const attendanceValue = parseInt(student.attendance || "85");
   const isAtRisk = attendanceValue < 75;
 
-  return (
+  const content = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-10">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 font-sans">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -166,4 +180,8 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
       </div>
     </AnimatePresence>
   );
+
+  if (!mounted) return null;
+  
+  return createPortal(content, document.body);
 }

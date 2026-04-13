@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { StudentProfile } from "@/components/students/student-profile";
 
-const students = [
+const SAVED_STUDENTS = [
   { id: "1", name: "Alena Smith", roll: "CS-01", email: "alena@example.com", class: "Computer Science 101", attendance: "98%" },
   { id: "2", name: "Brandon Cooper", roll: "CS-02", email: "brandon@example.com", class: "Computer Science 101", attendance: "85%" },
   { id: "3", name: "Cynthia Davis", roll: "CS-03", email: "cynthia@example.com", class: "Computer Science 101", attendance: "92%" },
@@ -23,6 +23,7 @@ const students = [
 
 export default function StudentsPage() {
   const [search, setSearch] = useState("");
+  const [studentList, setStudentList] = useState(SAVED_STUDENTS);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -32,7 +33,7 @@ export default function StudentsPage() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  const filteredStudents = students.filter(s => 
+  const filteredStudents = studentList.filter(s =>
     fuzzySearch(search, `${s.name} ${s.roll} ${s.email}`)
   );
 
@@ -40,30 +41,78 @@ export default function StudentsPage() {
   const [importProgress, setImportProgress] = useState(0);
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setIsUploading(true);
     setImportStatus('reading');
-    setImportProgress(20);
-    
-    setTimeout(() => {
-      setImportStatus('mapping');
-      setImportProgress(65);
-    }, 1200);
+    setImportProgress(10);
 
-    setTimeout(() => {
-      setImportStatus('success');
-      setImportProgress(100);
-      toast.success("Import successful!", { 
-        description: `Successfully imported 142 students from ${e.target.files?.[0].name}.`
-      });
-      setTimeout(() => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        setImportStatus('mapping');
+        setImportProgress(40);
+
+        const text = event.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim() !== "");
+
+        if (lines.length < 2) throw new Error("File is empty or missing data.");
+
+        const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+        const required = ['name', 'roll', 'email', 'class', 'attendance'];
+
+        const missing = required.filter(r => !headers.includes(r));
+        if (missing.length > 0) {
+          throw new Error(`Missing required headers: ${missing.join(", ")}`);
+        }
+
+        setImportProgress(60);
+        const nameIdx = headers.indexOf('name');
+        const rollIdx = headers.indexOf('roll');
+        const emailIdx = headers.indexOf('email');
+        const classIdx = headers.indexOf('class');
+        const attIdx = headers.indexOf('attendance');
+
+        const newStudents = lines.slice(1).map((line, i) => {
+          const values = line.split(',').map(v => v.trim());
+          // Crude parsing: ensure we have values
+          return {
+            id: `import-${Date.now()}-${i}`,
+            name: values[nameIdx] || "Unknown",
+            roll: values[rollIdx] || "N/A",
+            email: values[emailIdx] || "",
+            class: values[classIdx] || "N/A",
+            attendance: values[attIdx] ? (values[attIdx].includes('%') ? values[attIdx] : `${values[attIdx]}%`) : "0%"
+          };
+        });
+
+        setImportProgress(90);
+
+        setTimeout(() => {
+          setStudentList(prev => [...newStudents, ...prev]);
+          setImportStatus('success');
+          setImportProgress(100);
+          toast.success("Import successful!", {
+            description: `Successfully synchronized ${newStudents.length} students to the registry.`
+          });
+
+          setTimeout(() => {
+            setIsUploading(false);
+            setIsImportOpen(false);
+            setImportStatus('idle');
+            setImportProgress(0);
+          }, 800);
+        }, 1000);
+
+      } catch (err: any) {
+        toast.error("Format Error", { description: err.message });
         setIsUploading(false);
-        setIsImportOpen(false);
         setImportStatus('idle');
-        setImportProgress(0);
-      }, 500);
-    }, 2800);
+      }
+    };
+
+    reader.readAsText(file);
   };
 
   const handleAction = (type: 'edit' | 'history' | 'delete', student: any) => {
@@ -77,21 +126,21 @@ export default function StudentsPage() {
     <PageTransition>
       <div className="flex flex-col min-h-full">
         <Header title="Students" />
-        
+
         <div className="flex-1 py-8 space-y-6">
           <div className="flex items-center justify-between">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input 
-                placeholder="Search students..." 
+              <Input
+                placeholder="Search students..."
                 className="pl-9 w-[300px] border-slate-200 shadow-sm rounded-xl bg-white"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
             </div>
-            
+
             <div className="flex items-center gap-3">
-              <Button 
+              <Button
                 onClick={() => {
                   toast.promise(new Promise(r => setTimeout(r, 2000)), {
                     loading: 'Preparing Defaulter List (PDF)...',
@@ -101,8 +150,8 @@ export default function StudentsPage() {
                 }}
                 className="h-9 px-4 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm"
               >
-                 <FileSpreadsheet className="w-4 h-4 mr-2" />
-                 Export Defaulters
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Export Defaulters
               </Button>
               <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
                 <DialogTrigger className="h-9 px-4 inline-flex items-center justify-center rounded-xl shadow-sm bg-white hover:bg-slate-50 transition-colors border border-slate-200 text-slate-700 text-sm font-medium cursor-pointer outline-none">
@@ -114,32 +163,32 @@ export default function StudentsPage() {
                     <DialogHeader>
                       <DialogTitle className="text-2xl font-black">Bulk Import Students</DialogTitle>
                       <DialogDescription className="text-slate-500 font-medium">
-                        Upload your class registry to instantly sync with Attendly.
+                        Upload your class registry to instantly sync with Attendex.
                       </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-2xl space-y-3">
-                        <div className="flex items-center gap-2 text-blue-700">
-                             <AlertCircle className="w-4 h-4" />
-                             <span className="text-xs font-black uppercase tracking-widest">Required Format</span>
-                        </div>
-                        <p className="text-[11px] text-blue-600/80 font-bold leading-relaxed">
-                            Your CSV must include exactly these headers: <br/>
-                            <code className="bg-white px-1.5 py-0.5 rounded border border-blue-100 text-blue-800">name, roll, email, class, attendance</code>
-                        </p>
-                        <button 
-                            onClick={(e) => {
-                                e.preventDefault();
-                                toast.success("Sample template downloaded!");
-                                const blob = new Blob(["name,roll,email,class,attendance\nJohn Doe,CS-01,john@edu.com,CS 101,95%"], {type: 'text/csv'});
-                                const url = window.URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url; a.download = 'attendly_sample_import.csv'; a.click();
-                            }}
-                            className="text-[10px] font-black text-blue-600 underline hover:text-blue-800"
-                        >
-                            Download Sample.csv
-                        </button>
+                      <div className="flex items-center gap-2 text-blue-700">
+                        <AlertCircle className="w-4 h-4" />
+                        <span className="text-xs font-black uppercase tracking-widest">Required Format</span>
+                      </div>
+                      <p className="text-[11px] text-blue-600/80 font-bold leading-relaxed">
+                        Your CSV must include exactly these headers: <br />
+                        <code className="bg-white px-1.5 py-0.5 rounded border border-blue-100 text-blue-800">name, roll, email, class, attendance</code>
+                      </p>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toast.success("Sample template downloaded!");
+                          const blob = new Blob(["name,roll,email,class,attendance\nJohn Doe,CS-01,john@edu.com,CS 101,95%"], { type: 'text/csv' });
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url; a.download = 'Attendex_sample_import.csv'; a.click();
+                        }}
+                        className="text-[10px] font-black text-blue-600 underline hover:text-blue-800"
+                      >
+                        Download Sample.csv
+                      </button>
                     </div>
 
                     <div className="space-y-4">
@@ -151,33 +200,33 @@ export default function StudentsPage() {
                             <p className="text-[10px] text-slate-400 font-medium mt-1">Maximum file size: 5MB (CSV only)</p>
                           </div>
                         </div>
-                        <Input 
-                          id="csv-upload" 
-                          type="file" 
-                          accept=".csv" 
-                          className="hidden" 
+                        <Input
+                          id="csv-upload"
+                          type="file"
+                          accept=".csv"
+                          className="hidden"
                           onChange={handleImport}
                           disabled={isUploading}
                         />
                       </Label>
-                      
+
                       {isUploading && (
                         <div className="space-y-3 pt-2">
-                           <div className="flex justify-between items-center text-xs">
-                              <span className="font-bold text-slate-500">
-                                {importStatus === 'reading' ? 'Reading File...' : 
-                                 importStatus === 'mapping' ? 'Mapping Columns to DB...' : 'Finalizing Registry...'}
-                              </span>
-                              <span className="font-black text-blue-600">{importProgress}%</span>
-                           </div>
-                           <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                              <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${importProgress}%` }}
-                                className="h-full bg-blue-600 rounded-full"
-                              />
-                           </div>
-                           <p className="text-xs text-slate-400">Please do not refresh the page</p>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="font-bold text-slate-500">
+                              {importStatus === 'reading' ? 'Reading File...' :
+                                importStatus === 'mapping' ? 'Mapping Columns to DB...' : 'Finalizing Registry...'}
+                            </span>
+                            <span className="font-black text-blue-600">{importProgress}%</span>
+                          </div>
+                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${importProgress}%` }}
+                              className="h-full bg-blue-600 rounded-full"
+                            />
+                          </div>
+                          <p className="text-xs text-slate-400">Please do not refresh the page</p>
                         </div>
                       )}
                     </div>
@@ -224,8 +273,8 @@ export default function StudentsPage() {
                   <div className="p-6 pt-0 flex justify-end gap-3">
                     <Button variant="ghost" className="rounded-xl" onClick={() => setIsAddOpen(false)}>Cancel</Button>
                     <Button className="rounded-xl bg-slate-900 text-white" onClick={() => {
-                       toast.success("Student added!");
-                       setIsAddOpen(false);
+                      toast.success("Student added!");
+                      setIsAddOpen(false);
                     }}>Save Student</Button>
                   </div>
                 </DialogContent>
@@ -247,8 +296,8 @@ export default function StudentsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredStudents.map((st) => (
-                    <tr 
-                      key={st.id} 
+                    <tr
+                      key={st.id}
                       onClick={() => {
                         setSelectedStudent(st);
                         setIsProfileOpen(true);
@@ -328,8 +377,8 @@ export default function StudentsPage() {
             <div className="p-6 pt-0 flex justify-end gap-3">
               <Button variant="ghost" className="rounded-xl" onClick={() => setIsEditOpen(false)}>Cancel</Button>
               <Button className="rounded-xl bg-slate-900 text-white" onClick={() => {
-                 toast.success("Profile updated");
-                 setIsEditOpen(false);
+                toast.success("Profile updated");
+                setIsEditOpen(false);
               }}>Update Profile</Button>
             </div>
           </DialogContent>
@@ -343,23 +392,23 @@ export default function StudentsPage() {
                 <DialogTitle className="text-xl">Attendance History</DialogTitle>
                 <DialogDescription>Detailed records for {selectedStudent?.name}</DialogDescription>
               </DialogHeader>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
                   <div className="text-sm font-semibold">Total Classes</div>
                   <div className="text-sm font-bold text-blue-600">45</div>
                 </div>
-                
+
                 <div className="space-y-2">
-                   {[1, 2, 3].map((i) => (
-                     <div key={i} className="flex items-center justify-between p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                       <div className="flex items-center gap-3">
-                         <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                         <span className="text-sm font-medium">Lecture {i} - CS101</span>
-                       </div>
-                       <span className="text-xs text-slate-400">Oct {10+i}, 2023</span>
-                     </div>
-                   ))}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center justify-between p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="text-sm font-medium">Lecture {i} - CS101</span>
+                      </div>
+                      <span className="text-xs text-slate-400">Oct {10 + i}, 2023</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -386,17 +435,17 @@ export default function StudentsPage() {
             <div className="p-6 pt-0 grid grid-cols-2 gap-3">
               <Button variant="outline" className="rounded-xl" onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
               <Button className="rounded-xl bg-red-600 text-white hover:bg-red-700" onClick={() => {
-                 toast.error("Student deleted from database");
-                 setIsDeleteOpen(false);
+                toast.error("Student deleted from database");
+                setIsDeleteOpen(false);
               }}>Yes, Delete</Button>
             </div>
           </DialogContent>
         </Dialog>
 
         {isProfileOpen && (
-          <StudentProfile 
-            student={selectedStudent} 
-            onClose={() => setIsProfileOpen(false)} 
+          <StudentProfile
+            student={selectedStudent}
+            onClose={() => setIsProfileOpen(false)}
           />
         )}
       </div>

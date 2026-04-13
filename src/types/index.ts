@@ -1,5 +1,5 @@
 /**
- * Attendly — Shared Type Definitions
+ * Attendex — Shared Type Definitions
  * Central type system. No more `any` scattered across components.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Attendly — Input Validation Schemas (Zod-like, zero-dependency)
+ * Attendex — Input Validation Schemas (Zod-like, zero-dependency)
  * Lightweight validation that works on both client and server.
  * Can be swapped for Zod when the dependency is acceptable.
  */

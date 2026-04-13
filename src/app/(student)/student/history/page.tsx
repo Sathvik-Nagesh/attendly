@@ -13,6 +13,14 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useState, useMemo } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 const attendanceHistory = [
   { id: 1, date: "April 12, 2024", subject: "Data Structures", status: "Present", slot: "10:00 AM - 11:30 AM", room: "LT-01" },
@@ -24,6 +32,17 @@ const attendanceHistory = [
 ];
 
 export default function StudentHistoryPage() {
+  const [selectedSubject, setSelectedSubject] = useState<string>("All Subjects");
+
+  const subjects = useMemo(() => {
+    return ["All Subjects", ...Array.from(new Set(attendanceHistory.map(h => h.subject)))];
+  }, []);
+
+  const filteredHistory = useMemo(() => {
+    if (selectedSubject === "All Subjects") return attendanceHistory;
+    return attendanceHistory.filter(h => h.subject === selectedSubject);
+  }, [selectedSubject]);
+
   return (
     <PageTransition>
       <div className="flex flex-col min-h-full pb-20 pt-8 max-w-6xl mx-auto space-y-10">
@@ -34,10 +53,27 @@ export default function StudentHistoryPage() {
                 <p className="text-slate-500 font-medium tracking-tight">Track every lecture and cross-verify with your physical presence.</p>
             </div>
             <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-sm font-bold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
-                    <Filter className="w-4 h-4" />
-                    Filter by Subject
-                </button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-sm font-bold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">
+                        <Filter className="w-4 h-4" />
+                        {selectedSubject}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 rounded-2xl p-1 border-slate-200">
+                        {subjects.map(subject => (
+                            <DropdownMenuItem 
+                                key={subject} 
+                                onClick={() => setSelectedSubject(subject)}
+                                className={cn(
+                                    "rounded-xl font-bold py-3 transition-colors",
+                                    selectedSubject === subject ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"
+                                )}
+                            >
+                                {subject}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
                 <button className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-colors">
                     <Download className="w-4 h-4" />
                     Download PDF
@@ -66,7 +102,7 @@ export default function StudentHistoryPage() {
 
         {/* History List */}
         <div className="space-y-4">
-            {attendanceHistory.map((item, i) => (
+            {filteredHistory.map((item, i) => (
                 <motion.div
                     key={item.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -109,6 +145,12 @@ export default function StudentHistoryPage() {
                     </Card>
                 </motion.div>
             ))}
+
+            {filteredHistory.length === 0 && (
+                <div className="py-20 text-center">
+                    <p className="text-slate-400 font-bold">No logs found for this subject.</p>
+                </div>
+            )}
         </div>
 
         {/* Empty State / Bottom Info */}

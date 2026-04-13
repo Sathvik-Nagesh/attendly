@@ -1,5 +1,5 @@
 /**
- * Attendly — Application Constants
+ * Attendex — Application Constants
  * No more magic numbers scattered across components.
  */
 
@@ -16,10 +16,9 @@ export const ATTENDANCE_BANDS = [
   { min: 90, marks: 5 },
   { min: 80, marks: 4 },
   { min: 75, marks: 3 },
-  { min: 0,  marks: 2 },
+  { min: 0, marks: 2 },
 ] as const;
 
-// ─── Roles ───────────────────────────────────────────────────
 export const ROLES = {
   ADMIN: "ADMIN",
   TEACHER: "TEACHER",
@@ -27,15 +26,15 @@ export const ROLES = {
   PARENT: "PARENT",
 } as const;
 
+export const ROLE_ROUTE_MAP: Record<string, string[]> = {
+  ADMIN: ["/dashboard", "/pulse", "/attendance", "/students", "/classes", "/promotion", "/audit", "/notifications", "/settings"],
+  TEACHER: ["/dashboard", "/attendance", "/students", "/classes", "/notifications", "/settings"],
+  STUDENT: ["/student", "/settings"],
+  PARENT: ["/parent", "/settings"],
+};
+
 // ─── Protected Routes ────────────────────────────────────────
 export const PUBLIC_ROUTES = ["/", "/login"] as const;
-
-export const ROLE_ROUTE_MAP: Record<string, string[]> = {
-  ADMIN:   ["/dashboard", "/pulse", "/attendance", "/students", "/classes", "/promotion", "/audit", "/notifications", "/settings"],
-  TEACHER: ["/dashboard", "/attendance", "/students", "/classes", "/notifications"],
-  STUDENT: ["/student"],
-  PARENT:  ["/parent"],
-};
 
 // ─── Notification Providers ──────────────────────────────────
 export const SMS_PROVIDER = "MSG91";
@@ -46,5 +45,5 @@ export const DEFAULT_PAGE_SIZE = 50;
 export const MAX_PAGE_SIZE = 200;
 
 // ─── App ─────────────────────────────────────────────────────
-export const APP_NAME = "Attendly";
+export const APP_NAME = "Attendex";
 export const APP_VERSION = "0.1.0";

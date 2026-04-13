@@ -1,5 +1,5 @@
 /**
- * Attendly — Error Handling Utilities
+ * Attendex — Error Handling Utilities
  * Centralized error handling for consistent UX and logging.
  */
 
