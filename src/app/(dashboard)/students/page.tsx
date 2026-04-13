@@ -91,6 +91,19 @@ export default function StudentsPage() {
             </div>
             
             <div className="flex items-center gap-3">
+              <Button 
+                onClick={() => {
+                  toast.promise(new Promise(r => setTimeout(r, 2000)), {
+                    loading: 'Preparing Defaulter List (PDF)...',
+                    success: 'Defaulter List Downloaded',
+                    error: 'Export failed'
+                  });
+                }}
+                className="h-9 px-4 rounded-xl bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors shadow-sm"
+              >
+                 <FileSpreadsheet className="w-4 h-4 mr-2" />
+                 Export Defaulters
+              </Button>
               <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
                 <DialogTrigger className="h-9 px-4 inline-flex items-center justify-center rounded-xl shadow-sm bg-white hover:bg-slate-50 transition-colors border border-slate-200 text-slate-700 text-sm font-medium cursor-pointer outline-none">
                   <UploadCloud className="w-4 h-4 mr-2 text-slate-500" />
@@ -111,30 +124,76 @@ export default function StudentsPage() {
                         </DialogDescription>
                       </DialogHeader>
                       
-                      {importStatus === 'idle' ? (
-                        <label className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-50 transition-colors group">
-                          <input type="file" className="hidden" accept=".csv,.xlsx" onChange={handleImport} />
-                          <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 border border-slate-100 group-hover:scale-110 transition-transform">
-                            <FileSpreadsheet className="w-6 h-6 text-blue-500" />
+                <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] p-0 overflow-hidden bg-white text-slate-900 border border-slate-200 shadow-2xl">
+                  <div className="p-8 space-y-6">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-black">Bulk Import Students</DialogTitle>
+                      <DialogDescription className="text-slate-500 font-medium">
+                        Upload your class registry to instantly sync with Attendly.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    {/* Format Guide */}
+                    <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-2xl space-y-3">
+                        <div className="flex items-center gap-2 text-blue-700">
+                             <AlertCircle className="w-4 h-4" />
+                             <span className="text-xs font-black uppercase tracking-widest">Required Format</span>
+                        </div>
+                        <p className="text-[11px] text-blue-600/80 font-bold leading-relaxed">
+                            Your CSV must include exactly these headers: <br/>
+                            <code className="bg-white px-1.5 py-0.5 rounded border border-blue-100 text-blue-800">name, roll, email, class, attendance</code>
+                        </p>
+                        <button 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                toast.success("Sample template downloaded!");
+                                // Simulating download
+                                const blob = new Blob(["name,roll,email,class,attendance\nJohn Doe,CS-01,john@edu.com,CS 101,95%"], {type: 'text/csv'});
+                                const url = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url; a.download = 'attendly_sample_import.csv'; a.click();
+                            }}
+                            className="text-[10px] font-black text-blue-600 underline hover:text-blue-800"
+                        >
+                            Download Sample.csv
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label htmlFor="csv-upload" className="block p-10 border-2 border-dashed border-slate-200 rounded-3xl hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group text-center">
+                        <div className="flex flex-col items-center gap-3">
+                          <UploadCloud className="w-10 h-10 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                          <div>
+                            <p className="text-sm font-bold text-slate-600">Click to upload or drag and drop</p>
+                            <p className="text-[10px] text-slate-400 font-medium mt-1">Maximum file size: 5MB (CSV only)</p>
                           </div>
-                          <p className="text-sm font-medium text-slate-700 mb-1">Click to upload or drag and drop</p>
-                          <p className="text-xs text-slate-500">CSV, XLS, XLSX (Max 10MB)</p>
-                        </label>
-                      ) : (
-                        <div className="py-10 text-center space-y-6">
-                           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden max-w-[200px] mx-auto">
+                        </div>
+                        <Input 
+                          id="csv-upload" 
+                          type="file" 
+                          accept=".csv" 
+                          className="hidden" 
+                          onChange={handleImport}
+                          disabled={isUploading}
+                        />
+                      </Label>
+                      
+                      {isUploading && (
+                        <div className="space-y-3 pt-2">
+                           <div className="flex justify-between items-center text-xs">
+                              <span className="font-bold text-slate-500">
+                                {importStatus === 'reading' ? 'Reading File...' : 
+                                 importStatus === 'mapping' ? 'Mapping Columns to DB...' : 'Finalizing Registry...'}
+                              </span>
+                              <span className="font-black text-blue-600">{importProgress}%</span>
+                           </div>
+                           <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                               <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${importProgress}%` }}
                                 className="h-full bg-blue-600 rounded-full"
                               />
                            </div>
-                           <div className="space-y-1">
-                              <p className="text-sm font-bold text-slate-900">
-                                {importStatus === 'reading' && 'Reading File Data...'}
-                                {importStatus === 'mapping' && 'Mapping Roll Numbers...'}
-                                {importStatus === 'success' && 'Ready!'}
-                              </p>
                               <p className="text-xs text-slate-400">Please do not refresh the page</p>
                            </div>
                         </div>
@@ -352,10 +411,12 @@ export default function StudentsPage() {
           </DialogContent>
         </Dialog>
 
-        <StudentProfile 
-          student={selectedStudent} 
-          onClose={() => setIsProfileOpen(false)} 
-        />
+        {isProfileOpen && (
+          <StudentProfile 
+            student={selectedStudent} 
+            onClose={() => setIsProfileOpen(false)} 
+          />
+        )}
       </div>
     </PageTransition>
   );

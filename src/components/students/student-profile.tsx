@@ -32,153 +32,134 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[60] flex justify-end">
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 md:p-10">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
         />
         
         <motion.div 
-          initial={{ x: "100%" }}
-          animate={{ x: 0 }}
-          exit={{ x: "100%" }}
-          transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col border-l border-slate-100"
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl flex flex-col md:flex-row overflow-hidden border border-white/20"
         >
-          {/* Header */}
-          <div className="p-6 pb-0 flex items-center justify-between relative z-10">
-            <h3 className="text-xl font-bold text-slate-900">Student Profile</h3>
-            <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-                className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors cursor-pointer"
-            >
-                <X className="w-5 h-5" />
-            </button>
+          {/* Close Button - More Prominent */}
+          <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="absolute top-6 right-6 w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all z-20"
+          >
+              <X className="w-6 h-6" />
+          </button>
+
+          {/* Left Side: Visuals & Identity */}
+          <div className="w-full md:w-2/5 bg-slate-50 p-10 flex flex-col items-center justify-center space-y-6 border-r border-slate-100">
+             <div className="relative">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-[3rem] bg-white flex items-center justify-center overflow-hidden ring-8 ring-white shadow-2xl">
+                  <img 
+                      src={`https://i.pravatar.cc/300?u=${student.roll || student.rollNumber}`} 
+                      alt={student.name}
+                      className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className={cn(
+                  "absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl border-4 border-white flex items-center justify-center shadow-lg",
+                  isAtRisk ? 'bg-red-500' : 'bg-emerald-500'
+                )}>
+                  {isAtRisk ? <AlertCircle className="w-5 h-5 text-white" /> : <CheckCircle2 className="w-5 h-5 text-white" />}
+                </div>
+             </div>
+
+             <div className="text-center space-y-2">
+                <h2 className="text-2xl font-black text-slate-900 leading-tight">{student.name}</h2>
+                <span className="px-4 py-1.5 rounded-xl bg-blue-100 text-blue-700 text-xs font-black uppercase tracking-widest">{student.roll || student.rollNumber}</span>
+                <p className="text-xs text-slate-400 font-bold flex items-center justify-center gap-1.5 pt-2">
+                  <MapPin className="w-3 h-3" />
+                  Hostel Block B, Room 402
+                </p>
+             </div>
+
+             <div className="w-full pt-6 space-y-3">
+                <div className="flex justify-between items-center px-4 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Attendance</span>
+                   <span className={cn("text-lg font-black", isAtRisk ? 'text-red-600' : 'text-slate-900')}>{student.attendance || "85%"}</span>
+                </div>
+                <div className="flex justify-between items-center px-4 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Risk Score</span>
+                   <span className={cn("text-[10px] font-black uppercase tracking-widest", isAtRisk ? 'text-red-500' : 'text-emerald-500')}>{isAtRisk ? "HIGH" : "LOW"}</span>
+                </div>
+             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8">
-            {/* Identity Card */}
-            <div className="flex items-center gap-6">
-               <div className="relative">
-                  <div className="w-24 h-24 rounded-3xl bg-blue-100 flex items-center justify-center text-blue-600 overflow-hidden ring-4 ring-blue-50">
-                    <img 
-                        src={`https://i.pravatar.cc/150?u=${student.roll || student.rollNumber}`} 
-                        alt={student.name}
-                        className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-white flex items-center justify-center ${isAtRisk ? 'bg-red-500' : 'bg-emerald-500'}`}>
-                    {isAtRisk ? <AlertCircle className="w-3 h-3 text-white" /> : <CheckCircle2 className="w-3 h-3 text-white" />}
-                  </div>
-               </div>
-               <div className="space-y-1">
-                  <h2 className="text-2xl font-bold text-slate-900 leading-tight">{student.name}</h2>
-                  <p className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg inline-block">{student.roll || student.rollNumber}</p>
-                  <p className="text-sm text-slate-400 flex items-center gap-1.5 mt-1">
-                    <MapPin className="w-3 h-3" />
-                    Hostel Block B, Room 402
-                  </p>
-               </div>
-            </div>
-
-            {/* Attendance Analytics */}
+          {/* Right Side: Details & History */}
+          <div className="flex-1 max-h-[80vh] overflow-y-auto p-10 space-y-10 custom-scrollbar">
+            {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-4">
-               <Card className="p-4 border-slate-100 bg-slate-50/50 rounded-2xl">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Attendance</p>
-                  <div className="flex items-end gap-2">
-                    <span className={`text-2xl font-extrabold ${isAtRisk ? 'text-red-600' : 'text-slate-900'}`}>{student.attendance || "85%"}</span>
-                    {isAtRisk ? <TrendingDown className="w-4 h-4 text-red-500 mb-1" /> : <TrendingUp className="w-4 h-4 text-emerald-500 mb-1" />}
-                  </div>
-               </Card>
-               <Card className="p-4 border-slate-100 bg-slate-50/50 rounded-2xl">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Risk Score</p>
-                  <div className={`text-2xl font-extrabold ${isAtRisk ? 'text-red-600' : 'text-emerald-600'}`}>
-                    {isAtRisk ? "HIGH" : "LOW"}
-                  </div>
-               </Card>
+              <Button className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100">
+                <Mail className="w-4 h-4 mr-2" />
+                Email
+              </Button>
+              <Button className="h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-100">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                WhatsApp
+              </Button>
             </div>
 
-            {/* Heatmap Simulation */}
-            <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-slate-800">Weekly Presence</h4>
-                    <span className="text-xs text-slate-400">Last 14 days</span>
-                </div>
-                <div className="flex gap-1.5 justify-between">
-                    {[1,1,1,1,0,1,1,0,1,1,1,1,1,1].map((p, i) => (
+            {/* Performance Heatmap */}
+            <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">Academic Engagement</h4>
+                <div className="flex gap-1 justify-between bg-slate-50 p-2 rounded-2xl">
+                    {[1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1].map((p, i) => (
                         <div 
                             key={i} 
-                            className={`flex-1 h-8 rounded-md ${p === 1 ? 'bg-emerald-500/20' : 'bg-red-500/20'} border ${p === 1 ? 'border-emerald-500/20' : 'border-red-500/20'}`}
-                            title={p === 1 ? 'Present' : 'Absent'}
+                            className={cn(
+                              "flex-1 h-10 rounded-lg transition-all hover:scale-110 cursor-help",
+                              p === 1 ? 'bg-emerald-400 shadow-sm shadow-emerald-100' : 'bg-red-400 shadow-sm shadow-red-100'
+                            )}
+                            title={p === 1 ? 'Lecture Attended' : 'Lecture Missed'}
                         />
                     ))}
                 </div>
+                <p className="text-[10px] text-slate-400 font-bold text-center italic">"Historical pattern from the last 20 sessions"</p>
             </div>
 
-            {/* Contact Info */}
-            <div className="space-y-4">
-                <h4 className="text-sm font-bold text-slate-800">Direct Contact</h4>
-                <div className="space-y-3">
-                   <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 bg-white">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                        <Mail className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Personal Email</p>
-                        <p className="text-sm font-semibold text-slate-700">{student.email}</p>
-                      </div>
-                   </div>
-                   <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 bg-white">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                        <Phone className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Emergency Contact (Parent)</p>
-                        <p className="text-sm font-semibold text-slate-700">+91 98765 43210</p>
-                      </div>
-                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg h-8 px-3">
-                         <MessageSquare className="w-3 h-3 mr-1.5" />
-                         SMS
-                      </Button>
-                   </div>
+            {/* Timeline */}
+            <div className="space-y-6">
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">Recent Activity Log</h4>
+                <div className="space-y-6 relative pl-6 before:absolute before:left-[1px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
+                   {[
+                     { title: "Absent for OS Lecture", time: "Today, 10:00 AM", status: "missed", room: "LT-01" },
+                     { title: "Marked Present in Maths", time: "Yesterday, 11:30 AM", status: "present", room: "CS-LAB" },
+                     { title: "Internal Assessment 1", time: "Oct 12, 2:00 PM", status: "exam", room: "MPH" }
+                   ].map((item, idx) => (
+                     <div key={idx} className="relative">
+                        <div className={cn(
+                          "absolute -left-[30px] top-1 w-4 h-4 rounded-full border-4 border-white shadow-sm",
+                          item.status === 'missed' ? 'bg-red-500' : item.status === 'present' ? 'bg-emerald-500' : 'bg-blue-500'
+                        )} />
+                        <p className="text-sm font-bold text-slate-900 leading-none">{item.title}</p>
+                        <div className="flex items-center gap-2 mt-1.5 opacity-60">
+                            <span className="text-[10px] font-bold text-slate-500">{item.time}</span>
+                            <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                            <span className="text-[10px] font-bold text-slate-500">{item.room}</span>
+                        </div>
+                     </div>
+                   ))}
                 </div>
             </div>
 
-            {/* Recent History */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-slate-800">Recent Activity</h4>
-                    <History className="w-4 h-4 text-slate-400" />
-                </div>
-                <div className="space-y-4 border-l-2 border-slate-50 pl-6 relative">
-                   <div className="relative">
-                      <div className="absolute -left-[27px] top-1 w-3 h-3 rounded-full bg-red-500 border-2 border-white" />
-                      <p className="text-xs font-bold text-slate-900">Absent for Morning Lecture</p>
-                      <p className="text-[10px] text-slate-400">Today, 10:00 AM • Physics 202</p>
-                   </div>
-                   <div className="relative opacity-60">
-                      <div className="absolute -left-[27px] top-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white" />
-                      <p className="text-xs font-bold text-slate-900">Marked Present</p>
-                      <p className="text-[10px] text-slate-400">Yesterday, 11:30 AM • CS 101</p>
-                   </div>
-                </div>
+            <div className="pt-6">
+               <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all">
+                  Generate Full Audit Report (PDF)
+               </Button>
             </div>
-          </div>
-
-          {/* Footer Actions */}
-          <div className="p-6 border-t border-slate-50 flex gap-3">
-            <Button variant="outline" className="flex-1 rounded-xl h-12 border-slate-200 text-slate-600 font-bold">
-                Edit Record
-            </Button>
-            <Button className="flex-1 rounded-xl h-12 bg-slate-900 text-white font-bold">
-                View Reports
-            </Button>
           </div>
         </motion.div>
       </div>

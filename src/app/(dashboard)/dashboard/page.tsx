@@ -89,10 +89,25 @@ export default function DashboardPage() {
 
   const generateReport = (name: string) => {
     setIsGenerating(name);
+    
+    // Simulate compilation
     setTimeout(() => {
       setIsGenerating(null);
+      
+      // Simulate physical file download for high-fidelity demo
+      const dummyContent = `Attendly Report: ${name}\nGenerated on: ${new Date().toLocaleString()}\nStat: 142 Students Processed.`;
+      const blob = new Blob([dummyContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${name.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
       toast.success(`${name} generated!`, {
-        description: "Your report has been downloaded to your system."
+        description: "The compiled file has been sent to your downloads folder."
       });
     }, 2000);
   };
