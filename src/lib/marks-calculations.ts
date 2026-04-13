@@ -53,3 +53,25 @@ export const getStudentPerformance = (marks: StudentMarks) => {
         presentCount: Math.round((marks.attendancePercentage / 100) * 45)
     };
 };
+
+export const getParentInsights = (percentage: number, finalMarks: number) => {
+    let status: 'good' | 'warning' | 'risk' = 'good';
+    let insight = "Good performance maintained";
+    let alert = null;
+
+    if (percentage < 75) {
+        status = 'risk';
+        insight = "Critical attendance shortage detected.";
+        alert = "Your child may face attendance shortage and might not be eligible for final exams.";
+    } else if (finalMarks < 10) {
+        status = 'warning';
+        insight = "Performance needs improvement.";
+        alert = "Current internal marks are below expectations. Faculty intervention suggested.";
+    } else if (percentage < 80) {
+        status = 'warning';
+        insight = "Attendance needs attention.";
+        alert = "Attendance is dropping. Regular presence is required to maintain internal marks.";
+    }
+
+    return { status, insight, alert };
+};

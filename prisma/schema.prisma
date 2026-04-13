@@ -38,6 +38,19 @@ model Student {
   // Auth
   password        String?         @default("student123")
   role            String          @default("STUDENT")
+  parents         Parent[]
+}
+
+model Parent {
+  id              String          @id @default(cuid())
+  name            String
+  phone           String          @unique
+  password        String          @default("parent123")
+  role            String          @default("PARENT")
+  studentId       String
+  student         Student         @relation(fields: [studentId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }
 
 model AttendanceLog {
