@@ -49,11 +49,11 @@ export interface StudentWithMarks extends Student {
 // ─── Marks ───────────────────────────────────────────────────
 export interface StudentMarksInput {
   attendancePercentage: number;
-  cia1: number;
-  cia2: number;
-  test1: number; // raw out of 40
-  test2: number; // raw out of 40
-  assignment: number;
+  cia1?: number;
+  cia2?: number;
+  test1?: number; // raw out of 40
+  test2?: number; // raw out of 40
+  assignment?: number;
 }
 
 export interface PerformanceResult {

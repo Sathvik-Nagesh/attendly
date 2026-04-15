@@ -34,7 +34,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  Library
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -54,6 +55,7 @@ const ADMIN_LINKS: SidebarLink[] = [
   { name: "Campus Pulse", href: "/pulse", icon: Activity },
   { name: "Students", href: "/students", icon: Users },
   { name: "Classes", href: "/classes", icon: GraduationCap },
+  { name: "Subject Registry", href: "/subjects", icon: Library },
   { name: "Promotion Center", href: "/promotion", icon: RefreshCcw },
   { name: "Pattern Audit", href: "/audit", icon: SearchCode },
   { name: "Notifications", href: "/notifications", icon: Bell },
@@ -80,7 +82,7 @@ const VARIANT_CONFIG = {
       { name: "Timetable", href: "/timetable", icon: History },
       { name: "Results & Exams", href: "/results", icon: BookOpen },
     ],
-    title: "Attendex",
+    title: "KLE Academy",
     subtitle: "Administration",
     showSettings: true,
     accentColor: "blue",
@@ -91,7 +93,7 @@ const VARIANT_CONFIG = {
       { name: "My Timetable", href: "/student/timetable", icon: History },
       { name: "Exams & Results", href: "/student/marks", icon: BookOpen },
     ],
-    title: "Attendex",
+    title: "KLE Academy",
     subtitle: "Student Portal",
     showSettings: false,
     accentColor: "indigo",
@@ -102,7 +104,7 @@ const VARIANT_CONFIG = {
       { name: "Child's Timetable", href: "/parent/timetable", icon: History },
       { name: "Results Portal", href: "/parent/marks", icon: BookOpen },
     ],
-    title: "Attendex",
+    title: "KLE Academy",
     subtitle: "Family Portal",
     showSettings: false,
     accentColor: "rose",
@@ -113,11 +115,12 @@ const VARIANT_CONFIG = {
       { name: "Attendance", href: "/attendance", icon: CheckCircle },
       { name: "Students", href: "/students", icon: Users },
       { name: "Classes", href: "/classes", icon: GraduationCap },
+      { name: "Subject Registry", href: "/subjects", icon: Library },
       { name: "Schedule", href: "/timetable", icon: History },
       { name: "Results", href: "/results", icon: BookOpen },
       { name: "Alerts", href: "/notifications", icon: Bell },
     ],
-    title: "Attendex",
+    title: "KLE Academy",
     subtitle: "Faculty Portal",
     showSettings: true,
     accentColor: "blue",
@@ -162,11 +165,9 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
         "flex items-center h-16 border-b border-slate-100 transition-all duration-300",
         isCollapsed ? "px-3 justify-center" : "px-6"
       )}>
-        <div className="flex items-center gap-2 text-slate-900 font-semibold text-lg tracking-tight overflow-hidden">
-          <div className={cn("shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg", accentBg)}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
+        <div className="flex items-center gap-3 text-slate-900 font-bold text-lg tracking-tight overflow-hidden">
+          <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center p-1 bg-white border border-slate-100 shadow-md">
+            <img src="/icons/KLE_logo.jpg" alt="KLE" className="w-full h-auto rounded-lg" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col leading-tight animate-in fade-in slide-in-from-left-2">

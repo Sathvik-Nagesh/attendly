@@ -102,17 +102,72 @@ export default function LandingPage() {
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           className="mt-24 relative mx-auto max-w-6xl px-4 perspective-1000"
         >
-          <div className="p-1.5 md:p-4 bg-white/40 backdrop-blur-md rounded-[2.5rem] md:rounded-[4rem] border border-white/60 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden relative group transition-all duration-700 hover:shadow-[0_80px_150px_-30px_rgba(0,0,0,0.2)]">
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-slate-50 to-transparent z-10 pointer-events-none" />
+          <div className="p-4 md:p-8 bg-white/40 backdrop-blur-xl rounded-[3rem] md:rounded-[4.5rem] border border-white/60 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden relative group">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-20">
+              {/* Card 1: Attendance Pulse */}
+              <motion.div 
+                whileHover={{ y: -5 }}
+                className="bg-white/80 p-8 rounded-[2rem] border border-slate-100 shadow-sm"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center">
+                    <BarChart3 className="w-6 h-6" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">+12.5% Today</span>
+                </div>
+                <h4 className="text-3xl font-black text-slate-900 tracking-tighter">94.2%</h4>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Campus Attendance Pulse</p>
+                <div className="mt-6 flex gap-1 h-1.5">
+                  <div className="flex-[0.94] bg-blue-600 rounded-full" />
+                  <div className="flex-[0.06] bg-slate-100 rounded-full" />
+                </div>
+              </motion.div>
 
-            <img
-              src="/hero-preview.png"
-              alt="Attendex Dashboard Preview"
-              className="w-full h-auto rounded-[2rem] md:rounded-[3.5rem] shadow-sm border border-slate-100/50 transition-all duration-1000 group-hover:scale-[1.01]"
-            />
+              {/* Card 2: Student Sync */}
+              <motion.div 
+                whileHover={{ y: -5 }}
+                className="bg-slate-900 p-8 rounded-[2rem] shadow-2xl relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 p-6 opacity-10">
+                  <Database className="w-20 h-20 text-white" />
+                </div>
+                <div className="flex items-center gap-3 mb-6">
+                   <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Verified Database</span>
+                </div>
+                <h4 className="text-3xl font-black text-white tracking-tighter">12,402</h4>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Synchronized Student Records</p>
+              </motion.div>
+
+              {/* Card 3: Notifications */}
+              <motion.div 
+                whileHover={{ y: -5 }}
+                className="bg-white/80 p-8 rounded-[2rem] border border-slate-100 shadow-sm md:col-span-2 lg:col-span-1"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center">
+                    <Mail className="w-6 h-6" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { label: "SMS Alerts", status: "Delivered", color: "text-emerald-500" },
+                    { label: "Parent Digest", status: "In Queue", color: "text-blue-500" }
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">{item.label}</span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${item.color}`}>{item.status}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6">Automated Bridge Status</p>
+              </motion.div>
+            </div>
 
             {/* Glossy Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 z-10 pointer-events-none" />
           </div>
 
           {/* Floating Decorative Elements */}
@@ -269,9 +324,15 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-7xl mx-auto pt-16 mt-16 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-            © 2026 Attendex Systems Private Limited.
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+              © 2026 Attendly Systems.
+            </p>
+            <div className="hidden md:block w-1 h-1 rounded-full bg-slate-300" />
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
+              Curated and architected by <a href="https://brandex-lab.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 transition-colors border-b border-blue-600/30">Brandex Lab</a>
+            </p>
+          </div>
           <div className="flex items-center gap-6 text-xs font-bold text-slate-400">
             <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> SSL SECURE</span>
             <span className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /> GDPR COMPLIANT</span>

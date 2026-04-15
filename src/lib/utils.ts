@@ -5,14 +5,30 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function fuzzySearch(query: string, text: string): boolean {
+/**
+ * Institutional Fuzzy Search (Sub-sequence matching)
+ * Allows for partial matches, typos, and shorthand (e.g. "Krtk" matches "Karthik")
+ */
+export function fuzzySearch(query: string, text: string | null | undefined): boolean {
   if (!query) return true;
-  const q = query.toLowerCase().trim();
-  const t = text.toLowerCase();
+  if (!text) return false;
   
+  const q = query.toLowerCase().replace(/\s/g, '');
+  const t = text.toLowerCase().replace(/\s/g, '');
+  
+  // High-priority: Literal inclusion
   if (t.includes(q)) return true;
   
-  // Split query into words and check if all words exist in targets
-  const words = q.split(/\s+/);
-  return words.every(word => t.includes(word));
+  // Heuristic: Sub-sequence matching
+  let qIdx = 0;
+  let tIdx = 0;
+  
+  while (qIdx < q.length && tIdx < t.length) {
+    if (q[qIdx] === t[tIdx]) {
+      qIdx++;
+    }
+    tIdx++;
+  }
+  
+  return qIdx === q.length;
 }

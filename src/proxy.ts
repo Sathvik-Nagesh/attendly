@@ -1,53 +1,52 @@
-/**
- * Attendex — Route Protection Middleware
- * 
- * Enforces authentication and role-based access control.
- * Currently uses a cookie-based stub; swap for NextAuth.js session check.
+  /**
+ * Attendly — Production Security Perimeter
+ * Enforces rate limiting on sensitive gateways and handles security headers.
  */
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { PUBLIC_ROUTES, ROLE_ROUTE_MAP } from "@/lib/constants";
-import type { Role } from "@/types";
 import { getCSPHeader } from "@/lib/middleware-utils";
 
-/**
- * Extract user session from the request.
- * STUB: Replace with NextAuth getToken() or custom JWT verification.
- */
-function getSessionFromRequest(req: NextRequest): { role: Role; orgId: string } | null {
-  const sessionCookie = req.cookies.get("Attendex-session")?.value;
-
-  if (!sessionCookie) return null;
-
-  try {
-    // In production, this would decrypt a JWT or call NextAuth
-    const parsed = JSON.parse(sessionCookie);
-    if (parsed.role && parsed.orgId) {
-      return { role: parsed.role as Role, orgId: parsed.orgId };
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+// In-memory request tracking (for trial-run dev server)
+const rateLimitMap = new Map<string, { count: number, lastReset: number }>();
+const RATE_LIMIT_THRESHOLD = 20; // Max requests per window
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute window
 
 export default function proxy(req: NextRequest) {
-  // Bypassing mock auth for Supabase integration phase
+  const ip = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for") || "anonymous";
+  const path = req.nextUrl.pathname;
+
+  // 1. Target sensitive auth pathways for rate-limiting
+  const sensitivePaths = ["/login", "/signup", "/forgot-password", "/reset-password"];
+  
+  if (sensitivePaths.some(p => path.startsWith(p))) {
+    const now = Date.now();
+    const rateData = rateLimitMap.get(ip) || { count: 0, lastReset: now };
+
+    // Reset window if expired
+    if (now - rateData.lastReset > RATE_LIMIT_WINDOW) {
+      rateData.count = 0;
+      rateData.lastReset = now;
+    }
+
+    rateData.count++;
+    rateLimitMap.set(ip, rateData);
+
+    if (rateData.count > RATE_LIMIT_THRESHOLD) {
+      console.warn(`[SECURITY] Throttling ${ip} on route ${path} - Rate limit exceeded.`);
+      return new NextResponse("Institutional Security: Too many attempts. Please wait 60 seconds.", { status: 429 });
+    }
+  }
+
+  // 2. Apply Security Headers
   const response = NextResponse.next();
   response.headers.set("Content-Security-Policy", getCSPHeader());
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  
   return response;
 }
 
-
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico
-     */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   
+  const [role, setRole] = useState<'TEACHER' | 'STUDENT' | 'PARENT'>('STUDENT');
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -33,7 +35,7 @@ export default function SignupPage() {
           data: {
             full_name: formData.fullName,
             phone: formData.phone,
-            role: 'STUDENT' // Default role
+            role: role
           }
         }
       });
@@ -41,10 +43,9 @@ export default function SignupPage() {
       if (error) throw error;
 
       toast.success("Identity Registered", {
-          description: "Please check your inbox for the verification link."
+          description: `Welcome aboard! Please verify your ${role.toLowerCase()} email.`
       });
       
-      // Delay to let toast be seen
       setTimeout(() => router.push("/login"), 2000);
     } catch (err: any) {
         toast.error("Registration Failed", {
@@ -65,12 +66,27 @@ export default function SignupPage() {
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md bg-white rounded-[3rem] p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-100 relative z-10"
       >
-        <div className="text-center space-y-4 mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 text-white shadow-2xl shadow-blue-600/30">
-            <GraduationCap className="w-8 h-8" />
+        <div className="text-center space-y-4 mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 text-white shadow-2xl shadow-blue-600/30">
+            <GraduationCap className="w-7 h-7" />
           </div>
-          <h1 className="text-3xl font-[1000] text-slate-900 tracking-tighter">Join Attendly</h1>
-          <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Initialize Academic ID</p>
+          <h1 className="text-2xl font-[1000] text-slate-900 tracking-tighter">Initialize Identity</h1>
+          
+          <div className="flex p-1 bg-slate-100 rounded-2xl">
+             {(['TEACHER', 'STUDENT', 'PARENT'] as const).map((r) => (
+                 <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    className={cn(
+                        "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                        role === r ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-500"
+                    )}
+                 >
+                     {r === 'TEACHER' ? 'Faculty' : r === 'STUDENT' ? 'Student' : 'Guardian'}
+                 </button>
+             ))}
+          </div>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-4">

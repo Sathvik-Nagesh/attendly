@@ -1,12 +1,12 @@
 {
-  "name": "Attendex — Academic Management Suite",
-  "short_name": "Attendex",
-  "description": "High-performance attendance and academic tracking for modern educational institutions.",
-  "start_url": "/",
+  "name": "Attendly — Academic Management Suite",
+  "short_name": "Attendly",
+  "description": "Premium institutional command center for high-performance attendance and academic tracking.",
+  "start_url": "/dashboard",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#f8fafc",
-  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "categories": [
     "education",
     "productivity"
@@ -16,34 +16,42 @@
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
     {
-      "name": "Attendance",
+      "name": "Mark Attendance",
+      "short_name": "Attendance",
+      "description": "Open the attendance terminal",
       "url": "/attendance",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Students",
-      "url": "/students",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "name": "Campus Pulse",
+      "short_name": "Pulse",
+      "description": "View real-time campus trends",
+      "url": "/pulse",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Subject Registry",
+      "short_name": "Subjects",
+      "description": "Manage institutional blueprints",
+      "url": "/subjects",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ],
   "screenshots": [

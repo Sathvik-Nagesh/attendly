@@ -38,14 +38,14 @@ export function calculateAttendanceMarks(percentage: number): number {
 /**
  * Sum CIA assessments, capped at MAX_CIA_MARKS.
  */
-export function calculateCIAMarks(cia1: number, cia2: number): number {
+export function calculateCIAMarks(cia1: number = 0, cia2: number = 0): number {
   return Math.min(cia1 + cia2, MAX_CIA_MARKS);
 }
 
 /**
  * Weighted test score: ((test1 + test2) / (2 × rawMax)) × maxMarks
  */
-export function calculateTestMarks(test1: number, test2: number): number {
+export function calculateTestMarks(test1: number = 0, test2: number = 0): number {
   const score = ((test1 + test2) / (TEST_RAW_MAX * 2)) * MAX_TEST_MARKS;
   return Math.round(score * 10) / 10; // 1 decimal precision
 }

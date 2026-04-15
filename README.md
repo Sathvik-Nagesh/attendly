@@ -1,102 +1,80 @@
-# 🎯 Attendex: Production-Grade Attendance Ecosystem
+# 🎓 Attendly (Gradence): Institutional Command Center
 
 [![Next.js](https://img.shields.io/badge/Next.js-16+-black?logo=next.js)](https://nextjs.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma)](https://prisma.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql)](https://postgresql.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth_&_DB-3ECF8E?logo=supabase)](https://supabase.com/)
+[![PWA](https://img.shields.io/badge/PWA-Native_Experience-blue)](https://web.dev/progressive-web-apps/)
 [![Security](https://img.shields.io/badge/Security-Audit_Passed-emerald)](./SECURITY.md)
 
-Attendex is a premium, multi-tenant attendance and academic management system designed for modern colleges. It bridges the gap between faculty, administration, students, and parents with a high-fidelity, professional interface and automated notification systems.
+**Attendly (Gradence)** is a premium, institutional-grade command center designed for modern colleges. It transitions standard academic tracking into a high-fidelity, data-driven ecosystem where faculty, administration, and parents are synchronized via a resilient PWA architecture.
 
 ---
 
-## 🚀 Key Features
+## 🏛️ Institutional Sovereignty Features
 
-### 🏛️ Multi-Portal Ecosystem
-*   **Teacher/Admin Portal**: Real-time attendance marking, mass student management, and department-level analytics.
-*   **Student Portal**: Performance tracking, automated CIA (Internal Marks) calculation, and achievement logs.
-*   **Parent Portal**: Real-time risk alerts for attendance shortage and academic standing insights.
+### 📡 Relational Offline Persistence (ROPE)
+Designed for the "Real World" of large campuses.
+- **Elevator-Sync**: Faculty can mark attendance in cellular dead zones or basement labs.
+- **Fail-Safe Buffering**: If cloud synchronization fails, sessions are securely buffered in a local relational vault and pushed the moment signal is restored.
 
-### ⚡ Intelligence & Automation
-*   **Fast Entry Mode**: Record absentees in seconds with intelligent roll-number handling.
-*   **Smart SMS Bridge**: Instant automated alerts to parents via MSG91/WhatsApp integration.
-*   **Academic Intelligence**: Centralized engine for calculating weighted internal marks (CIA) from attendance and tests.
-*   **One-Click Reporting**: Generate Defaulter Lists (PDF) and Monthly Attendance Sheets (XLS) instantly.
+### 🔐 Biometric Identity Binding
+- **Passkey Sovereignty**: Faculty can bind their institutional profile to their device hardware (FaceID/TouchID).
+- **Hardened Security**: Multi-factor identity verification without the friction of passwords.
 
----
-
-## 🛡️ Security Architecture
-
-Attendex follows a "Security-First" philosophy with multiple hardened layers:
-
-| Layer | Implementation |
-|-------|----------------|
-| **Data At Rest** | All passwords hashed using **Bcrypt** (12 rounds) with unique salt. |
-| **XSS Prevention** | Full input sanitization via **DOMPurify** + React auto-escaping. |
-| **Network Security** | Custom **Content Security Policy (CSP)** headers and CSRF protection. |
-| **Authorization** | Strict **Role-Based Access Control (RBAC)** enforced via Next.js middleware. |
-| **Multi-Tenancy** | Mandatory `organizationId` scoping on every database query for strict isolation. |
+### 🎭 Native "High-Fidelity" UX
+- **Institutional Haptic Engine**: Tactile vibrations for successful marks, syncs, and errors, matching premium mobile app standards.
+- **iOS Active Onboarding**: Custom adaptive installation guidance for Safari users to ensure 100% PWA adoption.
+- **Universal Shortcuts**: Long-press app shortcuts for "Mark Attendance," "Campus Pulse," and "Subject Registry."
 
 ---
 
-## 🛠️ Technology Stack
+## 🛡️ Core Institutional Pillars
 
-*   **Frontend**: Next.js 16 (App Router), Tailwind CSS, Framer Motion, Lucide Icons.
-*   **Backend**: Next.js Server Actions & API Routes (in-progress).
-*   **Database**: Prisma ORM with PostgreSQL.
-*   **Monitoring**: Centralized Error Logging & Performance Metrics.
-*   **Environment**: Fully containerized and PWA-ready.
+### 1. Subject Data Sovereignty (The Lock-In)
+- **Ownership**: Hard relational lock on `(subject_id, class_id)` prevents teacher collisions.
+- **Blockchain-Style Verification**: Sessions are locked to the claiming faculty member once verified.
+
+### 2. Live Intelligence
+- **Pattern Audit**: Heuristic fuzzy search for instant student discovery.
+- **Campus Pulse**: Real-time heartbeat of institutional attendance trends.
+- **Guardian Visibility**: High-fidelity subject-wise ledgers for parents.
 
 ---
 
-## ⌨️ Getting Started
+## 🛠️ Security & Scaling Architecture
 
-### 1. Prerequisites
-- Node.js 20+
-- PostgreSQL Instance
+- **Identity**: Supabase Auth with Role-Based Access Control (RBAC).
+- **Network Sovereignty**: Built-in Security Proxy with Rate Limiting and standard header-based protection.
+- **Type Safety**: 100% TypeScript coverage with institutional-grade schemas and services.
 
-### 2. Installation
+---
+
+## ⌨️ Developer Operations
+
 ```powershell
-# Clone the repository
-git clone https://github.com/Attendex/system.git
-cd Attendex
+# 1. Clone & Enter
+git clone https://github.com/Brandex/Attendly.git
+cd Attendly
 
-# Install dependencies
+# 2. Sync Dependencies
 npm install
-```
 
-### 3. Environment Setup
-Copy `.env.example` to `.env` and fill in your credentials.
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/Attendex"
-NEXTAUTH_SECRET="your-secret-key"
-MSG91_AUTH_KEY="your-api-key"
-```
-
-### 4. Database Initialization
-```powershell
-npx prisma generate
-npx prisma migrate dev
-```
-
-### 5. Start Development
-```powershell
+# 3. Launch Command Center
 npm run dev
 ```
 
 ---
 
-## 📋 Roadmap
+## 📋 Production Roadmap (Trial Phase)
 
-- [x] Multi-Portal UI Architecture
-- [x] Security Hardening (Hashing, Sanitization, CSP)
-- [x] Multi-Tenant Schema Design
-- [ ] NextAuth.js Integration (Social & Credential)
-- [ ] Real-time WebSocket Notifications
-- [ ] Mobile App (React Native bridge)
+- [x] **Relational Lock-In**: Subject ownership and collision prevention.
+- [x] **Institutional Offline**: ROPE service for session buffering.
+- [x] **Biometric Entry**: Passkey enrollment for faculty.
+- [x] **Haptic Feedback**: Tactile interaction engine.
+- [ ] **Push Notifications**: Transitioning from SMS to native browser push.
+- [ ] **AI Forecasting**: Predictive analytics for attendance shortages.
 
 ---
 
-## 📄 License
-© 2026 Attendex Systems Private Limited. All rights reserved. 
-Internal use only for registered partner institutions.
+## 📄 Corporate Registry
+© 2026 Attendex Systems Private Limited (Brandex). 
+Designed for institutional scaling and high-concurrency environments.

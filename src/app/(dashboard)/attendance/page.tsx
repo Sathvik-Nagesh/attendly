@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, CalendarIcon, CheckCircle2, AlertCircle, Bell, Download, RefreshCcw } from "lucide-react";
+import { RefreshCcw, UserCheck, WifiOff, CloudUpload, CheckCircle2, CalendarIcon, Search, AlertCircle, Bell, Download } from "lucide-react";
 import { format } from "date-fns";
+import { offlineService } from "@/services/offline";
+import { haptics } from "@/lib/haptics";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -19,13 +21,21 @@ import { cn, fuzzySearch } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { StudentProfile } from "@/components/students/student-profile";
 import { academicService } from "@/services/academic";
+import { subjectService, Subject } from "@/services/subjects";
+import { supabase } from "@/lib/supabase";
 import { useEffect } from "react";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function AttendancePage() {
   const [students, setStudents] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>("");
+  const [currentAssignment, setCurrentAssignment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isClaiming, setIsClaiming] = useState(false);
 
   useEffect(() => {
     academicService.getClasses().then(data => {
@@ -37,14 +47,25 @@ export default function AttendancePage() {
   useEffect(() => {
     if (selectedClassId) {
         setLoading(true);
+        // 1. Fetch Students
         academicService.getStudentsByClass(selectedClassId)
             .then(data => {
                 setStudents(data || []);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
+
+        // 2. Fetch Subjects for this Class (Year/Sem)
+        const currentClass = classes.find(c => c.id === selectedClassId);
+        if (currentClass) {
+            subjectService.getSubjects({ 
+                department: currentClass.department, 
+                year: currentClass.year,
+                semester: 1 // Default to 1, can be dynamic later
+            }).then(data => setSubjects(data || []));
+        }
     }
-  }, [selectedClassId]);
+  }, [selectedClassId, classes]);
 
   const [date, setDate] = useState<Date>(new Date());
   const [search, setSearch] = useState("");
@@ -52,58 +73,174 @@ export default function AttendancePage() {
   const [entryMode, setEntryMode] = useState<'list' | 'grid'>('list');
   const [absentIds, setAbsentIds] = useState<Set<string>>(new Set());
   const [onDutyIds, setOnDutyIds] = useState<Set<string>>(new Set());
+  const [medicalIds, setMedicalIds] = useState<Set<string>>(new Set());
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [selectedLecture, setSelectedLecture] = useState("L1");
 
+  // --- Auto-Draft Persistence ---
+  useEffect(() => {
+    if (selectedClassId) {
+        const draft = localStorage.getItem(`draft_${selectedClassId}_${selectedLecture}`);
+        if (draft) {
+            const { absent, od } = JSON.parse(draft);
+            setAbsentIds(new Set(absent));
+            setOnDutyIds(new Set(od));
+            toast.info("Draft Recovered", { description: "Resuming your previous roll call session." });
+        }
+    }
+  }, [selectedClassId, selectedLecture]);
+
+  useEffect(() => {
+    if (selectedSubjectId && selectedClassId) {
+        checkSubjectLock();
+    }
+  }, [selectedSubjectId, selectedClassId]);
+
+  const checkSubjectLock = async () => {
+    try {
+        const assignments = await subjectService.getAssignmentsForClass(selectedClassId);
+        const lock = assignments.find((a: any) => a.subject_id === selectedSubjectId);
+        setCurrentAssignment(lock || null);
+    } catch (err) {
+        console.error("Lock Check Failed");
+    }
+  };
+
+  const handleClaim = async () => {
+    if (!selectedSubjectId || !selectedClassId) return;
+    setIsClaiming(true);
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Authentication required");
+        
+        await subjectService.claimSubject(selectedSubjectId, selectedClassId, user.id);
+        toast.success("Subject Locked Successfully", { description: "You are now the primary faculty for this course." });
+        checkSubjectLock();
+    } catch (err: any) {
+        toast.error("Claim Failed", { description: err.message });
+    } finally {
+        setIsClaiming(false);
+    }
+  };
+
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
-      const matchesSearch = fuzzySearch(search, `${s.name} ${s.roll_number || s.rollNumber}`);
+      const matchesSearch = fuzzySearch(search, `${s.name} ${s.roll_number}`);
       const matchesBatch = selectedBatch === "all" || s.batch === selectedBatch;
       return matchesSearch && matchesBatch;
     });
   }, [search, selectedBatch, students]);
 
   const toggleAttendance = (id: string, type: 'present' | 'absent' | 'od') => {
+    haptics.light();
     if (type === 'present') {
       setAbsentIds(prev => { const n = new Set(prev); n.delete(id); return n; });
       setOnDutyIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+      setMedicalIds(prev => { const n = new Set(prev); n.delete(id); return n; });
     } else if (type === 'absent') {
       setAbsentIds(prev => { const n = new Set(prev); n.add(id); return n; });
       setOnDutyIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+      setMedicalIds(prev => { const n = new Set(prev); n.delete(id); return n; });
     } else {
       setOnDutyIds(prev => { const n = new Set(prev); n.add(id); return n; });
       setAbsentIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+      setMedicalIds(prev => { const n = new Set(prev); n.delete(id); return n; });
     }
   };
 
+  const setMedical = (id: string) => {
+    setMedicalIds(prev => { const n = new Set(prev); n.add(id); return n; });
+    setAbsentIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+    setOnDutyIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+  };
+
   const markAllPresent = () => {
-    setAbsentIds(new Set());
-    setOnDutyIds(new Set());
+    const newAbsent = new Set(absentIds);
+    const newOD = new Set(onDutyIds);
+    
+    // Only remove statuses for the students currently in the filtered view
+    filteredStudents.forEach(s => {
+      newAbsent.delete(s.id);
+      newOD.delete(s.id);
+    });
+    
+    setAbsentIds(newAbsent);
+    setOnDutyIds(newOD);
+    toast.success(`Marked ${filteredStudents.length} students as present`);
   };
 
   const handleSave = async () => {
+    if (!selectedClassId) return toast.error("Select a class registry first");
+    
     setIsSaving(true);
+    try {
+      // 1. Determine target periods (handle Double Lectures)
+      const periods = selectedLecture.startsWith('DP') 
+        ? (selectedLecture === 'DP1' ? [1, 2] : [3, 4])
+        : [parseInt(selectedLecture.replace('L', ''))];
 
-    // Simulate API Call to MSG91
-    console.log("-----------------------------------------");
-    console.log("MSG91 API GATEWAY: Initiating Sync");
-    console.log(`Payload: { type: 'absent_alert', count: ${absentIds.size}, recipients: [${Array.from(absentIds).join(', ')}] }`);
+      // 2. Map all students to status format (IST Aware)
+      const formattedDate = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      const attendanceData: any[] = [];
 
-    setTimeout(() => {
-      console.log("MSG91 RESPONSE: 200 OK - Message Sent Successfully");
-      console.log("-----------------------------------------");
-
-      setIsSaving(false);
-      setIsConfirmOpen(false);
-      toast.success("Attendance synced successfully!", {
-        description: `${absentIds.size} parents notified via MSG91 SMS Gateway.`
+      periods.forEach(period => {
+          students.forEach(student => {
+              let status = 'present';
+              if (absentIds.has(student.id)) status = 'absent';
+              else if (onDutyIds.has(student.id)) status = 'od';
+              else if (medicalIds.has(student.id)) status = 'ml';
+              
+              attendanceData.push({
+                  studentId: student.id,
+                  status,
+                  period
+              });
+          });
       });
+
+      // 3. Batch Sync to Supabase
+      await academicService.saveAttendance(selectedClassId, formattedDate, attendanceData, selectedSubjectId);
+
+      toast.success("Academic Sheet Synchronized", {
+          description: `Logged attendance for ${periods.length} sessions across ${students.length} students.`
+      });
+      
+      setIsConfirmOpen(false);
+      // Optional: Clear selection to prevent accidental double-click pollution
       setAbsentIds(new Set());
       setOnDutyIds(new Set());
-    }, 2000);
+    } catch (err: any) {
+        console.error("Sync Error:", err);
+        
+        // Attempt Offline ROPE Persistence
+        const draftId = await offlineService.saveDraft({
+            classId: selectedClassId,
+            subjectId: selectedSubjectId,
+            lecture: selectedLecture,
+            date: format(date, "yyyy-MM-dd"), // Simplified for draft
+            absentIds: Array.from(absentIds),
+            onDutyIds: Array.from(onDutyIds)
+        });
+
+        if (draftId) {
+             toast.warning("Institutional Offline Mode", {
+                description: "Cloud unreachable. Session securely buffered in local vault.",
+                icon: <WifiOff className="w-5 h-5" />
+            });
+            setIsConfirmOpen(false);
+            setAbsentIds(new Set());
+            setOnDutyIds(new Set());
+        } else {
+            toast.error("Cloud Synchronization Failed", {
+                description: err.message || "Database cluster unreachable. Check connectivity."
+            });
+        }
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   const totalStudents = students.length;
@@ -165,6 +302,41 @@ export default function AttendancePage() {
                 </SelectContent>
               </Select>
 
+              <Select value={selectedSubjectId} onValueChange={(val) => val && setSelectedSubjectId(val)}>
+                <SelectTrigger className="w-[180px] md:w-[220px] h-12 border-slate-200 bg-white shadow-sm font-bold rounded-xl text-slate-700">
+                  <SelectValue placeholder="Select Subject" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  {subjects.length > 0 ? (
+                    subjects.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.name} ({s.code})</SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-3 text-xs font-bold text-slate-400">No subjects mapped</div>
+                  )}
+                </SelectContent>
+              </Select>
+
+              {selectedSubjectId && !currentAssignment && (
+                <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="h-12 px-6 rounded-2xl border-blue-200 bg-blue-50 text-blue-700 font-black uppercase tracking-widest hover:bg-blue-100 transition-all gap-2"
+                    onClick={handleClaim}
+                    disabled={isClaiming}
+                >
+                    <UserCheck className="w-4 h-4" />
+                    Lock Subject
+                </Button>
+              )}
+
+              {currentAssignment && (
+                <div className="h-12 px-6 rounded-2xl border-emerald-100 bg-emerald-50 text-emerald-700 font-black uppercase tracking-widest text-[10px] flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Verification Locked
+                </div>
+              )}
+
               <Popover>
                 <PopoverTrigger
                   className={cn("h-12 border border-slate-200 bg-white hover:bg-slate-50 shadow-sm font-bold rounded-2xl text-left px-4 w-[180px] md:w-[200px] text-slate-800 transition-colors inline-flex items-center shrink-0")}
@@ -186,18 +358,65 @@ export default function AttendancePage() {
                 variant="outline"
                 className="h-12 rounded-2xl border-slate-200 bg-white shadow-sm font-bold gap-2 shrink-0 hidden md:flex"
                 onClick={() => {
-                  const csvContent = "data:text/csv;charset=utf-8,Roll Number,Name,Status,Date\nCS-01,Alena Smith,Present,2023-10-10\nCS-02,Brandon Cooper,Absent,2023-10-10";
-                  const encodedUri = encodeURI(csvContent);
-                  const link = document.createElement("a");
-                  link.setAttribute("href", encodedUri);
-                  link.setAttribute("download", `attendance_${format(date, 'yyyy-MM-dd')}_L1.csv`);
-                  document.body.appendChild(link);
-                  link.click();
-                  toast.success("CSV Downloaded!");
+                  try {
+                    const doc = new jsPDF() as any;
+                    const classInfo = classes.find((c) => c.id === selectedClassId);
+                    const timestamp = format(new Date(), 'dd-MMM-yyyy HH:mm');
+
+                    // 1. Institutional Header
+                    doc.setFontSize(22);
+                    doc.setTextColor(15, 23, 42); 
+                    doc.text("ATTENDEX INSTITUTIONAL LEDGER", 105, 20, { align: "center" });
+                    doc.setFontSize(10);
+                    doc.setTextColor(148, 163, 184); 
+                    doc.text(`Generated on: ${timestamp}`, 105, 28, { align: "center" });
+
+                    // 2. Class Coordinates
+                    doc.setDrawColor(241, 245, 249);
+                    doc.line(14, 35, 196, 35);
+                    doc.setFontSize(14);
+                    doc.setTextColor(30, 41, 59);
+                    doc.text(`Class: ${classInfo?.name || "All Sections"}`, 14, 45);
+                    doc.text(`Date: ${format(date, "MMMM d, yyyy")}`, 14, 52);
+                    doc.text(`Period: ${selectedLecture.replace("L", "Lecture ")}`, 14, 59);
+
+                    // 3. Data Table
+                    const tableData = students.map((s) => [
+                        s.roll_number,
+                        s.name,
+                        s.email || "N/A",
+                        absentIds.has(s.id) ? "ABSENT" : "PRESENT",
+                    ]);
+
+                    (doc as any).autoTable({
+                        startY: 70,
+                        head: [["Reg No.", "Student Name", "Official Email", "Status"]],
+                        body: tableData,
+                        theme: "grid",
+                        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] },
+                        styles: { fontSize: 9, cellPadding: 4 },
+                        didParseCell: (data: any) => {
+                            if (data.section === 'body' && data.column.index === 3) {
+                                if (data.cell.raw === 'ABSENT') data.cell.styles.textColor = [225, 29, 72];
+                                else data.cell.styles.textColor = [5, 150, 105];
+                            }
+                        }
+                    });
+
+                    // 4. Verification Footer
+                    const finalY = (doc as any).lastAutoTable.finalY + 30;
+                    doc.text("Authority Signature: __________________________", 14, finalY);
+                    doc.rect(160, finalY, 30, 30);
+
+                    doc.save(`Attendance_Ledger_${classInfo?.name || "Class"}.pdf`);
+                    toast.success("Institutional Ledger Generated");
+                  } catch (err) {
+                    toast.error("Export failure");
+                  }
                 }}
               >
                 <Download className="w-5 h-5 text-slate-500" />
-                Export
+                Export Ledger
               </Button>
 
               <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
@@ -245,7 +464,7 @@ export default function AttendancePage() {
                         <div className="pt-4 border-t-2 border-slate-200/50">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Broadcast Preview</p>
                           <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 text-xs font-bold text-slate-600 italic leading-relaxed shadow-sm">
-                            "Attendex Notice: Student (Roll {Array.from(absentIds)[0] || '...'}) was ABSENT for Lect. {selectedLecture.replace('L', '')} on {format(date, 'MMM d')}. Please acknowledge."
+                            "Attendex Notice: Student (Reg No. {Array.from(absentIds)[0] || '...'}) was ABSENT for Lect. {selectedLecture.replace('L', '')} on {format(date, 'MMM d')}. Please acknowledge."
                           </div>
                         </div>
                       </div>
@@ -356,7 +575,7 @@ export default function AttendancePage() {
                           students.forEach(s => {
                             const rollNum = s.roll_number || s.rollNumber || "";
                             if (!rollNum) return;
-                            const simpleRoll = rollNum.split('-')[1]?.toLowerCase() || rollNum.toLowerCase();
+                            const simpleRoll = rollNum.slice(-4).toLowerCase();
                             if (rolls.includes(rollNum.toLowerCase()) || rolls.includes(simpleRoll)) {
                               newAbsent.add(s.id);
                             }
@@ -384,7 +603,7 @@ export default function AttendancePage() {
                                 "bg-white text-slate-800 border-slate-200 hover:border-slate-300"
                           )}
                         >
-                          {s.rollNumber.split('-')[1]}
+                          {s.roll_number.slice(-4)}
                         </button>
                       )
                     })}
@@ -475,13 +694,24 @@ export default function AttendancePage() {
                           <button
                             onClick={() => toggleAttendance(student.id, 'od')}
                             className={cn(
-                              "w-12 h-12 rounded-xl text-xs font-black transition-all flex items-center justify-center",
+                              "w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
                               isOD
-                                ? "bg-white text-blue-600 shadow-md shadow-blue-600/10 scale-105"
+                                ? "bg-white text-blue-600 shadow-sm scale-105"
                                 : "text-slate-400 hover:text-slate-600"
                             )}
                           >
                             OD
+                          </button>
+                          <button
+                            onClick={() => setMedical(student.id)}
+                            className={cn(
+                              "w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
+                              medicalIds.has(student.id)
+                                ? "bg-white text-amber-600 shadow-sm scale-105"
+                                : "text-slate-400 hover:text-slate-600"
+                            )}
+                          >
+                            ML
                           </button>
                         </div>
                       </motion.div>

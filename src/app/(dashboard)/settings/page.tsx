@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, ShieldCheck } from "lucide-react";
+import { PasskeyCard } from "@/components/auth/passkey-card";
 
 export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
@@ -114,6 +115,13 @@ export default function SettingsPage() {
               </div>
             </div>
           </Card>
+
+          <div className="space-y-1 mt-12">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Security & Sovereignty</h2>
+            <p className="text-sm text-slate-500">Enable advanced authentication and hardware-level identity binding.</p>
+          </div>
+
+          <PasskeyCard />
         </div>
       </div>
     </PageTransition>

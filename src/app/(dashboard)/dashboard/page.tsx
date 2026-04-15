@@ -4,45 +4,19 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Card } from "@/components/ui/card";
-import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight, MessageSquare, AlertCircle, Loader2 } from "lucide-react";
+import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight, MessageSquare, AlertCircle, Loader2, Shield, Bell } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { academicService } from "@/services/academic";
+import { supabase } from "@/lib/supabase";
 
 // Import export libraries
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
-
-const weeklyData = [
-  { name: "Mon", present: 45, absent: 5 },
-  { name: "Tue", present: 48, absent: 2 },
-  { name: "Wed", present: 42, absent: 8 },
-  { name: "Thu", present: 47, absent: 3 },
-  { name: "Fri", present: 49, absent: 1 },
-];
-
-const monthlyData = [
-  { name: "Week 1", present: 220, absent: 30 },
-  { name: "Week 2", present: 240, absent: 10 },
-  { name: "Week 3", present: 190, absent: 60 },
-  { name: "Week 4", present: 245, absent: 5 },
-];
-
-const SMS_QUEUE = [
-  { id: "1", roll: "CS-02", status: "Sending", progress: 65, time: "Just now" },
-  { id: "2", roll: "CS-14", status: "Queued", progress: 0, time: "Queued" },
-  { id: "3", roll: "CS-28", status: "Delivered", progress: 100, time: "2m ago" },
-];
-
-const recentActivity = [
-  { id: 1, text: "CS-101 attendance marked by Alex", time: "10 mins ago", type: "success" },
-  { id: 2, text: "3 absent parent alerts dispatched", time: "1 hour ago", type: "alert" },
-  { id: 3, text: "Physics-202 records synchronized", time: "2 hours ago", type: "success" },
-];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -99,19 +73,50 @@ const StatCard = ({ title, value, label, icon: Icon, delay = 0, trendClass = "te
 
 export default function DashboardPage() {
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
-  const [stats, setStats] = useState({ totalStudents: 0, totalClasses: 0 });
+  const [stats, setStats] = useState({ totalStudents: 0, totalClasses: 0, absenteesToday: 0 });
   const [loading, setLoading] = useState(true);
+  const [pendingFaculty, setPendingFaculty] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
-    academicService.getSummaryStats()
-        .then(data => {
-            setStats(data);
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+                setUserProfile(profile);
+                
+                if (profile?.role === 'ADMIN') {
+                    const pending = await academicService.getPendingFaculty();
+                    setPendingFaculty(pending || []);
+                }
+            }
+
+            const summary = await academicService.getSummaryStats();
+            setStats(summary);
+        } catch (err) {
+            console.error(err);
+        } finally {
             setLoading(false);
-        })
-        .catch(() => setLoading(false));
+        }
+    };
+    fetchData();
   }, []);
+
+  const handleApprove = async (id: string, name: string) => {
+      try {
+          await academicService.approveFaculty(id);
+          setPendingFaculty(prev => prev.filter(p => p.id !== id));
+          toast.success(`Identity Verified: ${name}`, {
+              description: "Faculty advisor has been granted administrative access."
+          });
+      } catch (err) {
+          toast.error("Verification system failure.");
+      }
+  };
   const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
-  const activeData = timeframe === 'week' ? weeklyData : monthlyData;
+  const activeData = (stats as any).weeklyTrend || [];
 
   const handleExportPDF = () => {
     setIsGenerating('PDF');
@@ -188,8 +193,47 @@ export default function DashboardPage() {
     <PageTransition>
       <div className="flex flex-col min-h-full">
         <Header title="Dashboard" />
-
+        
         <div className="flex-1 py-8 space-y-6">
+          {/* Admin Approval Queue */}
+          <AnimatePresence>
+              {userProfile?.role === 'ADMIN' && pendingFaculty.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-8"
+                  >
+                    <Card className="p-8 border-amber-200 bg-amber-50/50 rounded-[2rem] overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-8">
+                             <Shield className="w-20 h-20 text-amber-500/10 rotate-12" />
+                        </div>
+                        <div className="relative z-10">
+                            <h3 className="text-sm font-black text-amber-900 uppercase tracking-widest mb-6 flex items-center gap-3">
+                                <AlertCircle className="w-5 h-5 text-amber-600" />
+                                Pending Institutional Recognitions
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {pendingFaculty.map((faculty) => (
+                                    <div key={faculty.id} className="p-5 bg-white rounded-2xl border border-amber-100 shadow-sm flex items-center justify-between group">
+                                        <div>
+                                            <p className="text-sm font-black text-slate-900">{faculty.full_name}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{faculty.email}</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => handleApprove(faculty.id, faculty.full_name)}
+                                            className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-lg shadow-amber-200 hover:scale-110 active:scale-95 transition-all"
+                                        >
+                                            <UserCheck className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+                  </motion.div>
+              )}
+          </AnimatePresence>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-1">
             <StatCard
               title="Students Enrolled"
@@ -209,7 +253,7 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Absentees Today"
-              value="17"
+              value={loading ? "..." : stats.absenteesToday}
               label="Pending Alerts"
               icon={UserX}
               delay={0.3}
@@ -289,7 +333,7 @@ export default function DashboardPage() {
                 <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
                     <h3 className="text-sm font-bold text-slate-900 mb-4">Recent Activity</h3>
                     <div className="space-y-4">
-                        {recentActivity.map((activity) => (
+                        {((stats as any).recentActivity || []).map((activity: any) => (
                             <div key={activity.id} className="flex gap-3">
                                 <div className="mt-1">
                                     {activity.type === 'success' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <AlertCircle className="w-3.5 h-3.5 text-amber-500" />}
@@ -300,6 +344,9 @@ export default function DashboardPage() {
                                 </div>
                             </div>
                         ))}
+                        {(!(stats as any).recentActivity?.length) && (
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center py-4">No recent activity</p>
+                        )}
                     </div>
                 </Card>
               </div>
@@ -316,21 +363,24 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="space-y-5">
-                   {SMS_QUEUE.map((msg) => (
-                       <div key={msg.id} className="space-y-2">
-                           <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
-                               <span>{msg.roll} Dispatch</span>
-                               <span className={cn(msg.status === 'Delivered' ? 'text-emerald-600' : 'text-blue-600')}>{msg.status}</span>
-                           </div>
-                           <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                               <motion.div 
-                                    initial={{ width: 0 }} 
-                                    animate={{ width: `${msg.progress}%` }} 
-                                    className={cn("h-full rounded-full", msg.status === 'Delivered' ? 'bg-emerald-500' : 'bg-blue-500')} 
-                                />
-                           </div>
+                   {stats.absenteesToday === 0 ? (
+                       <div className="py-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                           <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-3 opacity-30" />
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gateway Clear</p>
                        </div>
-                   ))}
+                   ) : (
+                       <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                                    <Bell className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-900">{stats.absenteesToday} Alerts Queued</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Awaiting Faculty Execution</p>
+                                </div>
+                            </div>
+                       </div>
+                   )}
                 </div>
                 <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between text-[10px] font-medium text-slate-400">
                     <span>Relay Summary</span>
@@ -338,26 +388,29 @@ export default function DashboardPage() {
                 </div>
               </Card>
 
-              <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white flex flex-col gap-4">
-                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-blue-600 shadow-sm">
-                        <MessageSquare className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] uppercase font-bold text-slate-400">Gateway</p>
-                        <p className="text-xs font-bold text-slate-900">MSG91 Enterprise</p>
-                    </div>
-                 </div>
-
-                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-3 opacity-60">
-                    <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 shadow-sm">
-                        <BarChart3 className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] uppercase font-bold text-slate-400">Admin</p>
-                        <p className="text-xs font-bold text-slate-900">HOD Analytics</p>
-                    </div>
-                 </div>
+              <Card className="p-8 border-slate-200 shadow-sm rounded-xl bg-white space-y-6">
+                  <div className="flex items-center justify-between">
+                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Departmental Pulse</h3>
+                     <BarChart3 className="w-4 h-4 text-blue-600" />
+                  </div>
+                  
+                  <div className="space-y-6">
+                      {(stats as any).departmentPulse?.map((dept: any) => (
+                          <div key={dept.name} className="space-y-3">
+                              <div className="flex items-center justify-between text-[11px] font-black text-slate-700 uppercase tracking-tighter">
+                                  <span>{dept.name}</span>
+                                  <span className="text-blue-600">{dept.percentage}%</span>
+                              </div>
+                              <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                                  <motion.div 
+                                      initial={{ width: 0 }} 
+                                      animate={{ width: `${dept.percentage}%` }} 
+                                      className="h-full bg-blue-600 rounded-full shadow-lg shadow-blue-500/10" 
+                                  />
+                              </div>
+                          </div>
+                      ))}
+                  </div>
               </Card>
             </div>
           </div>

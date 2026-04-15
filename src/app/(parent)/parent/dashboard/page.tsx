@@ -1,198 +1,63 @@
 "use client";
 
-import { 
-  CheckCircle, 
-  AlertTriangle, 
-  ShieldAlert, 
-  TrendingUp, 
-  Lightbulb,
-  Heart,
-  Calendar,
-  Mail,
-  Smartphone,
-  Info,
-  ChevronRight,
-  Bell,
-  CreditCard,
-  Zap
-} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-    getStudentPerformance,
-    getParentInsights
-} from "@/lib/marks-calculations";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+  Calendar, CheckCircle, Clock, ShieldAlert, TrendingUp, AlertCircle,
+  Bell, BookOpen, UserCheck, MessageSquare, ChevronRight, Download, GraduationCap
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
-import { academicService } from "@/services/academic";
+import { PageTransition } from "@/components/ui/page-transition";
 
 export default function ParentDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [childData, setChildData] = useState<any>(null);
+  // Mock institutional context for the trial
+  const performance = {
+    attendance: 68, // Threshold risk
+    ciaTotal: 4.2,
+    attendanceMarks: 3,
+    totalSessions: 42,
+    missedSessions: 14
+  };
 
-  useEffect(() => {
-    const loadParentData = async () => {
-      try {
-        setLoading(true);
-        const feeds = await academicService.getNotifications();
-        setNotifications(feeds || []);
-        
-        // Mocking child profile with current real calculations
-        const mockChild = {
-            name: "Alex Johnson",
-            class: "B.Tech Computer Science - Year 2",
-            marks: { attendancePercentage: 72, cia1: 2.0, cia2: 1.5, test1: 28, test2: 30, assignment: 8.5 }
-        };
-        setChildData(mockChild);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadParentData();
-  }, []);
-
-  if (loading || !childData) return <div className="p-20 text-center animate-pulse font-black text-slate-200 uppercase tracking-widest">Bridging Academic Systems...</div>;
-
-  const performance = getStudentPerformance(childData.marks);
-  const insights = getParentInsights(childData.marks.attendancePercentage, performance.finalMarks);
+  const insights = {
+    status: 'risk',
+    alert: "Immediate attention required: Regularity has dropped below the 75% examination threshold.",
+    nextExam: "Oct 25, 2026 - Data Structures"
+  };
 
   return (
     <PageTransition>
-      <div className="flex flex-col min-h-full pb-20 pt-8 max-w-5xl mx-auto px-4 md:px-0">
-        
-        {/* Hero Section */}
-        <section className="mb-10">
-           <motion.div
-             initial={{ opacity: 0, scale: 0.95 }}
-             animate={{ opacity: 1, scale: 1 }}
-             className="relative p-10 lg:p-14 rounded-[3.5rem] bg-slate-900 text-white shadow-2xl overflow-hidden"
-           >
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-rose-500/10 blur-3xl opacity-50" />
-              
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-12">
-                 <div className="space-y-6">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl">
-                        <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Guardian Access Protocol</span>
-                    </div>
-                    <h1 className="text-5xl font-black italic tracking-tighter">{childData.name}</h1>
-                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{childData.class}</p>
-                    
-                    <div className="flex flex-wrap gap-4 mt-8">
-                        <StatusBadge status={insights.status} />
-                        <div className="px-6 py-2.5 rounded-[1.5rem] bg-white text-slate-900 text-xs font-black uppercase tracking-widest shadow-xl">
-                           IA Score: {performance.finalMarks}/20
-                        </div>
-                    </div>
-                 </div>
-
-                 <div className="grid grid-cols-2 gap-12 border-l border-white/5 pl-12 hidden lg:grid">
-                    <div className="text-center md:text-left">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Observation Rate</p>
-                        <p className={cn("text-5xl font-black italic", insights.status === 'risk' ? 'text-rose-500' : 'text-emerald-500')}>
-                            {childData.marks.attendancePercentage}%
-                        </p>
-                    </div>
-                    <div className="text-center md:text-left">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Cycle Milestone</p>
-                        <p className="text-5xl font-black italic text-white">#04</p>
-                    </div>
-                 </div>
-              </div>
-           </motion.div>
-        </section>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            {/* Feed Section */}
-            <div className="lg:col-span-2 space-y-10">
-                <section>
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-xl font-black text-slate-900 tracking-tighter flex items-center gap-3">
-                            <Bell className="w-5 h-5 text-blue-600" />
-                            Institutional Feed
-                        </h2>
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest bg-slate-50 px-3 py-1 rounded-full border border-slate-100">Live Stream</span>
-                    </div>
-                    
-                    <div className="space-y-6">
-                        <AnimatePresence>
-                            {notifications.length > 0 ? (
-                                notifications.map((note, idx) => (
-                                    <motion.div
-                                        key={note.id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: idx * 0.1 }}
-                                    >
-                                        <Card className="p-8 border-slate-100 rounded-[2.5rem] hover:shadow-xl transition-all border border-slate-100 group">
-                                            <div className="flex gap-6">
-                                                <div className={cn(
-                                                    "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
-                                                    note.type === 'finance' ? "bg-blue-600 text-white shadow-blue-100" : "bg-emerald-600 text-white shadow-emerald-100"
-                                                )}>
-                                                    {note.type === 'finance' ? <CreditCard className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
-                                                </div>
-                                                <div className="flex-1 space-y-2">
-                                                    <div className="flex items-center justify-between">
-                                                        <h4 className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{note.title}</h4>
-                                                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Recently</span>
-                                                    </div>
-                                                    <p className="text-sm text-slate-500 font-medium leading-relaxed">{note.message}</p>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </motion.div>
-                                ))
-                            ) : (
-                                <div className="p-12 text-center rounded-[3rem] bg-slate-50 border border-slate-100 italic font-bold text-slate-300 text-sm">
-                                    No active institutional alerts for your section yet.
-                                </div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </section>
+      <div className="p-4 md:p-10 space-y-12 max-w-7xl mx-auto pb-32">
+        {/* Institutional Hero */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-12 border-b border-slate-100">
+            <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                    <span className="px-5 py-2 rounded-2xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-rose-200 animate-pulse">
+                        Action Required
+                    </span>
+                    <span className="px-5 py-2 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl">
+                        U03FS23S0134
+                    </span>
+                </div>
+                <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none">
+                    Guardian <span className="text-slate-400">Portal.</span>
+                </h1>
+                <p className="text-lg text-slate-400 font-medium max-w-xl">
+                    Real-time academic oversight for <span className="text-slate-900 font-bold underline decoration-rose-500 underline-offset-4">Aryan Sharma</span> (BCA Section A).
+                </p>
             </div>
-
-            {/* Sidebar Stats */}
-            <div className="space-y-10">
-                <Card className="p-8 rounded-[3rem] bg-slate-50 border-none shadow-sm">
-                    <h3 className="text-xs font-black text-slate-900 mb-8 uppercase tracking-widest flex items-center gap-2">
-                        <ShieldAlert className="w-4 h-4 text-rose-500" />
-                        Guardian Alerts
-                    </h3>
-                    <div className="space-y-8">
-                        {insights.status === 'risk' && (
-                           <div className="p-6 rounded-[2rem] bg-white border border-rose-100 shadow-xl shadow-rose-100/20">
-                                <p className="text-xs font-black text-rose-600 uppercase tracking-tight mb-2">Threshold Warning</p>
-                                <p className="text-[13px] text-slate-500 font-medium">Child is currently below 75% regularity. This may block examination access.</p>
-                           </div>
-                        )}
-                        <div className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-100/20">
-                            <p className="text-xs font-black text-blue-600 uppercase tracking-tight mb-2">Academic Wellness</p>
-                            <p className="text-[13px] text-slate-500 font-medium italic">IA scores are trending higher than previous cycle average.</p>
-                        </div>
-                    </div>
-                </Card>
-            </div>
+            
+            <StatusBadge status={insights.status} />
         </div>
-      </div>
-    </PageTransition>
-  );
-}
 
-function StatusBadge({ status }: { status: string }) {
-    return (
-        <div className={cn(
-            "px-6 py-2.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl",
-            status === 'risk' ? "bg-rose-500 text-white shadow-rose-200" : "bg-emerald-500 text-white shadow-emerald-200"
-        )}>
-            {status === 'risk' ? "At Academic Risk" : "Stability Locked"}
+        {/* Vital Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <MetricCard label="Regularity" value={`${performance.attendance}%`} sub="75% Target" color="text-rose-600" icon={Clock} />
+            <MetricCard label="Internal Marks" value={`${performance.ciaTotal}/5`} sub="Current average" color="text-slate-900" icon={CheckCircle} />
+            <MetricCard label="Attendance Marks" value={`${performance.attendanceMarks}/5`} sub="Based on BU marks" color="text-slate-900" icon={Calendar} />
+            <MetricCard label="Upcoming Exam" value="Oct 25" sub="Data Structures" color="text-blue-600" icon={BookOpen} />
         </div>
-    );
-}
 
         {/* Alert System */}
         <AnimatePresence>
@@ -203,28 +68,33 @@ function StatusBadge({ status }: { status: string }) {
                   className="mb-10"
                 >
                     <Card className={cn(
-                        "p-6 rounded-[2rem] border-none shadow-xl flex items-start gap-4 ring-1",
+                        "p-8 rounded-[3rem] border-none shadow-2xl flex flex-col md:flex-row items-center md:items-start gap-8 ring-1",
                         insights.status === 'risk' ? "bg-rose-50 ring-rose-200" : "bg-amber-50 ring-amber-200"
                     )}>
                         <div className={cn(
-                            "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
+                            "w-20 h-20 rounded-[2rem] flex items-center justify-center shrink-0 shadow-2xl transition-transform hover:scale-110",
                             insights.status === 'risk' ? "bg-rose-500 text-white" : "bg-amber-500 text-white"
                         )}>
-                            <ShieldAlert className="w-6 h-6" />
+                            <ShieldAlert className="w-10 h-10" />
                         </div>
-                        <div>
-                            <h3 className={cn("text-lg font-bold", insights.status === 'risk' ? "text-rose-900" : "text-amber-900")}>
-                                Attention Required
+                        <div className="flex-1 text-center md:text-left space-y-4">
+                            <h3 className={cn("text-2xl font-black", insights.status === 'risk' ? "text-rose-900" : "text-amber-900")}>
+                                Institutional Alert
                             </h3>
-                            <p className={cn("text-sm font-medium mt-1 leading-relaxed", insights.status === 'risk' ? "text-rose-700/80" : "text-amber-700/80")}>
+                            <p className={cn("text-lg font-bold leading-relaxed", insights.status === 'risk' ? "text-rose-700/80" : "text-amber-700/80")}>
                                 {insights.alert}
                             </p>
-                            <button className={cn(
-                                "mt-4 text-xs font-bold px-4 py-2 rounded-xl transition-all",
-                                insights.status === 'risk' ? "bg-rose-900 text-white hover:bg-rose-800" : "bg-amber-900 text-white hover:bg-amber-800"
-                            )}>
-                                Schedule Call with Advisor
-                            </button>
+                            <div className="flex flex-wrap gap-4 justify-center md:justify-start pt-4">
+                                <Button className={cn(
+                                    "h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                    insights.status === 'risk' ? "bg-rose-900 text-white hover:bg-rose-800" : "bg-amber-900 text-white hover:bg-amber-800"
+                                )}>
+                                    Schedule Advisor Call
+                                </Button>
+                                <Button variant="outline" className="h-14 px-8 rounded-2xl border-rose-200 text-rose-900 text-[10px] font-black uppercase tracking-widest">
+                                    View Detailed Policy
+                                </Button>
+                            </div>
                         </div>
                     </Card>
                 </motion.div>
@@ -237,79 +107,114 @@ function StatusBadge({ status }: { status: string }) {
                 <Card className="p-8 border-slate-100 rounded-[2.5rem] bg-white shadow-sm">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h3 className="text-xl font-bold text-slate-900">Academic Standing</h3>
-                            <p className="text-sm text-slate-400 font-medium">Internal assessment breakdown</p>
+                            <h3 className="text-xl font-bold text-slate-900 tracking-tight">Academic Standing</h3>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Refined Performance Matrix</p>
                         </div>
-                        <TrendingUp className="w-6 h-6 text-emerald-500" />
+                        <div className="flex items-center gap-2">
+                             <Button variant="ghost" className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <Download className="w-4 h-4 mr-2" /> Export
+                             </Button>
+                        </div>
                     </div>
 
-                    <div className="space-y-8">
-                        <ParentProgressItem label="Consistent Presence" value={performance.attendanceMarks} max={5} color="bg-rose-400" icon={Calendar} />
-                        <ParentProgressItem label="Continuous Assessments" value={performance.ciaTotal} max={5} color="bg-indigo-400" icon={CheckCircle} />
-                        <ParentProgressItem label="Term Weightage" value={performance.testScore} max={10} color="bg-amber-400" icon={BarChart2} />
+                    <div className="space-y-10">
+                        <ParentProgressItem 
+                            label="Attendance Ledger" 
+                            current={performance.attendance} 
+                            target={75} 
+                            unit="%" 
+                            color="bg-rose-500" 
+                            icon={Clock} 
+                        />
+                        <ParentProgressItem 
+                            label="Internal Assessments" 
+                            current={performance.ciaTotal} 
+                            target={5} 
+                            unit=" Points" 
+                            color="bg-blue-600" 
+                            icon={CheckCircle} 
+                        />
+                         <ParentProgressItem 
+                            label="Continuous Evaluation" 
+                            current={performance.attendanceMarks} 
+                            target={5} 
+                            unit=" Points" 
+                            color="bg-emerald-500" 
+                            icon={Calendar} 
+                        />
                     </div>
                 </Card>
 
-                {/* Smart Insights */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card className="p-6 bg-indigo-50 border-none rounded-[2rem] flex items-start gap-4">
-                        <div className="p-3 bg-white rounded-2xl text-indigo-600 shadow-sm shrink-0">
-                            <Lightbulb className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Smart Insight</p>
-                            <p className="text-sm font-bold text-indigo-900 leading-tight">{insights.insight}</p>
-                        </div>
-                    </Card>
-                    <Card className="p-6 bg-slate-50 border-none rounded-[2rem] flex items-start gap-4">
-                        <div className="p-3 bg-white rounded-2xl text-slate-600 shadow-sm shrink-0">
-                            <Info className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Next milestone</p>
-                            <p className="text-sm font-bold text-slate-900 leading-tight">Term End Examination starts in 14 days</p>
-                        </div>
-                    </Card>
+                {/* Subject Wise Grid - RESTORED */}
+                <div className="space-y-6">
+                    <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-blue-600 shadow-lg shadow-blue-200" />
+                        Detailed Subject Insights
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <SubjectMiniCard subject="Data Structures" attendance={82} marks="4.5/5" status="good" />
+                        <SubjectMiniCard subject="Computer Networks" attendance={71} marks="3.8/5" status="warning" />
+                        <SubjectMiniCard subject="Operating Systems" attendance={65} marks="2.9/5" status="risk" />
+                        <SubjectMiniCard subject="Discrete Math" attendance={88} marks="4.8/5" status="good" />
+                    </div>
+                </div>
+
+                {/* Communication Log */}
+                <div className="space-y-6">
+                    <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-slate-400" />
+                        Institutional Correspondence
+                    </h3>
+                    <div className="space-y-3">
+                        <CorrespondenceItem title="Attendance Shortage Mailer" date="2 hours ago" type="Warning" />
+                        <CorrespondenceItem title="Semester Result Published" date="3 days ago" type="Notification" />
+                        <CorrespondenceItem title="Internal Marks Upload" date="1 week ago" type="System" />
+                    </div>
                 </div>
             </div>
 
-            {/* Attendance Trend (Right Column) */}
-            <div className="space-y-8 h-full">
-                <Card className="p-8 border-slate-100 rounded-[2.5rem] bg-white shadow-sm h-full flex flex-col">
-                    <div className="mb-8">
-                        <h3 className="text-lg font-bold text-slate-900">Term Stability</h3>
-                        <p className="text-sm text-slate-400 font-medium">Monthly engagement</p>
+            <div className="space-y-8">
+                {/* Exam Schedule */}
+                <Card className="p-8 rounded-[3rem] bg-slate-900 text-white border-none shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-150 transition-transform duration-700">
+                        <Calendar className="w-40 h-40" />
                     </div>
-
-                    <div className="flex-1 min-h-[200px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={attendanceHistory}>
-                                <defs>
-                                    <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="name" hide />
-                                <Tooltip 
-                                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
-                                />
-                                <Area 
-                                    type="monotone" 
-                                    dataKey="rate" 
-                                    stroke="#f43f5e" 
-                                    strokeWidth={4} 
-                                    fillOpacity={1} 
-                                    fill="url(#colorTrend)" 
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-4 mb-10">
+                            <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center border border-white/10">
+                                <Clock className="w-7 h-7 text-blue-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold tracking-tight">Exam Countdown</h3>
+                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Oct 2026 Season</p>
+                            </div>
+                        </div>
+                        <div className="space-y-8">
+                            <div className="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Next Milestone</p>
+                                <p className="text-3xl font-black italic tracking-tighter">In 09 Days</p>
+                                <p className="text-xs text-white/50 font-bold mt-2">Data Structures & Programming</p>
+                            </div>
+                            <div className="space-y-3">
+                                <Button className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black uppercase text-[10px] tracking-widest transition-all shadow-xl shadow-blue-900/40 border-none active:scale-95">
+                                    Download Hall Ticket
+                                </Button>
+                                <Button variant="outline" className="w-full h-14 rounded-2xl border-white/10 text-white hover:bg-white/5 font-black uppercase text-[10px] tracking-widest transition-all">
+                                    View Full Schedule
+                                </Button>
+                            </div>
+                        </div>
                     </div>
+                </Card>
 
-                    <div className="mt-8 space-y-4 pt-6 border-t border-slate-50">
-                        <ContactAction icon={Mail} label="Message Class Teacher" />
-                        <ContactAction icon={Smartphone} label="Call Administrative Office" />
+                {/* Quick Shortcuts */}
+                <Card className="p-8 rounded-[3rem] bg-indigo-600 text-white border-none shadow-2xl">
+                    <h3 className="text-lg font-black italic uppercase tracking-tighter mb-6">Quick Links</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                        <ShortcutBtn icon={Download} label="Receipts" />
+                        <ShortcutBtn icon={Bell} label="Notices" />
+                        <ShortcutBtn icon={GraduationCap} label="Syllabus" />
+                        <ShortcutBtn icon={UserCheck} label="Leave" />
                     </div>
                 </Card>
             </div>
@@ -319,76 +224,108 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: 'good' | 'warning' | 'risk' }) {
-    const config = {
-        good: { color: 'bg-emerald-500', label: 'Good Standing', icon: CheckCircle },
-        warning: { color: 'bg-amber-500', label: 'Needs Attention', icon: AlertTriangle },
-        risk: { color: 'bg-rose-500', label: 'At Academic Risk', icon: ShieldAlert },
-    };
-    const active = config[status];
+function SubjectMiniCard({ subject, attendance, marks, status }: any) {
     return (
-        <div className={cn("inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold text-white shadow-lg shadow-black/5", active.color)}>
-            <active.icon className="w-3.5 h-3.5" />
-            {active.label}
+        <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+            <div className="flex justify-between items-start mb-4">
+                <div className={cn(
+                    "w-2 h-2 rounded-full",
+                    status === 'good' ? "bg-emerald-500" : status === 'warning' ? "bg-amber-500" : "bg-rose-500"
+                )} />
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{attendance}% Avg</span>
+            </div>
+            <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{subject}</h4>
+            <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Marks: {marks}</p>
         </div>
     );
 }
 
-function ParentProgressItem({ label, value, max, color, icon: Icon }: any) {
-    const percentage = (value / max) * 100;
+function ShortcutBtn({ icon: Icon, label }: any) {
     return (
-        <div className="space-y-3">
+        <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/10 hover:bg-white/20 transition-all border border-white/5 gap-2">
+            <Icon className="w-5 h-5" />
+            <span className="text-[8px] font-black uppercase tracking-widest">{label}</span>
+        </button>
+    );
+}
+
+function StatusBadge({ status }: { status: string }) {
+    return (
+        <div className={cn(
+            "px-8 py-4 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl",
+            status === 'risk' ? "bg-rose-500 text-white shadow-rose-200" : "bg-emerald-500 text-white shadow-emerald-200"
+        )}>
+            {status === 'risk' ? "At Academic Risk" : "Stability Locked"}
+        </div>
+    );
+}
+
+function MetricCard({ label, value, sub, color, icon: Icon }: any) {
+    return (
+        <Card className="p-8 rounded-[2.5rem] bg-white border-slate-50 shadow-sm flex flex-col items-center text-center space-y-4 group hover:shadow-xl transition-all">
+            <div className={cn("w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center transition-transform group-hover:scale-110", color)}>
+                <Icon className="w-7 h-7" />
+            </div>
+            <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+                <p className={cn("text-3xl font-black italic", color)}>{value}</p>
+                <p className="text-[10px] font-bold text-slate-300 mt-1">{sub}</p>
+            </div>
+        </Card>
+    );
+}
+
+function ParentProgressItem({ label, current, target, unit, color, icon: Icon }: any) {
+    const percentage = Math.min((current / target) * 100, 100);
+    return (
+        <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-white p-1", color)}>
-                        <Icon className="w-4 h-4" />
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-slate-400" />
                     </div>
                     <span className="text-sm font-bold text-slate-700">{label}</span>
                 </div>
-                <div className="text-sm font-black text-slate-900">
-                    {value} <span className="text-slate-300 font-bold">/ {max}</span>
+                <div className="text-right">
+                    <span className="text-sm font-black text-slate-900">{current}{unit}</span>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Goal: {target}{unit}</p>
                 </div>
             </div>
-            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-3 bg-slate-50 rounded-full overflow-hidden p-0.5">
                 <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 1.2, ease: "easeOut" }}
-                    className={cn("h-full rounded-full shadow-sm", color)}
+                    className={cn("h-full rounded-full shadow-lg", color)}
                 />
             </div>
         </div>
     );
 }
 
-function ContactAction({ icon: Icon, label }: any) {
+function CorrespondenceItem({ title, date, type }: any) {
     return (
-        <button className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 transition-colors group">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-slate-900 group-hover:text-white transition-all">
-                <Icon className="w-4 h-4" />
+        <div className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-all cursor-pointer">
+            <div className="flex items-center gap-4">
+                <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shadow-inner",
+                    type === 'Warning' ? "bg-rose-50 text-rose-500" : "bg-blue-50 text-blue-500"
+                )}>
+                    {type === 'Warning' ? <AlertCircle className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+                </div>
+                <div>
+                    <p className="text-sm font-bold text-slate-900">{title}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{date}</p>
+                </div>
             </div>
-            <span className="text-xs font-bold text-slate-600">{label}</span>
-        </button>
+            <div className="flex items-center gap-3">
+                 <span className={cn(
+                    "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest",
+                    type === 'Warning' ? "bg-rose-100 text-rose-600" : "bg-blue-100 text-blue-600"
+                 )}>
+                    {type}
+                 </span>
+                 <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
+            </div>
+        </div>
     );
 }
-
-function BarChart2(props: any) {
-    return (
-      <svg
-        {...props}
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <line x1="18" x2="18" y1="20" y2="10" />
-        <line x1="12" x2="12" y1="20" y2="4" />
-        <line x1="6" x2="6" y1="20" y2="14" />
-      </svg>
-    )
-  }
