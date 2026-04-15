@@ -1,8 +1,8 @@
 {
-  "name": "Attendly — Academic Management Suite",
-  "short_name": "Attendly",
+  "name": "KLE Academy | Attendly",
+  "short_name": "KLE Academy",
   "description": "Premium institutional command center for high-performance attendance and academic tracking.",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f172a",

@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RefreshCcw, UserCheck, WifiOff, CloudUpload, CheckCircle2, CalendarIcon, Search, AlertCircle, Bell, Download } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { offlineService } from "@/services/offline";
 import { haptics } from "@/lib/haptics";
@@ -37,12 +38,41 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [isClaiming, setIsClaiming] = useState(false);
 
+  const router = useRouter();
+
   useEffect(() => {
-    academicService.getClasses().then(data => {
-        setClasses(data || []);
-        if (data && data.length > 0) setSelectedClassId(data[0].id);
-    });
-  }, []);
+    const checkAuth = async () => {
+        try {
+            setLoading(true);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.push("/login");
+                return;
+            }
+
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+            
+            // ROLE SENTINEL: Redirection for non-faculty
+            if (profile?.role === 'STUDENT') {
+                router.push("/student/dashboard");
+                return;
+            } else if (profile?.role === 'PARENT') {
+                router.push("/parent/dashboard");
+                return;
+            }
+
+            // If teacher/admin, continue loading institutional data
+            const data = await academicService.getClasses();
+            setClasses(data || []);
+            if (data && data.length > 0) setSelectedClassId(data[0].id);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
     if (selectedClassId) {

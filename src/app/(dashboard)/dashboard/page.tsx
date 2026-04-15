@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { academicService } from "@/services/academic";
 import { supabase } from "@/lib/supabase";
 
@@ -72,6 +73,7 @@ const StatCard = ({ title, value, label, icon: Icon, delay = 0, trendClass = "te
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [stats, setStats] = useState({ totalStudents: 0, totalClasses: 0, absenteesToday: 0 });
   const [loading, setLoading] = useState(true);
@@ -83,14 +85,19 @@ export default function DashboardPage() {
         try {
             setLoading(true);
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-                setUserProfile(profile);
-                
-                if (profile?.role === 'ADMIN') {
-                    const pending = await academicService.getPendingFaculty();
-                    setPendingFaculty(pending || []);
-                }
+            
+            // SECURITY SENTINEL: Redirect if no active session found
+            if (!user) {
+                router.push("/login");
+                return;
+            }
+
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+            setUserProfile(profile);
+            
+            if (profile?.role === 'ADMIN') {
+                const pending = await academicService.getPendingFaculty();
+                setPendingFaculty(pending || []);
             }
 
             const summary = await academicService.getSummaryStats();
@@ -102,7 +109,7 @@ export default function DashboardPage() {
         }
     };
     fetchData();
-  }, []);
+  }, [router]);
 
   const handleApprove = async (id: string, name: string) => {
       try {

@@ -53,8 +53,15 @@ export function IosInstallPrompt() {
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <h3 className="text-white font-black uppercase tracking-tight text-lg">Install Attendly</h3>
-                  <button onClick={handleDismiss} className="text-slate-500 hover:text-white transition-colors">
-                    <X className="w-5 h-5" />
+                  <button 
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDismiss();
+                    }} 
+                    className="p-3 -mr-3 text-slate-500 hover:text-white transition-colors active:scale-90 relative z-[110]"
+                  >
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
                 <p className="text-slate-400 text-sm font-bold mt-1 leading-relaxed">
