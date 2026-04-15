@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { academicService } from "@/services/academic";
 
 // Import export libraries
 import { jsPDF } from "jspdf";
@@ -98,6 +99,17 @@ const StatCard = ({ title, value, label, icon: Icon, delay = 0, trendClass = "te
 
 export default function DashboardPage() {
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const [stats, setStats] = useState({ totalStudents: 0, totalClasses: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    academicService.getSummaryStats()
+        .then(data => {
+            setStats(data);
+            setLoading(false);
+        })
+        .catch(() => setLoading(false));
+  }, []);
   const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
   const activeData = timeframe === 'week' ? weeklyData : monthlyData;
 
@@ -178,27 +190,27 @@ export default function DashboardPage() {
         <Header title="Dashboard" />
 
         <div className="flex-1 py-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-1">
             <StatCard
               title="Students Enrolled"
-              value="248"
-              label="+12%"
+              value={loading ? "..." : stats.totalStudents}
+              label="Academic Population"
               icon={Users}
               delay={0.1}
               color="blue"
             />
             <StatCard
-              title="Daily Attendance"
-              value="93.1%"
-              label="Optimal"
-              icon={UserCheck}
+              title="Total Modules"
+              value={loading ? "..." : stats.totalClasses}
+              label="Active Units"
+              icon={FileText}
               delay={0.2}
               color="emerald"
             />
             <StatCard
-              title="Absentees"
+              title="Absentees Today"
               value="17"
-              label="-4%"
+              label="Pending Alerts"
               icon={UserX}
               delay={0.3}
               color="rose"

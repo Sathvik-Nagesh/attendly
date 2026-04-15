@@ -1,4 +1,4 @@
-import { StudentSidebar } from "@/components/layout/student-sidebar";
+import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import { CommandMenu } from "@/components/ui/command-menu";
 
 export default function StudentLayout({
@@ -9,7 +9,7 @@ export default function StudentLayout({
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
       <CommandMenu />
-      <StudentSidebar />
+      <UnifiedSidebar variant="student" />
       <main className="flex-1 lg:pl-64 flex flex-col">
         <div className="flex-1 overflow-y-auto px-4 lg:px-12">
             {children}

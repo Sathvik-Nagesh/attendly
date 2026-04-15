@@ -1,7 +1,5 @@
 "use client";
 
-import { PageTransition } from "@/components/ui/page-transition";
-import { Card } from "@/components/ui/card";
 import { 
   CheckCircle, 
   AlertTriangle, 
@@ -12,7 +10,11 @@ import {
   Calendar,
   Mail,
   Smartphone,
-  Info
+  Info,
+  ChevronRight,
+  Bell,
+  CreditCard,
+  Zap
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -21,85 +23,176 @@ import {
 } from "@/lib/marks-calculations";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
-
-// Mock Parent/Child Data
-const parentData = {
-    name: "Robert Johnson",
-    student: {
-        name: "Alex Johnson",
-        class: "B.Tech Computer Science - Year 2",
-        roll: "CS-2024-001",
-        marks: {
-            attendancePercentage: 72, // Triggering ALERT
-            cia1: 2.0,
-            cia2: 1.5,
-            test1: 28, 
-            test2: 30,
-            assignment: 8.5
-        }
-    }
-};
-
-const attendanceHistory = [
-  { name: "Week 1", rate: 85 },
-  { name: "Week 2", rate: 80 },
-  { name: "Week 3", rate: 75 },
-  { name: "Week 4", rate: 72 },
-];
+import { useEffect, useState } from "react";
+import { academicService } from "@/services/academic";
 
 export default function ParentDashboard() {
-  const performance = getStudentPerformance(parentData.student.marks);
-  const insights = getParentInsights(parentData.student.marks.attendancePercentage, performance.finalMarks);
+  const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [childData, setChildData] = useState<any>(null);
+
+  useEffect(() => {
+    const loadParentData = async () => {
+      try {
+        setLoading(true);
+        const feeds = await academicService.getNotifications();
+        setNotifications(feeds || []);
+        
+        // Mocking child profile with current real calculations
+        const mockChild = {
+            name: "Alex Johnson",
+            class: "B.Tech Computer Science - Year 2",
+            marks: { attendancePercentage: 72, cia1: 2.0, cia2: 1.5, test1: 28, test2: 30, assignment: 8.5 }
+        };
+        setChildData(mockChild);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadParentData();
+  }, []);
+
+  if (loading || !childData) return <div className="p-20 text-center animate-pulse font-black text-slate-200 uppercase tracking-widest">Bridging Academic Systems...</div>;
+
+  const performance = getStudentPerformance(childData.marks);
+  const insights = getParentInsights(childData.marks.attendancePercentage, performance.finalMarks);
 
   return (
     <PageTransition>
-      <div className="flex flex-col min-h-full pb-20 pt-8 max-w-5xl mx-auto">
+      <div className="flex flex-col min-h-full pb-20 pt-8 max-w-5xl mx-auto px-4 md:px-0">
         
         {/* Hero Section */}
         <section className="mb-10">
            <motion.div
              initial={{ opacity: 0, scale: 0.95 }}
              animate={{ opacity: 1, scale: 1 }}
-             className="relative p-8 lg:p-12 rounded-[3rem] bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-900 text-white shadow-2xl overflow-hidden"
+             className="relative p-10 lg:p-14 rounded-[3.5rem] bg-slate-900 text-white shadow-2xl overflow-hidden"
            >
-              {/* Background Accents */}
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl" />
-              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
-
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                 <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 backdrop-blur-md">
-                        <Heart className="w-3 h-3 text-rose-400 fill-current" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300">Family Overview</span>
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-rose-500/10 blur-3xl opacity-50" />
+              
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-12">
+                 <div className="space-y-6">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl">
+                        <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Guardian Access Protocol</span>
                     </div>
-                    <h1 className="text-4xl lg:text-5xl font-black tracking-tight">{parentData.student.name}</h1>
-                    <p className="text-lg text-slate-400 font-medium">{parentData.student.class}</p>
+                    <h1 className="text-5xl font-black italic tracking-tighter">{childData.name}</h1>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{childData.class}</p>
                     
-                    <div className="flex flex-wrap gap-4 mt-6">
+                    <div className="flex flex-wrap gap-4 mt-8">
                         <StatusBadge status={insights.status} />
-                        <div className="px-4 py-2 rounded-2xl bg-white/5 border border-white/5 text-sm font-bold">
-                           Final Score: {performance.finalMarks}/20
+                        <div className="px-6 py-2.5 rounded-[1.5rem] bg-white text-slate-900 text-xs font-black uppercase tracking-widest shadow-xl">
+                           IA Score: {performance.finalMarks}/20
                         </div>
                     </div>
                  </div>
 
-                 <div className="hidden lg:block w-px h-32 bg-white/10 mx-8" />
-
-                 <div className="grid grid-cols-2 gap-8 text-center md:text-left">
-                    <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Attendance</p>
-                        <p className={cn("text-3xl font-black", insights.status === 'risk' ? 'text-rose-400' : 'text-white')}>
-                            {parentData.student.marks.attendancePercentage}%
+                 <div className="grid grid-cols-2 gap-12 border-l border-white/5 pl-12 hidden lg:grid">
+                    <div className="text-center md:text-left">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Observation Rate</p>
+                        <p className={cn("text-5xl font-black italic", insights.status === 'risk' ? 'text-rose-500' : 'text-emerald-500')}>
+                            {childData.marks.attendancePercentage}%
                         </p>
                     </div>
-                    <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Ranking</p>
-                        <p className="text-3xl font-black text-white">Top 15%</p>
+                    <div className="text-center md:text-left">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Cycle Milestone</p>
+                        <p className="text-5xl font-black italic text-white">#04</p>
                     </div>
                  </div>
               </div>
            </motion.div>
         </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Feed Section */}
+            <div className="lg:col-span-2 space-y-10">
+                <section>
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-xl font-black text-slate-900 tracking-tighter flex items-center gap-3">
+                            <Bell className="w-5 h-5 text-blue-600" />
+                            Institutional Feed
+                        </h2>
+                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest bg-slate-50 px-3 py-1 rounded-full border border-slate-100">Live Stream</span>
+                    </div>
+                    
+                    <div className="space-y-6">
+                        <AnimatePresence>
+                            {notifications.length > 0 ? (
+                                notifications.map((note, idx) => (
+                                    <motion.div
+                                        key={note.id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.1 }}
+                                    >
+                                        <Card className="p-8 border-slate-100 rounded-[2.5rem] hover:shadow-xl transition-all border border-slate-100 group">
+                                            <div className="flex gap-6">
+                                                <div className={cn(
+                                                    "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg",
+                                                    note.type === 'finance' ? "bg-blue-600 text-white shadow-blue-100" : "bg-emerald-600 text-white shadow-emerald-100"
+                                                )}>
+                                                    {note.type === 'finance' ? <CreditCard className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
+                                                </div>
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <h4 className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{note.title}</h4>
+                                                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Recently</span>
+                                                    </div>
+                                                    <p className="text-sm text-slate-500 font-medium leading-relaxed">{note.message}</p>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    </motion.div>
+                                ))
+                            ) : (
+                                <div className="p-12 text-center rounded-[3rem] bg-slate-50 border border-slate-100 italic font-bold text-slate-300 text-sm">
+                                    No active institutional alerts for your section yet.
+                                </div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </section>
+            </div>
+
+            {/* Sidebar Stats */}
+            <div className="space-y-10">
+                <Card className="p-8 rounded-[3rem] bg-slate-50 border-none shadow-sm">
+                    <h3 className="text-xs font-black text-slate-900 mb-8 uppercase tracking-widest flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4 text-rose-500" />
+                        Guardian Alerts
+                    </h3>
+                    <div className="space-y-8">
+                        {insights.status === 'risk' && (
+                           <div className="p-6 rounded-[2rem] bg-white border border-rose-100 shadow-xl shadow-rose-100/20">
+                                <p className="text-xs font-black text-rose-600 uppercase tracking-tight mb-2">Threshold Warning</p>
+                                <p className="text-[13px] text-slate-500 font-medium">Child is currently below 75% regularity. This may block examination access.</p>
+                           </div>
+                        )}
+                        <div className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-xl shadow-slate-100/20">
+                            <p className="text-xs font-black text-blue-600 uppercase tracking-tight mb-2">Academic Wellness</p>
+                            <p className="text-[13px] text-slate-500 font-medium italic">IA scores are trending higher than previous cycle average.</p>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+        </div>
+      </div>
+    </PageTransition>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+    return (
+        <div className={cn(
+            "px-6 py-2.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-xl",
+            status === 'risk' ? "bg-rose-500 text-white shadow-rose-200" : "bg-emerald-500 text-white shadow-emerald-200"
+        )}>
+            {status === 'risk' ? "At Academic Risk" : "Stability Locked"}
+        </div>
+    );
+}
 
         {/* Alert System */}
         <AnimatePresence>

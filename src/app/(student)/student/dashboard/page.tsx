@@ -14,268 +14,153 @@ import {
   ClipboardList,
   Trophy,
   RefreshCcw,
-  Trophy as TrophyIcon
+  Trophy as TrophyIcon,
+  ChevronRight,
+  AlertTriangle,
+  CalendarDays,
+  CreditCard
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
-    calculateAttendanceMarks, 
-    calculateCIAMarks, 
-    calculateTestMarks, 
-    calculateFinalMarks,
     getStudentPerformance
 } from "@/lib/marks-calculations";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
-
-// Mock Student Data
-const studentData = {
-    name: "Alex Johnson",
-    roll: "CS-2024-001",
-    marks: {
-        attendancePercentage: 88,
-        cia1: 2.5,
-        cia2: 2.0,
-        test1: 32, // out of 40
-        test2: 35, // out of 40
-        assignment: 9.5
-    }
-};
-
-const attendanceHistory = [
-  { name: "Mon", rate: 85 },
-  { name: "Tue", rate: 88 },
-  { name: "Wed", rate: 82 },
-  { name: "Thu", rate: 90 },
-  { name: "Fri", rate: 88 },
-];
-
-const StatCard = ({ title, value, max, icon: Icon, color, delay }: any) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.4 }}
-  >
-    <Card className="p-6 border-slate-200 shadow-sm rounded-3xl bg-white group hover:shadow-md transition-shadow relative overflow-hidden">
-      <div className={cn("absolute top-0 right-0 w-20 h-20 -mr-8 -mt-8 rounded-full opacity-5 group-hover:scale-150 transition-transform duration-500", color)} />
-      <div className="flex items-center justify-between relative z-10">
-        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", color.replace('bg-', 'bg-').replace('-500', '-50'), color.replace('bg-', 'text-'))}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-      <div className="mt-6">
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-        <div className="flex items-baseline gap-1">
-            <h3 className="text-3xl font-extrabold text-slate-900">{value}</h3>
-            {max && <span className="text-sm font-bold text-slate-400">/ {max}</span>}
-        </div>
-      </div>
-    </Card>
-  </motion.div>
-);
+import { Button } from "@/components/ui/button";
+import { academicService } from "@/services/academic";
+import { useEffect, useState } from "react";
 
 export default function StudentDashboard() {
-  const performance = getStudentPerformance(studentData.marks);
-  const isLowAttendance = studentData.marks.attendancePercentage < 75;
+  const [loading, setLoading] = useState(true);
+  const [student, setStudent] = useState<any>(null);
+  const [nextExam, setNextExam] = useState<any>(null);
+  const [performance, setPerformance] = useState<any>(null);
+
+  useEffect(() => {
+    const loadAcademicPulse = async () => {
+      try {
+        setLoading(true);
+        // During trial, we use a fixed class context or fetch from user profile
+        const exam = await academicService.getUpcomingExam('oyaajwqklxfmsroakria'); // Placeholder ID
+        setNextExam(exam);
+        
+        // Mocking student data for calculation until marks are fully populated
+        const mockStudent = {
+            marks: { attendancePercentage: 78, cia1: 4, cia2: 3.5, test1: 32, test2: 35, assignment: 9.5 }
+        };
+        setStudent({ name: "Alex Johnson", roll: "CS26-001" });
+        setPerformance(getStudentPerformance(mockStudent.marks));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAcademicPulse();
+  }, []);
+
+  const daysUntil = (dateStr: string) => {
+    const diff = new Date(dateStr).getTime() - new Date().getTime();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  if (loading) return <div className="p-20 text-center animate-pulse font-black text-slate-200 uppercase tracking-widest">Synchronizing Academic ID...</div>;
 
   return (
     <PageTransition>
       <div className="flex flex-col min-h-full pb-20">
         <header className="py-8 flex items-center justify-between">
             <div>
-                <h1 className="text-3xl font-extrabold text-slate-900">Academic Portal</h1>
-                <p className="text-slate-500 font-medium">Welcome back, {studentData.name}</p>
+                <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Academic Workstation</h1>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">Status: Active • {student?.name}</p>
             </div>
             <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                    <p className="text-sm font-bold text-slate-900">{studentData.roll}</p>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">B.Tech CS - Year 2</p>
+                    <p className="text-sm font-black text-slate-900">{student?.roll}</p>
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Trial Environment</p>
                 </div>
             </div>
         </header>
         
-        <div className="space-y-8">
-          {/* Top Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              title="Attendance %"
-              value={`${studentData.marks.attendancePercentage}%`}
-              icon={Activity}
-              color="bg-blue-500"
-              delay={0.1}
-            />
-            <StatCard
-              title="Attendance Marks"
-              value={performance.attendanceMarks}
-              max={5}
-              icon={CheckCircle}
-              color="bg-emerald-500"
-              delay={0.2}
-            />
-            <StatCard
-              title="CIA Score"
-              value={performance.ciaTotal}
-              max={5}
-              icon={BookOpen}
-              color="bg-purple-500"
-              delay={0.3}
-            />
-            <StatCard
-              title="Test Weightage"
-              value={performance.testScore}
-              max={10}
-              icon={GraduationCap}
-              color="bg-orange-500"
-              delay={0.4}
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            {/* 🚩 CRITICAL ALERT SECTION 🚩 */}
+            <AnimatePresence>
+                {nextExam && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <Card className={cn(
+                            "p-8 rounded-[3rem] border-none text-white relative overflow-hidden shadow-2xl transition-all",
+                            daysUntil(nextExam.exam_date) <= 3 ? "bg-rose-900 shadow-rose-200" : "bg-slate-900 shadow-slate-200"
+                        )}>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32" />
+                            
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-16 h-16 rounded-[2rem] bg-white/10 flex items-center justify-center">
+                                        <AlertTriangle className={cn("w-8 h-8", daysUntil(nextExam.exam_date) <= 3 ? "text-rose-400" : "text-amber-400")} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Critical Milestone</p>
+                                        <h2 className="text-3xl font-black tracking-tighter">{nextExam.subject} Examination</h2>
+                                        <div className="flex items-center gap-4 text-xs font-bold text-white/60">
+                                            <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" /> {new Date(nextExam.exam_date).toLocaleDateString()}</span>
+                                            <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Room {nextExam.room_number || 'TBA'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="text-right flex items-center md:flex-col gap-4 md:gap-0">
+                                    <span className="text-6xl md:text-7xl font-black italic">{daysUntil(nextExam.exam_date)}</span>
+                                    <div className="text-left md:text-right">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Days Left</p>
+                                        <p className="text-xs font-bold text-white/80">Eligibility: {performance?.eligibilityStatus || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <StatCard title="Presence Rate" value={`${performance?.attendancePercentage}%`} color="bg-blue-500" icon={CheckCircle} delay={0.2} />
+                <StatCard title="Fee Status" value="Pending" color="bg-amber-500" icon={CreditCard} delay={0.3} />
+            </div>
+
+            <Card className="p-8 border-slate-100 rounded-[3rem] bg-white shadow-sm border border-slate-100">
+                <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-lg font-black text-slate-900 tracking-tight">Internal Progress</h3>
+                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div className="space-y-8">
+                    <BreakdownItem label="Regularity (Attendance)" value={performance?.attendanceMarks} max={5} color="bg-emerald-500" />
+                    <BreakdownItem label="CIA Assessments" value={performance?.ciaTotal} max={5} color="bg-purple-500" />
+                    <BreakdownItem label="Technical Tests" value={performance?.testScore} max={10} color="bg-orange-500" />
+                </div>
+            </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Final Marks Area */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
-              className="lg:col-span-2 space-y-8"
-            >
-              <Card className="p-8 border-none bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2.5rem] text-white shadow-2xl shadow-slate-200 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
+          <div className="space-y-8">
+            <Card className="p-8 border-slate-100 rounded-[3rem] bg-slate-50 border-none shadow-sm h-full">
+                <h3 className="text-sm font-black text-slate-900 mb-6 uppercase tracking-widest">Safety Indicators</h3>
+                <div className="space-y-6">
+                    <AlertItem title="Verify Hall Ticket" time="2 days left" color="blue" />
+                    <AlertItem title="Library Books Overdue" time="Immediate" color="rose" />
+                    <AlertItem title="Lab Clearance" time="Pending" color="amber" />
+                </div>
                 
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                    <div className="space-y-4">
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Total Internal Assessment</p>
-                        <h2 className="text-6xl font-black tracking-tight">{performance.finalMarks} <span className="text-2xl text-slate-500 font-bold">/ 20</span></h2>
-                        <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                            <TrendingUp className="w-4 h-4" />
-                            Above class average (16.2)
-                        </div>
-                    </div>
-                    <div className="flex-1 max-w-xs space-y-4">
-                        <div className="flex justify-between text-sm font-bold">
-                            <span className="text-slate-400 uppercase tracking-widest">Progress</span>
-                            <span>{Math.round((performance.finalMarks/20)*100)}%</span>
-                        </div>
-                        <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
-                            <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${(performance.finalMarks/20)*100}%` }}
-                                transition={{ delay: 0.8, duration: 1.5, ease: "easeOut" }}
-                                className="h-full bg-gradient-to-r from-blue-400 to-emerald-400 rounded-full"
-                            />
+                <div className="mt-12 p-6 rounded-[2rem] bg-white border border-slate-200 shadow-xl shadow-slate-200/50">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Exam Hall Access</p>
+                    <div className="w-full aspect-square bg-slate-50 flex items-center justify-center rounded-3xl border-2 border-dashed border-slate-200">
+                        <div className="text-center p-4">
+                            <TrophyIcon className="w-10 h-10 text-slate-200 mx-auto mb-2" />
+                            <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest">QR ID Pending Unlock</p>
                         </div>
                     </div>
                 </div>
-              </Card>
-
-              {/* Breakdown Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {/* Internal Breakdown */}
-                 <Card className="p-6 border-slate-100 rounded-[2rem] bg-white shadow-sm">
-                    <h3 className="text-base font-bold text-slate-900 mb-6 flex items-center gap-2">
-                        <ClipboardList className="w-4 h-4 text-blue-500" />
-                        Component Breakdown
-                    </h3>
-                    <div className="space-y-6">
-                        <BreakdownItem label="Attendance" value={performance.attendanceMarks} max={5} color="bg-emerald-500" />
-                        <BreakdownItem label="CIA Assessments" value={performance.ciaTotal} max={5} color="bg-purple-500" />
-                        <BreakdownItem label="Internal Tests" value={performance.testScore} max={10} color="bg-orange-500" />
-                    </div>
-                 </Card>
-
-                 {/* Assignments */}
-                 <Card className="p-6 border-slate-100 rounded-[2rem] bg-white shadow-sm">
-                    <h3 className="text-base font-bold text-slate-900 mb-6 flex items-center gap-2">
-                        <FileCheck className="w-4 h-4 text-emerald-500" />
-                        Latest Assignments
-                    </h3>
-                    <div className="space-y-4">
-                        <AssignmentRow title="Data Structures Lab" marks="9.5/10" status="Graded" />
-                        <AssignmentRow title="App Development Project" marks="-" status="Pending" />
-                        <AssignmentRow title="Theory Quiz #4" marks="8.0/10" status="Graded" />
-                    </div>
-                 </Card>
-              </div>
-            </motion.div>
-
-            {/* Attendance Trend Area */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-              className="space-y-8"
-            >
-              <Card className="p-6 border-slate-100 rounded-[2.5rem] bg-white shadow-sm h-full flex flex-col">
-                 <div className="mb-8">
-                    <h3 className="text-lg font-bold text-slate-900 leading-tight">Attendance Stability</h3>
-                    <p className="text-sm text-slate-400 font-medium">Real-time daily presence trend</p>
-                 </div>
-                 
-                 <div className="flex-1 min-h-[250px] w-full relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={attendanceHistory}>
-                            <defs>
-                                <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
-                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis 
-                                dataKey="name" 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }}
-                                dy={10} 
-                            />
-                            <Tooltip 
-                                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
-                            />
-                            <Area 
-                                type="monotone" 
-                                dataKey="rate" 
-                                stroke="#3b82f6" 
-                                strokeWidth={3} 
-                                fillOpacity={1} 
-                                fill="url(#colorRate)" 
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                 </div>
-
-                 {isLowAttendance && (
-                    <div className="mt-8 p-6 rounded-[2rem] bg-rose-50 border border-rose-100 space-y-4">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-rose-200">
-                                <Activity className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-bold text-rose-900">Attendance Recovery Goal</p>
-                                <p className="text-xs text-rose-600/80 font-medium">You need <strong>3% more</strong> to hit the 75% exam eligibility threshold.</p>
-                            </div>
-                        </div>
-                        <div className="bg-white/50 p-4 rounded-2xl border border-rose-200/50">
-                             <p className="text-xs font-bold text-rose-800 flex items-center gap-2">
-                                <CheckCircle className="w-3.5 h-3.5" />
-                                Must attend next <strong>4 lectures</strong> consecutively.
-                             </p>
-                        </div>
-                    </div>
-                 )}
-
-                 {!isLowAttendance && (
-                    <div className="mt-8 p-6 rounded-[2rem] bg-emerald-50 border border-emerald-100 space-y-4">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-200">
-                                <Trophy className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-bold text-emerald-900">Exam Eligibility Locked</p>
-                                <p className="text-xs text-emerald-600/80 font-medium">You have maintained ≥75% attendance. Hall ticket will be available soon.</p>
-                            </div>
-                        </div>
-                    </div>
-                 )}
-              </Card>
-            </motion.div>
+            </Card>
           </div>
         </div>
       </div>
@@ -283,20 +168,41 @@ export default function StudentDashboard() {
   );
 }
 
-function BreakdownItem({ label, value, max, color }: any) {
-    const percentage = (value / max) * 100;
+function StatCard({ title, value, max, icon: Icon, color, delay }: any) {
     return (
-        <div className="space-y-2">
-            <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest text-slate-400">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay, duration: 0.4 }}
+        >
+            <Card className="p-8 border-slate-100 shadow-sm rounded-[2.5rem] bg-white group hover:shadow-xl hover:translate-y-[-4px] transition-all border border-slate-100">
+                <div className="flex items-center justify-between">
+                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:rotate-12", color, "shadow-" + color.split('-')[1] + "-200")}>
+                        <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{value}</h3>
+                    </div>
+                </div>
+            </Card>
+        </motion.div>
+    );
+}
+
+function BreakdownItem({ label, value, max, color }: any) {
+    const percentage = ((value || 0) / max) * 100;
+    return (
+        <div className="space-y-3">
+            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
                 <span>{label}</span>
-                <span className="text-slate-900">{value} <span className="text-slate-300">/ {max}</span></span>
+                <span className="text-slate-900">{value} / {max}</span>
             </div>
-            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                 <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                    className={cn("h-full rounded-full", color)}
+                    className={cn("h-full rounded-full transition-all duration-1000", color)}
                 />
             </div>
         </div>
@@ -308,30 +214,9 @@ function AssignmentRow({ title, marks, status }: any) {
         <div className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50/50 transition-colors border border-transparent hover:border-slate-100">
             <div>
                 <p className="text-sm font-bold text-slate-700">{title}</p>
-                <p className={cn("text-[10px] font-extrabold uppercase", status === 'Graded' ? 'text-emerald-500' : 'text-slate-400')}>{status}</p>
+                <p className={cn("text-[10px] font-bold uppercase", status === 'Graded' ? 'text-emerald-500' : 'text-slate-400')}>{status}</p>
             </div>
-            <div className="text-sm font-black text-slate-900">{marks}</div>
+            <div className="text-sm font-bold text-slate-900">{marks}</div>
         </div>
     );
 }
-
-function AlertCircle(props: any) {
-    return (
-      <svg
-        {...props}
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" x2="12" y1="8" y2="12" />
-        <line x1="12" x2="12.01" y1="16" y2="16" />
-      </svg>
-    )
-  }

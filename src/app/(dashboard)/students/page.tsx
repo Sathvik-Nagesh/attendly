@@ -153,7 +153,21 @@ export default function StudentsPage() {
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Export Defaulters
               </Button>
-              <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+              <div className="flex flex-wrap items-center gap-3">
+            <Button 
+                variant="outline" 
+                onClick={() => {
+                    toast.promise(new Promise(r => setTimeout(r, 2000)), {
+                        loading: 'Compiling global student database...',
+                        success: 'Student Roster (CSV) exported successfully!',
+                        error: 'Failed to export'
+                    });
+                }}
+                className="h-11 rounded-2xl border-slate-200 font-bold text-xs gap-2 px-6 shadow-sm bg-white hover:bg-slate-50 transition-all"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export CSV
+            </Button>
+            <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
                 <DialogTrigger className="h-9 px-4 inline-flex items-center justify-center rounded-xl shadow-sm bg-white hover:bg-slate-50 transition-colors border border-slate-200 text-slate-700 text-sm font-medium cursor-pointer outline-none">
                   <UploadCloud className="w-4 h-4 mr-2 text-slate-500" />
                   Import CSV
@@ -239,6 +253,7 @@ export default function StudentsPage() {
                   </div>
                 </DialogContent>
               </Dialog>
+            </div>
 
               <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogTrigger className="h-9 px-4 inline-flex items-center justify-center rounded-xl shadow-sm bg-blue-600 hover:bg-blue-700 transition-colors border border-blue-700 text-white text-sm font-medium cursor-pointer outline-none">

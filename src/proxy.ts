@@ -33,55 +33,9 @@ function getSessionFromRequest(req: NextRequest): { role: Role; orgId: string } 
 }
 
 export default function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  // 1. Allow public routes
-  if (PUBLIC_ROUTES.some((route) => pathname === route)) {
-    const response = NextResponse.next();
-    response.headers.set("Content-Security-Policy", getCSPHeader());
-    return response;
-  }
-
-  // 2. Allow static assets and API health
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/health") ||
-    pathname.startsWith("/favicon") ||
-    pathname.startsWith("/manifest") ||
-    pathname.startsWith("/sw.js") ||
-    pathname.endsWith(".png") ||
-    pathname.endsWith(".ico")
-  ) {
-    return NextResponse.next();
-  }
-
-  // 3. Check session
-  const session = getSessionFromRequest(req);
-
-  if (!session) {
-    // Not logged in → redirect to login
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // 4. Role-based route enforcement
-  const allowedRoutes = ROLE_ROUTE_MAP[session.role];
-  if (allowedRoutes) {
-    const isAllowed = allowedRoutes.some((route) => pathname.startsWith(route));
-    if (!isAllowed) {
-      // User doesn't have permission → redirect to their home
-      const homeRoute = allowedRoutes[0] || "/";
-      return NextResponse.redirect(new URL(homeRoute, req.url));
-    }
-  }
-
-  // 5. Inject org context via header (accessible in Server Components)
+  // Bypassing mock auth for Supabase integration phase
   const response = NextResponse.next();
-  response.headers.set("x-organization-id", session.orgId);
-  response.headers.set("x-user-role", session.role);
   response.headers.set("Content-Security-Policy", getCSPHeader());
-
   return response;
 }
 

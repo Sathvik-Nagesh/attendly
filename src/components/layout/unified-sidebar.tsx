@@ -38,6 +38,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 // ─── Route Configurations ────────────────────────────────────
 
@@ -73,21 +75,33 @@ const PARENT_LINKS: SidebarLink[] = [
 
 const VARIANT_CONFIG = {
   admin: {
-    links: ADMIN_LINKS,
+    links: [
+      ...ADMIN_LINKS,
+      { name: "Timetable", href: "/timetable", icon: History },
+      { name: "Results & Exams", href: "/results", icon: BookOpen },
+    ],
     title: "Attendex",
     subtitle: "Administration",
     showSettings: true,
     accentColor: "blue",
   },
   student: {
-    links: STUDENT_LINKS,
+    links: [
+      ...STUDENT_LINKS,
+      { name: "My Timetable", href: "/student/timetable", icon: History },
+      { name: "Exams & Results", href: "/student/marks", icon: BookOpen },
+    ],
     title: "Attendex",
     subtitle: "Student Portal",
     showSettings: false,
     accentColor: "indigo",
   },
   parent: {
-    links: PARENT_LINKS,
+    links: [
+      ...PARENT_LINKS,
+      { name: "Child's Timetable", href: "/parent/timetable", icon: History },
+      { name: "Results Portal", href: "/parent/marks", icon: BookOpen },
+    ],
     title: "Attendex",
     subtitle: "Family Portal",
     showSettings: false,
@@ -99,6 +113,8 @@ const VARIANT_CONFIG = {
       { name: "Attendance", href: "/attendance", icon: CheckCircle },
       { name: "Students", href: "/students", icon: Users },
       { name: "Classes", href: "/classes", icon: GraduationCap },
+      { name: "Schedule", href: "/timetable", icon: History },
+      { name: "Results", href: "/results", icon: BookOpen },
       { name: "Alerts", href: "/notifications", icon: Bell },
     ],
     title: "Attendex",
@@ -206,11 +222,14 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
         )}
 
         <button
-          onClick={() => {
-            // Logout logic
-            document.cookie = "Attendex-session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-            // Force a full refresh to clear server cache and re-trigger middleware
-            window.location.href = "/login";
+          onClick={async () => {
+             const { error } = await supabase.auth.signOut();
+             if (error) {
+                toast.error("Logout failed", { description: error.message });
+             } else {
+                toast.success("Signed out successfully");
+                window.location.href = "/login";
+             }
           }}
           className={cn(
             "flex items-center gap-3 h-12 rounded-2xl text-sm font-bold text-red-500 hover:text-red-600 hover:bg-red-50 transition-all",

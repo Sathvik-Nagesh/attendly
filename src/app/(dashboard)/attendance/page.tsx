@@ -18,19 +18,34 @@ import { toast } from "sonner";
 import { cn, fuzzySearch } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { StudentProfile } from "@/components/students/student-profile";
-
-const MOCK_STUDENTS = [
-  { id: "1", name: "Alena Smith", rollNumber: "CS-01", avatar: "AS", attendance: 92, batch: "A" },
-  { id: "2", name: "Brandon Cooper", rollNumber: "CS-02", avatar: "BC", attendance: 68, batch: "A" },
-  { id: "3", name: "Cynthia Davis", rollNumber: "CS-03", avatar: "CD", attendance: 85, batch: "B" },
-  { id: "4", name: "Derek Evans", rollNumber: "CS-04", avatar: "DE", attendance: 72, batch: "B" },
-  { id: "5", name: "Elena Ford", rollNumber: "CS-05", avatar: "EF", attendance: 95, batch: "A" },
-  { id: "6", name: "Fiona Garcia", rollNumber: "CS-06", avatar: "FG", attendance: 88, batch: "B" },
-  { id: "7", name: "George Harris", rollNumber: "CS-07", avatar: "GH", attendance: 61, batch: "A" },
-  { id: "8", name: "Hannah Iles", rollNumber: "CS-08", avatar: "HI", attendance: 99, batch: "B" },
-];
+import { academicService } from "@/services/academic";
+import { useEffect } from "react";
 
 export default function AttendancePage() {
+  const [students, setStudents] = useState<any[]>([]);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    academicService.getClasses().then(data => {
+        setClasses(data || []);
+        if (data && data.length > 0) setSelectedClassId(data[0].id);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (selectedClassId) {
+        setLoading(true);
+        academicService.getStudentsByClass(selectedClassId)
+            .then(data => {
+                setStudents(data || []);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }
+  }, [selectedClassId]);
+
   const [date, setDate] = useState<Date>(new Date());
   const [search, setSearch] = useState("");
   const [selectedBatch, setSelectedBatch] = useState<string>("all");
@@ -44,12 +59,12 @@ export default function AttendancePage() {
   const [selectedLecture, setSelectedLecture] = useState("L1");
 
   const filteredStudents = useMemo(() => {
-    return MOCK_STUDENTS.filter((s) => {
-      const matchesSearch = fuzzySearch(search, `${s.name} ${s.rollNumber}`);
+    return students.filter((s) => {
+      const matchesSearch = fuzzySearch(search, `${s.name} ${s.roll_number || s.rollNumber}`);
       const matchesBatch = selectedBatch === "all" || s.batch === selectedBatch;
       return matchesSearch && matchesBatch;
     });
-  }, [search, selectedBatch]);
+  }, [search, selectedBatch, students]);
 
   const toggleAttendance = (id: string, type: 'present' | 'absent' | 'od') => {
     if (type === 'present') {
@@ -91,7 +106,8 @@ export default function AttendancePage() {
     }, 2000);
   };
 
-  const presentCount = MOCK_STUDENTS.length - absentIds.size - onDutyIds.size;
+  const totalStudents = students.length;
+  const presentCount = totalStudents - absentIds.size - onDutyIds.size;
   const isAllPresent = absentIds.size === 0;
 
   return (
@@ -102,7 +118,9 @@ export default function AttendancePage() {
             <div className="flex items-center gap-2">
               <span className="text-slate-900 font-semibold text-xl tracking-tight">Mark Attendance</span>
               <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mx-2" />
-              <span className="text-slate-500 text-sm font-medium">Computer Science 101</span>
+              <span className="text-slate-500 text-sm font-medium">
+                {classes.find(c => c.id === selectedClassId)?.name || "Select Class"}
+              </span>
             </div>
           }
         />
@@ -111,14 +129,14 @@ export default function AttendancePage() {
           {/* Controls Bar - Scrollable on small tablets */}
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-6 overflow-x-auto custom-scrollbar no-scrollbar text-sm font-medium">
             <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
-              <Select defaultValue="cs101">
+              <Select value={selectedClassId} onValueChange={(val) => val && setSelectedClassId(val)}>
                 <SelectTrigger className="w-[180px] md:w-[200px] h-12 border-slate-200 bg-white shadow-sm font-bold rounded-xl text-slate-700">
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="cs101">Computer Science 101</SelectItem>
-                  <SelectItem value="phy202">Physics 202</SelectItem>
-                  <SelectItem value="eng303">English Lit 303</SelectItem>
+                  {classes.map(cls => (
+                      <SelectItem key={cls.id} value={cls.id}>{cls.name} {cls.section}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
@@ -335,9 +353,11 @@ export default function AttendancePage() {
                           if (!val.trim()) return;
                           const rolls = val.split(',').map(r => r.trim().toLowerCase());
                           const newAbsent = new Set(absentIds);
-                          MOCK_STUDENTS.forEach(s => {
-                            const simpleRoll = s.rollNumber.split('-')[1].toLowerCase();
-                            if (rolls.includes(s.rollNumber.toLowerCase()) || rolls.includes(simpleRoll)) {
+                          students.forEach(s => {
+                            const rollNum = s.roll_number || s.rollNumber || "";
+                            if (!rollNum) return;
+                            const simpleRoll = rollNum.split('-')[1]?.toLowerCase() || rollNum.toLowerCase();
+                            if (rolls.includes(rollNum.toLowerCase()) || rolls.includes(simpleRoll)) {
                               newAbsent.add(s.id);
                             }
                           });
@@ -350,7 +370,7 @@ export default function AttendancePage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-3 animate-in fade-in zoom-in-95 duration-300">
-                    {MOCK_STUDENTS.map((s) => {
+                    {students.map((s) => {
                       const isAbsent = absentIds.has(s.id);
                       const isOD = onDutyIds.has(s.id);
                       return (
