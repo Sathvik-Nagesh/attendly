@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Card } from "@/components/ui/card";
@@ -16,7 +16,6 @@ import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { useStudents, useClasses, useDashboardStats, useNotifications } from "@/hooks/use-academic";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
-import { StatCardSkeleton, ActivitySkeleton } from "@/components/ui/skeletons";
 
 // Import export libraries
 
@@ -82,6 +81,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => { setIsMounted(true); }, []);
 
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile'],
@@ -110,8 +112,8 @@ export default function DashboardPage() {
 
 
   const { data: students = [] } = useQuery({
-    queryKey: ['all-students'],
-    queryFn: () => academicService.getAllStudents(),
+    queryKey: ['all-students-export'],
+    queryFn: () => academicService.getAllStudentsUnpaginated(),
     enabled: !!userProfile
   });
 
@@ -298,6 +300,7 @@ export default function DashboardPage() {
                 </div>
                 
                 <div className="h-[300px] w-full mt-4" style={{ minHeight: '300px' }}>
+                  {isMounted ? (
                   <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <BarChart data={activeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -308,6 +311,9 @@ export default function DashboardPage() {
                       <Bar dataKey="absent" fill="#f43f5e" radius={[4, 4, 4, 4]} barSize={8} />
                     </BarChart>
                   </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full w-full bg-slate-50 rounded-xl animate-pulse" />
+                  )}
                 </div>
               </Card>
 

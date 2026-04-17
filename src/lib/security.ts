@@ -1,31 +1,24 @@
-import bcrypt from "bcryptjs";
 import DOMPurify from "isomorphic-dompurify";
 
 /**
- * Attendex — Security Utilities
- * 
- * Handles password hashing, input sanitization (XSS protection),
- * and security-related transforms.
+ * Attendly — Security Utilities
+ *
+ * Input sanitization (XSS protection).
+ * Note: Password hashing is handled by Supabase Auth — no manual bcrypt needed.
  */
 
-// ─── Input Sanitization (XSS Protection) ─────────────────────
+// ─── Input Sanitization ───────────────────────────────────────
 
-/**
- * Sanitizes a string to prevent XSS.
- * Removes harmful HTML tags and attributes while preserving text.
- * Works on both Client (browser) and Server (Node.js).
- */
+/** Strips all HTML tags to prevent XSS. Safe for both browser and Node. */
 export function sanitize(input: string): string {
   if (!input) return "";
   return DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [], // No HTML allowed in text inputs by default
+    ALLOWED_TAGS: [],
     ALLOWED_ATTR: [],
   });
 }
 
-/**
- * Sanitizes an object of strings.
- */
+/** Sanitizes all string values in an object. */
 export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
   const result = { ...obj };
   for (const key in result) {
@@ -35,24 +28,3 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
   }
   return result;
 }
-
-// ─── Password Encryption (Bcrypt) ─────────────────────────────
-
-const SALT_ROUNDS = 12;
-
-/**
- * Hashes a plaintext password using bcrypt.
- */
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
-}
-
-/**
- * Verifies a plaintext password against a stored hash.
- */
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
-}
-
-
-// Note: getCSPHeader moved to @/lib/middleware-utils.ts for Edge Compatibility

@@ -9,23 +9,27 @@ import { Providers } from "@/components/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "KLE Academy | Attendly",
-  description: "Advanced institutional command center for high-performance academic tracking.",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "KLE Academy",
-  },
-  icons: {
-    apple: "/icons/KLE_logo.jpg",
-  },
-  other: {
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "black-translucent",
-  }
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brandName = "KLE Academy"; // This will eventually come from getBranding() or params
+  
+  return {
+    title: `${brandName} | Attendly`,
+    description: "Advanced institutional command center for high-performance academic tracking.",
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: brandName,
+    },
+    icons: {
+      apple: "/icons/KLE_logo.jpg",
+    },
+    other: {
+      "apple-mobile-web-app-capable": "yes",
+      "apple-mobile-web-app-status-bar-style": "black-translucent",
+    }
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#0f172a",

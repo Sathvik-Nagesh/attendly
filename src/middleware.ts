@@ -43,18 +43,30 @@ export async function middleware(request: NextRequest) {
   supabaseResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
   // 3. Auth Guard & Routing
-  const isAuthPage = request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/signup" || request.nextUrl.pathname === "/forgot-password";
-  const isPublicPage = request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/privacy" || request.nextUrl.pathname === "/terms";
+  const { pathname } = request.nextUrl;
+  const isAuthPage   = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password";
+  const isPublicPage = pathname === "/" || pathname === "/privacy" || pathname === "/terms";
+  const isApiRoute   = pathname.startsWith("/api/");
 
-  if (!user && !isAuthPage && !isPublicPage) {
+  // Never redirect API routes — they handle their own auth
+  if (!isApiRoute && !user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    // Preserve the intended destination so login can redirect back
+    url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
-    
+    const next = request.nextUrl.searchParams.get("next");
+
+    if (next && next.startsWith("/") && !next.startsWith("//")) {
+      url.pathname = next;
+      url.searchParams.delete("next");
+      return NextResponse.redirect(url);
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -62,11 +74,12 @@ export async function middleware(request: NextRequest) {
       .single();
 
     const role = profile?.role || user.user_metadata?.role || "TEACHER";
-    
+
     if (role === "STUDENT") url.pathname = "/student/dashboard";
     else if (role === "PARENT") url.pathname = "/parent/dashboard";
     else url.pathname = "/dashboard";
-    
+
+    url.searchParams.delete("next");
     return NextResponse.redirect(url);
   }
 
@@ -76,13 +89,14 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - sw.js (service worker)
-     * - icons (PWA icons)
+     * Match all request paths EXCEPT:
+     * - _next/static, _next/image  (Next.js internals)
+     * - favicon.ico, manifest.json (PWA / browser metadata)
+     * - sw.js                      (service worker)
+     * - icons/, .well-known/       (PWA icons + browser special paths)
+     * - globals.css                (public CSS)
+     * - static file extensions     (svg, png, jpg, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico|sw.js|icons|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|manifest\\.json|sw\\.js|icons|globals\\.css|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|otf)$).*)",
   ],
 };

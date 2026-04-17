@@ -14,13 +14,15 @@ import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginFormValues } from "@/lib/schemas";
+import { useBranding } from "@/context/branding-context";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { branding } = useBranding();
 
   const {
     register,
@@ -74,9 +76,9 @@ export default function LoginPage() {
         <div className="w-full max-w-[420px] relative z-10">
           <div className="flex flex-col items-center mb-10">
             <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center p-2 mb-6 shadow-xl border border-slate-100">
-               <img src="/icons/KLE_logo.jpg" alt="KLE Academy" className="w-full h-auto rounded-2xl" />
+               <img src={branding.logoUrl} alt={branding.name} className="w-full h-auto rounded-2xl" />
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight text-center">KLE Academy</h1>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight text-center">{branding.name}</h1>
             <p className="text-[10px] font-black text-slate-400 mt-2 text-center uppercase tracking-[0.3em]">Institutional Secure Login</p>
           </div>
 

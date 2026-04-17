@@ -24,14 +24,27 @@ export const registryService = {
   },
 
   // --- Students ---
-  async getAllStudents() {
+  async getAllStudents(page = 0, pageSize = 50) {
+    const from = page * pageSize;
+    const to   = from + pageSize - 1;
+    const { data, error, count } = await supabase
+      .from('students')
+      .select('*, classes(name)', { count: 'exact' })
+      .order('name', { ascending: true })
+      .range(from, to);
+
+    if (error) throw error;
+    return { data: data || [], count: count || 0 };
+  },
+
+  /** Convenience: fetch all without pagination (use only for exports, not UI lists) */
+  async getAllStudentsUnpaginated() {
     const { data, error } = await supabase
       .from('students')
       .select('*, classes(name)')
       .order('name', { ascending: true });
-    
     if (error) throw error;
-    return data;
+    return data || [];
   },
 
   async getStudentsByClass(classId: string) {

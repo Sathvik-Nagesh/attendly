@@ -24,7 +24,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     getStudentPerformance
 } from "@/lib/marks-calculations";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { academicService } from "@/services/academic";

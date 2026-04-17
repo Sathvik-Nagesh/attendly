@@ -41,6 +41,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useBranding } from "@/context/branding-context";
 
 // ─── Route Configurations ────────────────────────────────────
 
@@ -139,6 +140,7 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { branding } = useBranding();
   const config = VARIANT_CONFIG[variant];
 
   const accentBg = `bg-${config.accentColor}-600`;
@@ -167,11 +169,11 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
       )}>
         <div className="flex items-center gap-3 text-slate-900 font-bold text-lg tracking-tight overflow-hidden">
           <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center p-1 bg-white border border-slate-100 shadow-md md:ml-0 ml-12">
-            <img src="/icons/KLE_logo.jpg" alt="KLE" className="w-full h-auto rounded-lg" />
+            <img src={branding.logoUrl} alt={branding.shortName} className="w-full h-auto rounded-lg" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col leading-tight animate-in fade-in slide-in-from-left-2">
-              <span>{config.title}</span>
+              <span className="truncate max-w-[140px]">{branding.name}</span>
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">{config.subtitle}</span>
             </div>
           )}
@@ -257,9 +259,9 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
       <div className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 z-[60] md:hidden flex items-center px-4 justify-between">
          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-100 shadow-sm">
-               <img src="/icons/KLE_logo.jpg" alt="KLE" className="w-full h-auto" />
+               <img src={branding.logoUrl} alt={branding.shortName} className="w-full h-auto" />
             </div>
-            <span className="text-sm font-black text-slate-900 tracking-tight">KLE Academy</span>
+            <span className="text-sm font-black text-slate-900 tracking-tight">{branding.name}</span>
          </div>
          
          {!isMobileOpen && (

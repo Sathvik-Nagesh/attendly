@@ -1,10 +1,8 @@
 import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import { CommandMenu } from "@/components/ui/command-menu";
-import { protectRoute } from "@/lib/middleware-utils";
 import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
-import { ShieldAlert, Hourglass, RefreshCcw } from "lucide-react";
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import { ShieldAlert, Hourglass } from "lucide-react";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { cn } from "@/lib/utils";
 
@@ -13,16 +11,18 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const user = await protectRoute();
+  // Middleware handles the primary auth check.
+  // Here we do role/status validation for the admin portal.
   const supabaseServer = await createClient();
-  
+  const { data: { user } } = await supabaseServer.auth.getUser();
+  if (!user) redirect("/login");
+
   const { data: profile } = await supabaseServer
       .from('profiles')
       .select('status, role')
       .eq('id', user.id)
       .single();
-  
+
   const status = profile?.status || "PENDING";
   const role = profile?.role?.toLowerCase() || "teacher";
 

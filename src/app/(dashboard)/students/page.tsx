@@ -20,6 +20,9 @@ import { academicService } from "@/services/academic";
 export default function StudentsPage() {
   const [search, setSearch] = useState("");
   const [studentList, setStudentList] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -41,14 +44,15 @@ export default function StudentsPage() {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  const loadData = async () => {
+  const loadData = async (p = page) => {
     try {
       setLoading(true);
-      const [students, clsList] = await Promise.all([
-        academicService.getAllStudents(),
+      const [result, clsList] = await Promise.all([
+        academicService.getAllStudents(p, PAGE_SIZE),
         academicService.getClasses()
       ]);
-      setStudentList(students || []);
+      setStudentList(result.data || []);
+      setTotalCount(result.count || 0);
       setClasses(clsList || []);
     } catch (err) {
       toast.error("Failed to load records from database");
@@ -57,9 +61,7 @@ export default function StudentsPage() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(page); }, [page]);
 
   const filteredStudents = studentList.filter(s =>
     fuzzySearch(search, `${s.name} ${s.roll_number} ${s.email}`)
