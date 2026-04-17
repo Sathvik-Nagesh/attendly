@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCSPHeader } from "@/lib/middleware-utils";
 
-export default async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
 
   let supabaseResponse = NextResponse.next({
     request,
@@ -72,7 +72,6 @@ export default async function proxy(request: NextRequest) {
 
   return supabaseResponse;
 }
-
 
 export const config = {
   matcher: [

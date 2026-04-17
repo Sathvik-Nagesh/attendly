@@ -61,9 +61,21 @@ export default function RootLayout({
                   navigator.serviceWorker.register('/sw.js').then(function(registration) {
                     console.log('Elite SW Registered');
                     
-                    // Register for Background Sync
-                    if ('sync' in registration) {
-                      registration.sync.register('sync-attendance');
+                    const registerSync = () => {
+                      if ('sync' in registration && registration.active) {
+                        registration.sync.register('sync-attendance').catch(err => console.log('Sync Deferred:', err));
+                      }
+                    };
+
+                    if (registration.active) {
+                      registerSync();
+                    } else {
+                      registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker?.addEventListener('statechange', () => {
+                          if (newWorker.state === 'activated') registerSync();
+                        });
+                      });
                     }
 
                     // Request Push Notification Permission

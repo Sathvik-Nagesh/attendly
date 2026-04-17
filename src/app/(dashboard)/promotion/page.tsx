@@ -9,16 +9,30 @@ import { GraduationCap, ArrowRight, ShieldCheck, AlertTriangle, History, Refresh
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-const CLASSES = [
-  { id: "1", name: "CS-Year 1", students: 54, year: 2023 },
-  { id: "2", name: "CS-Year 2", students: 48, year: 2023 },
-  { id: "3", name: "Physics-Final", students: 32, year: 2023, isFinal: true },
-];
+import { academicService } from "@/services/academic";
+import { useEffect } from "react";
 
 export default function PromotionPage() {
+  const [classes, setClasses] = useState<any[]>([]);
   const [selectedClasses, setSelectedClasses] = useState<Set<string>>(new Set());
   const [isPromoting, setIsPromoting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadClasses = async () => {
+      try {
+        setLoading(true);
+        const data = await academicService.getClasses();
+        setClasses(data || []);
+      } catch (err) {
+        toast.error("Failed to load classes for promotion");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadClasses();
+  }, []);
 
   const toggleClass = (id: string) => {
     const next = new Set(selectedClasses);
@@ -42,9 +56,9 @@ export default function PromotionPage() {
   return (
     <PageTransition>
       <div className="flex flex-col h-full">
-        <Header title="Promotion Center" />
+        <Header title="Batch Promotion" />
         
-        <div className="flex-1 py-8 space-y-8 max-w-5xl mx-auto w-full pb-20">
+        <div className="flex-1 space-y-8 max-w-5xl mx-auto w-full pb-20">
           <div className="space-y-2">
             <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Academic Year Transition</h2>
             <p className="text-slate-500">Bulk promote students or manage graduation for the 2023-24 batch.</p>
@@ -61,7 +75,7 @@ export default function PromotionPage() {
               </div>
 
               <div className="space-y-3">
-                {CLASSES.map((c) => (
+                {classes.map((c) => (
                   <div 
                     key={c.id} 
                     onClick={() => toggleClass(c.id)}
@@ -73,16 +87,19 @@ export default function PromotionPage() {
                   >
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${selectedClasses.has(c.id) ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-400'}`}>
-                        {c.isFinal ? <GraduationCap className="w-5 h-5" /> : <RefreshCcw className="w-5 h-5" />}
+                        {c.year > 2025 ? <GraduationCap className="w-5 h-5" /> : <RefreshCcw className="w-5 h-5" />}
                       </div>
                       <div>
                         <p className="font-bold text-slate-900">{c.name}</p>
-                        <p className="text-xs text-slate-500">{c.students} Students • Batch {c.year}</p>
+                        <p className="text-xs text-slate-500">{c.department || 'General'} • Batch {c.year}</p>
                       </div>
                     </div>
                     {selectedClasses.has(c.id) && <ShieldCheck className="w-6 h-6 text-blue-600" />}
                   </div>
                 ))}
+                {!loading && classes.length === 0 && (
+                  <div className="py-10 text-center text-slate-300 italic font-medium">No active classrooms identified for promotion.</div>
+                )}
               </div>
 
               <div className="pt-4 flex justify-end">
@@ -114,12 +131,9 @@ export default function PromotionPage() {
                     <History className="w-4 h-4 text-slate-400" />
                     Recent Logs
                   </h4>
-                  <div className="space-y-3">
-                    <div className="text-[10px] text-slate-400 font-bold uppercase pb-1 border-b border-slate-100">June 2023</div>
-                    <div className="text-xs">
-                        <p className="font-bold text-slate-700">Medical Batch Promoted</p>
-                        <p className="text-slate-400">120 students moved to Year 3</p>
-                    </div>
+                  <div className="space-y-4 py-8 text-center">
+                    <History className="w-8 h-8 text-slate-100 mx-auto" />
+                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Logs Empty</p>
                   </div>
                </Card>
             </div>

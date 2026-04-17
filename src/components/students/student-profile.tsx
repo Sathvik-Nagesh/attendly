@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -59,7 +59,7 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
       doc.setFontSize(12);
       doc.text("Recent Activity Trail", 14, 85);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
           startY: 90,
           head: [["Timestamp", "Activity Description", "Location", "Resolution"]],
           body: activityData,
@@ -110,18 +110,19 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl flex flex-col md:flex-row overflow-hidden border border-white/20"
+          className="relative w-[95vw] md:w-full max-w-4xl max-h-[92vh] md:max-h-[90vh] bg-white rounded-[2rem] md:rounded-[3rem] shadow-2xl flex flex-col md:flex-row overflow-hidden border border-white/20"
         >
           <button 
               onClick={(e) => { e.stopPropagation(); onClose(); }}
-              className="absolute top-6 right-6 w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all z-20"
+              className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-all z-20"
           >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 md:w-6 md:h-6" />
           </button>
 
-          <div className="w-full md:w-2/5 bg-slate-50 p-10 flex flex-col items-center justify-center space-y-6 border-r border-slate-100">
+          {/* Left Sidebar / Top Header on Mobile */}
+          <div className="w-full md:w-[320px] bg-slate-50 p-6 md:p-10 flex flex-col items-center justify-center space-y-4 md:space-y-6 border-b md:border-b-0 md:border-r border-slate-100 shrink-0">
              <div className="relative">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-[3rem] bg-white flex items-center justify-center overflow-hidden ring-8 ring-white shadow-2xl">
+                <div className="w-20 h-20 md:w-40 md:h-40 rounded-[1.5rem] md:rounded-[3rem] bg-white flex items-center justify-center overflow-hidden ring-4 md:ring-8 ring-white shadow-2xl">
                    <img 
                       src={`https://i.pravatar.cc/300?u=${student.roll || student.roll_number || student.rollNumber}`} 
                       alt={student.name}
@@ -129,51 +130,52 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
                    />
                 </div>
                 <div className={cn(
-                  "absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl border-4 border-white flex items-center justify-center shadow-lg",
+                  "absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-7 h-7 md:w-10 md:h-10 rounded-lg md:rounded-2xl border-4 border-white flex items-center justify-center shadow-lg",
                   isAtRisk ? 'bg-red-500' : 'bg-emerald-500'
                 )}>
-                  {isAtRisk ? <AlertCircle className="w-5 h-5 text-white" /> : <CheckCircle2 className="w-5 h-5 text-white" />}
+                  {isAtRisk ? <AlertCircle className="w-3.5 h-3.5 md:w-5 md:h-5 text-white" /> : <CheckCircle2 className="w-3.5 h-3.5 md:w-5 md:h-5 text-white" />}
                 </div>
              </div>
 
-             <div className="text-center space-y-2">
-                <h2 className="text-2xl font-black text-slate-900 leading-tight">{student.name}</h2>
-                <span className="px-4 py-1.5 rounded-xl bg-blue-100 text-blue-700 text-xs font-black uppercase tracking-widest">{student.roll || student.roll_number || student.rollNumber}</span>
+             <div className="text-center space-y-1 md:space-y-2">
+                <h2 className="text-lg md:text-2xl font-black text-slate-900 leading-tight uppercase italic">{student.name}</h2>
+                <span className="inline-block px-3 py-1 rounded-lg md:rounded-xl bg-blue-100 text-blue-700 text-[9px] md:text-xs font-black uppercase tracking-widest">{student.roll || student.roll_number || student.rollNumber}</span>
              </div>
 
-             <div className="w-full pt-6 space-y-3">
-                <div className="flex justify-between items-center px-4 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Attendance</span>
-                   <span className={cn("text-lg font-black", isAtRisk ? 'text-red-600' : 'text-slate-900')}>{student.attendance || "85%"}</span>
+             <div className="w-full grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-3">
+                <div className="flex justify-between items-center px-3 py-2 md:py-3 bg-white rounded-xl md:rounded-2xl border border-slate-100 shadow-sm">
+                   <span className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Attendance</span>
+                   <span className={cn("text-xs md:text-lg font-black", isAtRisk ? 'text-red-600' : 'text-slate-900')}>{student.attendance || "85%"}</span>
                 </div>
-                <div className="flex justify-between items-center px-4 py-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Risk Score</span>
-                   <span className={cn("text-[10px] font-black uppercase tracking-widest", isAtRisk ? 'text-red-500' : 'text-emerald-500')}>{isAtRisk ? "HIGH" : "LOW"}</span>
+                <div className="flex justify-between items-center px-3 py-2 md:py-3 bg-white rounded-xl md:rounded-2xl border border-slate-100 shadow-sm">
+                   <span className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Risk Score</span>
+                   <span className={cn("text-[8px] md:text-[10px] font-black uppercase tracking-widest", isAtRisk ? 'text-red-500' : 'text-emerald-500')}>{isAtRisk ? "HIGH" : "LOW"}</span>
                 </div>
              </div>
           </div>
 
-          <div className="flex-1 max-h-[80vh] overflow-y-auto p-10 space-y-10 custom-scrollbar">
-            <div className="grid grid-cols-2 gap-4">
-              <Button className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100">
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-y-auto p-5 md:p-10 space-y-6 md:space-y-10 custom-scrollbar bg-white">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
+              <Button className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100 text-xs md:text-sm">
                 <Mail className="w-4 h-4 mr-2" /> Email
               </Button>
-              <Button className="h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-100">
+              <Button className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-100 text-xs md:text-sm">
                 <MessageSquare className="w-4 h-4 mr-2" /> WhatsApp
               </Button>
             </div>
 
             <div className="space-y-4">
-                <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">Academic Engagement</h4>
-                <div className="flex gap-1 justify-between bg-slate-50 p-2 rounded-2xl">
+                <h4 className="text-[10px] md:text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Academic Engagement</h4>
+                <div className="flex gap-1 justify-between bg-slate-50 p-2 rounded-xl md:rounded-2xl overflow-hidden min-h-[40px] md:min-h-[50px]">
                     {[1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1].map((p, i) => (
-                        <div key={i} className={cn("flex-1 h-10 rounded-lg", p === 1 ? 'bg-emerald-400' : 'bg-red-400')} />
+                        <div key={i} className={cn("flex-1 h-6 md:h-10 rounded-sm md:rounded-lg", p === 1 ? 'bg-emerald-400' : 'bg-red-400')} />
                     ))}
                 </div>
             </div>
 
             <div className="space-y-6">
-                <h4 className="text-xs font-black text-slate-900 uppercase tracking-widest">Recent Activity Log</h4>
+                <h4 className="text-[10px] md:text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Recent Activity Log</h4>
                 <div className="space-y-6 relative pl-6 before:absolute before:left-[1px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
                    {[
                      { title: "Absent for OS Lecture", time: "Today, 10:00 AM", status: "missed", room: "LT-01" },
@@ -182,21 +184,21 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
                    ].map((item, idx) => (
                      <div key={idx} className="relative">
                         <div className={cn(
-                          "absolute -left-[30px] top-1 w-4 h-4 rounded-full border-4 border-white",
+                          "absolute -left-[30px] top-1 w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-4 border-white shadow-sm",
                           item.status === 'missed' ? 'bg-red-500' : item.status === 'present' ? 'bg-emerald-500' : 'bg-blue-500'
                         )} />
                         <p className="text-sm font-bold text-slate-900 leading-none">{item.title}</p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase">{item.time} • {item.room}</p>
+                        <p className="text-[9px] md:text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-wider">{item.time} • {item.room}</p>
                      </div>
                    ))}
                 </div>
             </div>
 
-            <div className="pt-6">
+            <div className="pt-4 md:pt-6">
                <Button 
                 onClick={handleExportPDF}
                 variant="outline" 
-                className="w-full h-14 rounded-2xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+                className="w-full h-12 md:h-14 rounded-xl md:rounded-2xl border-slate-200 text-slate-600 font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-slate-50 transition-all shadow-sm"
               >
                   Generate Full Audit Report (PDF)
                </Button>

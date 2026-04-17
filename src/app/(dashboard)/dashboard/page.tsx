@@ -21,7 +21,7 @@ import { StatCardSkeleton, ActivitySkeleton } from "@/components/ui/skeletons";
 // Import export libraries
 
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -157,7 +157,7 @@ export default function DashboardPage() {
                 `${s.attendance_percentage || 0}%`
             ]);
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: 55,
             head: [['#', 'Student Name', 'Roll Number', 'Department', 'Attendance']],
             body: defaulterData.length > 0 ? defaulterData : [["-", "No defaulters found", "-", "-", "-"]],
@@ -297,8 +297,8 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 
-                <div className="h-[300px] w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-[300px] w-full mt-4" style={{ minHeight: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <BarChart data={activeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }} dy={10} />

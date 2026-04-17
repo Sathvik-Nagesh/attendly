@@ -20,8 +20,7 @@ export function getCSPHeader() {
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'"],
-    "frame-ancestors": ["'none'"],
-    "upgrade-insecure-requests": []
+    "frame-ancestors": ["'none'"]
   };
 
   return Object.entries(csp)

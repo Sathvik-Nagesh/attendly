@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 export default function ResultsPage() {
   const [search, setSearch] = useState("");
@@ -74,21 +74,21 @@ export default function ResultsPage() {
              </div>
 
              {/* Registry Control */}
-             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 bg-slate-900 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
                 <div className="absolute inset-0 bg-blue-600 opacity-5 group-hover:opacity-10 transition-opacity" />
-                <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 flex-1">
+                <div className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6 flex-1">
                     <div className="relative max-w-sm w-full">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <Input 
                             placeholder="Identify section or result node..." 
                             value={search} 
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-12 h-14 rounded-2xl border-none bg-white/10 text-white placeholder:text-slate-500 font-bold focus:ring-4 focus:ring-blue-500/20 transition-all text-sm"
+                            className="pl-12 h-12 md:h-14 rounded-xl md:rounded-2xl border-none bg-white/10 text-white placeholder:text-slate-500 font-bold focus:ring-4 focus:ring-blue-500/20 transition-all text-sm"
                         />
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Button variant="ghost" className="h-14 rounded-2xl text-slate-400 font-bold text-xs gap-3 hover:text-white hover:bg-white/5 uppercase tracking-widest px-6">
-                            <Filter className="w-4 h-4" /> Refine
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <Button variant="ghost" className="h-12 md:h-14 rounded-xl md:rounded-2xl text-slate-400 font-bold text-[10px] md:text-xs gap-2 md:gap-3 hover:text-white hover:bg-white/5 uppercase tracking-widest px-4 md:px-6 flex-1 md:flex-none">
+                            <Filter className="w-4 h-4" /> <span className="hidden sm:inline">Refine</span>
                         </Button>
                         <Button 
                             onClick={() => {
@@ -120,7 +120,7 @@ export default function ResultsPage() {
                                         r.status
                                     ]);
 
-                                    (doc as any).autoTable({
+                                    autoTable(doc, {
                                         startY: 70,
                                         head: [["Section Name", "Sec", "Units", "Avg Merit", "Status"]],
                                         body: tableData,
@@ -138,9 +138,9 @@ export default function ResultsPage() {
                                     toast.error("Compilation failed");
                                 }
                             }}
-                            className="h-14 rounded-2xl bg-white text-slate-900 font-black uppercase tracking-widest text-[10px] gap-3 px-8 hover:bg-slate-100 shadow-xl transition-all"
+                            className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-white text-slate-900 font-black uppercase tracking-widest text-[9px] md:text-[10px] gap-2 md:gap-3 px-6 md:px-8 hover:bg-slate-100 shadow-xl transition-all flex-1 md:flex-none"
                         >
-                            <Download className="w-5 h-5 text-blue-600" /> Export All
+                            <Download className="w-4 h-4 md:w-5 md:h-5 text-blue-600" /> <span className="hidden sm:inline">Export</span>
                         </Button>
                     </div>
                 </div>
@@ -151,7 +151,7 @@ export default function ResultsPage() {
              </div>
 
              {/* Results Ledger */}
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 <AnimatePresence mode="popLayout">
                     {filteredResults.map((res, i) => (
                         <motion.div
@@ -161,40 +161,40 @@ export default function ResultsPage() {
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ delay: i * 0.05 }}
                         >
-                            <Card className="p-8 border-none ring-1 ring-slate-100 rounded-[2.5rem] bg-white group hover:shadow-3xl transition-all relative overflow-hidden h-full flex flex-col">
-                                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                                    <ClipboardList className="w-24 h-24 text-slate-900" />
+                            <Card className="p-4 md:p-6 border-none ring-1 ring-slate-100 rounded-[1rem] md:rounded-[2rem] bg-white group hover:shadow-2xl transition-all relative overflow-hidden h-full flex flex-col">
+                                <div className="absolute top-0 right-0 p-4 md:p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                    <ClipboardList className="w-10 h-10 md:w-16 md:h-16 text-slate-900" />
                                 </div>
                                 
                                 <div className="relative z-10 flex-1 flex flex-col">
-                                    <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center justify-between mb-3 md:mb-6">
                                         <span className={cn(
-                                            "text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] border",
+                                            "text-[7px] md:text-[9px] font-black px-2 py-1 md:px-3 md:py-1 rounded-full uppercase tracking-[0.15em] md:tracking-[0.2em] border",
                                             res.status === 'Published' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-amber-50 text-amber-600 border-amber-100"
                                         )}>
                                             {res.status}
                                         </span>
-                                        <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-                                            <LayoutGrid className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                                        <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center">
+                                            <LayoutGrid className="w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
                                         </div>
                                     </div>
 
-                                    <h3 className="text-xl font-black text-slate-900 leading-tight mb-2 pr-6 uppercase italic italic-none">{res.class_name}</h3>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-10">Section {res.section || 'N/A'} • {res.student_count} Registered Units</p>
+                                    <h3 className="text-sm md:text-lg font-black text-slate-900 leading-tight mb-1 pr-4 uppercase italic truncate">{res.class_name}</h3>
+                                    <p className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 md:mb-8">Section {res.section || 'N/A'} • {res.student_count} Units</p>
                                     
-                                    <div className="mt-auto pt-8 border-t border-slate-50 grid grid-cols-2 gap-8 items-end">
+                                    <div className="mt-auto pt-4 md:pt-8 border-t border-slate-50 grid grid-cols-2 gap-3 md:gap-8 items-end">
                                         <div>
-                                            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-2">Merit Average</p>
+                                            <p className="text-[7px] md:text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1 md:mb-2">Merit Avg</p>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-3xl font-black text-slate-900 tracking-tighter">{res.average_score}</span>
-                                                <span className="text-xs font-black text-slate-300">%</span>
+                                                <span className="text-xl md:text-3xl font-black text-slate-900 tracking-tighter">{res.average_score}</span>
+                                                <span className="text-[8px] md:text-xs font-black text-slate-300">%</span>
                                             </div>
                                         </div>
                                         <Button 
                                             variant="outline"
-                                            className="h-12 rounded-xl bg-slate-50 border-none text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-inner"
+                                            className="h-10 md:h-12 rounded-xl bg-slate-50 border-none text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-900 hover:text-white transition-all shadow-inner"
                                         >
-                                            Audit Roster
+                                            Audit
                                         </Button>
                                     </div>
                                 </div>
@@ -219,13 +219,13 @@ function ResultStat({ label, value, icon: Icon, color }: any) {
         amber: "bg-amber-50 text-amber-600 border-amber-100 shadow-amber-500/10"
     };
     return (
-        <Card className="p-10 rounded-[3rem] border-none bg-white shadow-xl flex items-center justify-between group hover:shadow-2xl transition-all ring-1 ring-slate-100">
+        <Card className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] border-none bg-white shadow-xl flex items-center justify-between group hover:shadow-2xl transition-all ring-1 ring-slate-100">
             <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3">{label}</p>
-                <p className="text-4xl font-black text-slate-900 tracking-tighter italic italic-none">{value}</p>
+                <p className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 md:mb-2">{label}</p>
+                <p className="text-xl md:text-3xl font-black text-slate-900 tracking-tighter italic italic-none">{value}</p>
             </div>
-            <div className={cn("w-16 h-16 rounded-[1.5rem] flex items-center justify-center border shadow-xl", colors[color])}>
-                <Icon className="w-8 h-8" />
+            <div className={cn("w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center border shadow-xl", colors[color])}>
+                <Icon className="w-5 h-5 md:w-7 md:h-7" />
             </div>
         </Card>
     );

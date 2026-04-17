@@ -35,7 +35,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   
   // Only handle GET requests for caching
-  if (request.method !== 'GET') return;
+  if (request.method !== 'GET' || !request.url.startsWith('http')) return;
 
   const url = new URL(request.url);
 

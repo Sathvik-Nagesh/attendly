@@ -1,10 +1,12 @@
 import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import { CommandMenu } from "@/components/ui/command-menu";
 import { protectRoute } from "@/lib/middleware-utils";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { ShieldAlert, Hourglass, RefreshCcw } from "lucide-react";
 import Link from "next/link";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { cn } from "@/lib/utils";
 
 export default async function DashboardLayout({
   children,
@@ -13,8 +15,9 @@ export default async function DashboardLayout({
 }) {
   const cookieStore = await cookies();
   const user = await protectRoute();
+  const supabaseServer = await createClient();
   
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseServer
       .from('profiles')
       .select('status, role')
       .eq('id', user.id)
@@ -23,8 +26,8 @@ export default async function DashboardLayout({
   const status = profile?.status || "PENDING";
   const role = profile?.role?.toLowerCase() || "teacher";
 
-  // Verification Gate for Teachers
-  if (status === 'PENDING') {
+  // Verification Gate for Teachers (Admins bypass)
+  if (status === 'PENDING' && role !== 'admin') {
       return (
           <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 flex-col text-center">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-rose-500/10 blur-3xl" />
@@ -44,9 +47,7 @@ export default async function DashboardLayout({
                             <ShieldAlert className="w-5 h-5 text-amber-500" />
                             <p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Awaiting Manual Audit</p>
                         </div>
-                        <Link href="/login" className="text-xs font-black text-blue-400 uppercase tracking-widest hover:text-blue-300 transition-colors py-4">
-                            Log out & try another identity
-                        </Link>
+                         <LogoutButton className="text-xs font-black text-blue-400 uppercase tracking-widest hover:text-blue-300 transition-colors py-4" />
                   </div>
               </div>
           </div>
@@ -59,12 +60,12 @@ export default async function DashboardLayout({
       <UnifiedSidebar variant={role as any} />
       <main className={cn(
         "flex-1 flex flex-col min-h-screen transition-all duration-300",
-        "md:pl-64" 
+        "md:pl-20 xl:pl-64" 
       )}>
         {/* Mobile Spacer to prevent overlap with floating menu button */}
         <div className="h-16 md:hidden shrink-0" />
         
-        <div className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-10 overflow-y-auto custom-scrollbar">
           {children}
         </div>
       </main>
@@ -72,7 +73,3 @@ export default async function DashboardLayout({
   );
 }
 
-// Helper to use cn in server components if not already imported
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
-}
