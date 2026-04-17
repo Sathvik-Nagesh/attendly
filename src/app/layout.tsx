@@ -2,8 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-
 import { IosInstallPrompt } from "@/components/layout/ios-install-prompt";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { Suspense } from "react";
+import { Providers } from "@/components/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,7 +44,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full bg-slate-50 antialiased overflow-x-hidden">
       <body className={`${inter.className} min-h-full flex flex-col text-slate-900`}>
-        {children}
+        <Providers>
+          <Suspense fallback={<LoadingScreen />}>
+            {children}
+          </Suspense>
+        </Providers>
         <Toaster />
         <IosInstallPrompt />
 
@@ -84,4 +90,3 @@ export default function RootLayout({
     </html>
   );
 }
-

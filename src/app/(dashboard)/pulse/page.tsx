@@ -32,22 +32,17 @@ import {
   Cell
 } from "recharts";
 
-const deptStats = [
-  { name: "Computer Science", attendance: 92, defaulters: 4, color: "#2563eb" },
-  { name: "Mechanical", attendance: 78, defaulters: 12, color: "#3b82f6" },
-  { name: "Civil", attendance: 65, defaulters: 28, color: "#ef4444" },
-  { name: "Electronics", attendance: 88, defaulters: 7, color: "#60a5fa" },
-  { name: "Physics", attendance: 82, defaulters: 9, color: "#93c5fd" },
-];
-
-const facultyRequests = [
-  { id: 1, prof: "Dr. Alan Turing", subject: "Quantum Computing", type: "Extra Class", status: "Pending" },
-  { id: 2, prof: "Prof. Sarah Connor", subject: "Cyber Security", type: "Defaulter Review", status: "Action Required" },
-  { id: 3, prof: "Dr. Grace Hopper", subject: "Compilers", type: "Semester Leave", status: "Approved" },
-];
+import { academicService } from "@/services/academic";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CampusPulsePage() {
-  
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['campus-pulse'],
+    queryFn: () => academicService.getSummaryStats(),
+    refetchInterval: 30000, // Refresh every 30s
+  });
+
   const handleExport = (type: string) => {
     toast.promise(
       new Promise((resolve) => setTimeout(resolve, 1500)),
@@ -58,6 +53,13 @@ export default function CampusPulsePage() {
       }
     );
   };
+
+  if (isLoading) return <LoadingScreen />;
+  if (!stats) return null;
+
+  const aggregateAttendance = stats.departmentPulse.length > 0 
+    ? stats.departmentPulse.reduce((acc: number, curr: any) => acc + curr.percentage, 0) / stats.departmentPulse.length
+    : 0;
 
   return (
     <PageTransition>
@@ -74,15 +76,15 @@ export default function CampusPulsePage() {
                     <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                     <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Real-time Pulse</p>
                   </div>
-                  <h3 className="text-4xl font-black">81.4%</h3>
+                  <h3 className="text-4xl font-black">{Math.round(aggregateAttendance)}%</h3>
                   <p className="text-slate-500 text-xs font-bold">Aggregate Campus Attendance</p>
                 </div>
                 <Radio className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5" />
              </Card>
 
-             <StatBox title="Critical Departments" val="02" icon={ShieldAlert} trend="Attention Required" color="text-rose-500" />
-             <StatBox title="HOD Approvals" val="14" icon={Target} trend="2 Pending Review" color="text-blue-500" />
-             <StatBox title="Staff Efficiency" val="96%" icon={Zap} trend="Optimal Performance" color="text-emerald-500" />
+             <StatBox title="Active Students" val={stats.totalStudents} icon={Users} trend="Institutional Strength" color="text-blue-500" />
+             <StatBox title="Today's Absentees" val={stats.absenteesToday} icon={ShieldAlert} trend="Pending Notifications" color="text-rose-500" />
+             <StatBox title="Live Classes" val={stats.totalClasses} icon={Building2} trend="Active Sessions" color="text-emerald-500" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -103,7 +105,7 @@ export default function CampusPulsePage() {
 
                 <div className="h-[350px] w-full mt-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={deptStats} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={40}>
+                        <BarChart data={stats.departmentPulse} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={40}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis 
                                 dataKey="name" 
@@ -121,9 +123,9 @@ export default function CampusPulsePage() {
                                 contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: '800' }}
                                 cursor={{ fill: '#f8fafc' }}
                             />
-                            <Bar dataKey="attendance" radius={[12, 12, 0, 0]}>
-                                {deptStats.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                            <Bar dataKey="percentage" radius={[12, 12, 0, 0]}>
+                                {stats.departmentPulse.map((entry: any, index: number) => (
+                                    <Cell key={`cell-${index}`} fill={["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd"][index % 4]} />
                                 ))}
                             </Bar>
                         </BarChart>
@@ -134,29 +136,27 @@ export default function CampusPulsePage() {
             {/* Admin Tasks / Sidebar */}
             <div className="space-y-8">
                 <Card className="p-8 bg-blue-600 rounded-[3rem] text-white shadow-xl shadow-blue-100 border-none">
-                    <h4 className="text-xl font-bold mb-6">Staff Oversight</h4>
+                    <h4 className="text-xl font-bold mb-6">Recent Activity</h4>
                     <div className="space-y-4">
-                        {facultyRequests.map((req) => (
+                        {stats.recentActivity.map((req: any) => (
                             <div key={req.id} className="p-4 bg-white/10 rounded-2xl space-y-1 hover:bg-white/15 transition-all cursor-pointer group">
                                 <div className="flex justify-between items-start">
-                                    <p className="text-sm font-black">{req.prof}</p>
+                                    <p className="text-sm font-black">{req.text}</p>
                                     <ChevronRight className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <p className="text-[10px] text-blue-200 font-bold">{req.subject}</p>
+                                    <p className="text-[10px] text-blue-200 font-bold">{req.time}</p>
                                     <span className={cn(
-                                        "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md",
-                                        req.status === 'Pending' ? 'bg-amber-400 text-amber-900' : 
-                                        req.status === 'Approved' ? 'bg-emerald-400 text-emerald-900' : 'bg-rose-400 text-white'
+                                        "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-400 text-emerald-900"
                                     )}>
-                                        {req.status}
+                                        Verified
                                     </span>
                                 </div>
                             </div>
                         ))}
                     </div>
                     <button className="w-full mt-6 py-4 bg-white text-blue-600 rounded-[1.5rem] text-xs font-black uppercase tracking-widest hover:bg-blue-50 transition-all">
-                        Launch Admin Panel
+                        Sync Telemetry
                     </button>
                 </Card>
 

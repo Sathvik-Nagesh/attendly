@@ -13,68 +13,46 @@ import {
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
 import { academicService } from "@/services/academic";
-import { toast } from "sonner";
-
-const subjects = [
-  { 
-    name: "Data Structures & Algos", 
-    code: "CS401", 
-    credits: 4,
-    marks: { cia: "4.5/5", tests: "1.8/2", attendance: "5/5", total: "17.5/20" },
-    grade: "O"
-  },
-  { 
-    name: "Operating Systems", 
-    code: "CS402", 
-    credits: 3,
-    marks: { cia: "3.5/5", tests: "1.4/2", attendance: "4/5", total: "14.5/20" },
-    grade: "A+"
-  },
-  { 
-    name: "Discrete Mathematics", 
-    code: "MA403", 
-    credits: 4,
-    marks: { cia: "5/5", tests: "1.9/2", attendance: "5/5", total: "19/20" },
-    grade: "O"
-  },
-  { 
-    name: "Microprocessors", 
-    code: "EC404", 
-    credits: 3,
-    marks: { cia: "3/5", tests: "1.2/2", attendance: "4/5", total: "13/20" },
-    grade: "B"
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { supabase } from "@/lib/supabase";
 
 export default function StudentMarksPage() {
-  const [marks, setMarks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: marks = [], isLoading } = useQuery({
+    queryKey: ['student-marks'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-  useEffect(() => {
-    const fetchMarks = async () => {
-      try {
-        setLoading(true);
-        // Test Candidate: Aarav Sharma (CS-11)
-        const data = await academicService.getStudentMarks('1'); 
-        setMarks(data || []);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchMarks();
-  }, []);
+      // Resolve student identity via email
+      const { data: student } = await supabase
+        .from('students')
+        .select('id')
+        .eq('email', user.email)
+        .single();
 
-  const displaySubjects = marks.length > 0 ? marks.map(m => ({
+      if (!student) return [];
+
+      const data = await academicService.getStudentMarks(student.id);
+      return data || [];
+    }
+  });
+
+  const displaySubjects = marks.map((m: any) => ({
     name: m.subject_name,
     code: m.subject_code || "GEN",
     credits: 4,
-    marks: { cia: `${m.cia1+m.cia2}/10`, tests: `${m.tests}/10`, attendance: "100%", total: `${m.cia1+m.cia2+m.tests}/20` },
-    grade: "A"
-  })) : subjects; // Fallback to mocks if DB is empty
+    marks: { 
+      cia: `${m.cia1 + m.cia2}/10`, 
+      tests: `${m.tests}/10`, 
+      attendance: "100%", 
+      total: `${m.cia1 + m.cia2 + m.tests}/20` 
+    },
+    grade: (m.cia1 + m.cia2 + m.tests) >= 18 ? "O" : (m.cia1 + m.cia2 + m.tests) >= 15 ? "A+" : "A"
+  }));
+
+  if (isLoading) return <LoadingScreen />;
   return (
     <PageTransition>
       <div className="flex flex-col min-h-full pb-20 pt-8 max-w-6xl mx-auto space-y-10 px-4 md:px-0">
@@ -109,7 +87,7 @@ export default function StudentMarksPage() {
         <section className="space-y-6">
             <h3 className="text-lg font-bold text-slate-800 tracking-tight">Subject-wise Breakdown</h3>
             <div className="grid grid-cols-1 gap-4">
-                {loading ? (
+                {isLoading ? (
                    Array(3).fill(0).map((_, i) => (
                        <div key={i} className="h-24 rounded-3xl bg-slate-50 border border-slate-100 animate-pulse" />
                    ))

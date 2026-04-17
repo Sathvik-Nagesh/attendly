@@ -7,36 +7,33 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PageTransition } from "@/components/ui/page-transition";
-
-import { GraduationCap } from "lucide-react";
-import { validateLoginInput } from "@/lib/validators";
 import { toast } from "sonner";
-
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, LoginFormValues } from "@/lib/schemas";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(false); // Reset in case of early return
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
-
-    const validation = validateLoginInput({ identifier: email, password });
-    if (!validation.success) {
-      Object.values(validation.errors || {}).forEach(err => toast.error(err));
-      setIsLoading(false);
-      return;
-    }
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: values.email,
+        password: values.password,
       });
 
       if (error) throw error;
@@ -45,8 +42,13 @@ export default function LoginPage() {
           description: "Welcome back to your academic workstation."
       });
       
-      // Routing depends on user role in metadata
-      const role = data.user?.user_metadata?.role || "ADMIN";
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user?.id)
+        .single();
+
+      const role = profile?.role || data.user?.user_metadata?.role || "TEACHER";
       const redirectPath = role === "STUDENT" ? "/student/dashboard" : role === "PARENT" ? "/parent/dashboard" : "/dashboard";
       
       router.push(redirectPath);
@@ -76,19 +78,21 @@ export default function LoginPage() {
           </div>
 
           <Card className="p-8 md:p-10 border-slate-100 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] md:rounded-[3rem] border border-slate-100">
-            <form onSubmit={handleLogin} className="space-y-6 md:space-y-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
               <div className="space-y-3">
                 <Label htmlFor="email" className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                   placeholder="Enter your institutional email"
-                  required
                   autoComplete="username email"
-                  className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 shadow-none focus-visible:ring-blue-500 font-bold px-5 text-base transition-all"
+                  className={cn(
+                    "h-14 rounded-2xl border-slate-100 bg-slate-50/50 shadow-none focus-visible:ring-blue-500 font-bold px-5 text-base transition-all",
+                    errors.email && "border-rose-500 bg-rose-50/30"
+                  )}
                 />
+                {errors.email && <p className="text-[10px] font-bold text-rose-500 ml-1 uppercase">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-3">
@@ -99,13 +103,15 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register("password")}
                   placeholder="Enter your password"
-                  required
                   autoComplete="current-password"
-                  className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 shadow-none focus-visible:ring-blue-500 font-bold px-5 text-base transition-all"
+                  className={cn(
+                    "h-14 rounded-2xl border-slate-100 bg-slate-50/50 shadow-none focus-visible:ring-blue-500 font-bold px-5 text-base transition-all",
+                    errors.password && "border-rose-500 bg-rose-50/30"
+                  )}
                 />
+                {errors.password && <p className="text-[10px] font-bold text-rose-500 ml-1 uppercase">{errors.password.message}</p>}
               </div>
 
               <Button

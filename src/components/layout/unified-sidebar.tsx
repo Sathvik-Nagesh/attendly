@@ -166,7 +166,7 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
         isCollapsed ? "px-3 justify-center" : "px-6"
       )}>
         <div className="flex items-center gap-3 text-slate-900 font-bold text-lg tracking-tight overflow-hidden">
-          <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center p-1 bg-white border border-slate-100 shadow-md">
+          <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center p-1 bg-white border border-slate-100 shadow-md md:ml-0 ml-12">
             <img src="/icons/KLE_logo.jpg" alt="KLE" className="w-full h-auto rounded-lg" />
           </div>
           {!isCollapsed && (
@@ -253,15 +253,24 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
 
   return (
     <>
-      {/* Mobile Toggle Button */}
-      {!isMobileOpen && (
-        <button
-          onClick={() => setIsMobileOpen(true)}
-          className="fixed top-4 left-4 z-[60] p-3 bg-white border border-slate-200 rounded-2xl shadow-xl text-slate-600 md:hidden hover:scale-110 active:scale-95 transition-all"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
-      )}
+      {/* Mobile Top Bar */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 z-[60] md:hidden flex items-center px-4 justify-between">
+         <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-100 shadow-sm">
+               <img src="/icons/KLE_logo.jpg" alt="KLE" className="w-full h-auto" />
+            </div>
+            <span className="text-sm font-black text-slate-900 tracking-tight">KLE Academy</span>
+         </div>
+         
+         {!isMobileOpen && (
+           <button
+             onClick={() => setIsMobileOpen(true)}
+             className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
+           >
+             <Menu className="w-5 h-5" />
+           </button>
+         )}
+      </div>
 
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>

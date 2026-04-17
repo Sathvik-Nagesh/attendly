@@ -1,7 +1,8 @@
 import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import { CommandMenu } from "@/components/ui/command-menu";
-import { cookies } from "next/headers";
+import { protectRoute } from "@/lib/middleware-utils";
 import { supabase } from "@/lib/supabase";
+import { cookies } from "next/headers";
 import { ShieldAlert, Hourglass, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 
@@ -11,24 +12,16 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("Attendex-session");
-  let role = "admin";
-  let status = "APPROVED";
-
-  // Use a service-level select to bypass RLS for layout check if needed, 
-  // but better to use the user session for security.
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await protectRoute();
   
-  if (user) {
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('status, role')
-        .eq('id', user.id)
-        .single();
-    
-    status = profile?.status || "APPROVED";
-    role = profile?.role?.toLowerCase() || "teacher";
-  }
+  const { data: profile } = await supabase
+      .from('profiles')
+      .select('status, role')
+      .eq('id', user.id)
+      .single();
+  
+  const status = profile?.status || "PENDING";
+  const role = profile?.role?.toLowerCase() || "teacher";
 
   // Verification Gate for Teachers
   if (status === 'PENDING') {
@@ -68,7 +61,10 @@ export default async function DashboardLayout({
         "flex-1 flex flex-col min-h-screen transition-all duration-300",
         "md:pl-64" 
       )}>
-        <div className="flex-1 w-full mx-auto p-4 md:p-8 overflow-y-auto">
+        {/* Mobile Spacer to prevent overlap with floating menu button */}
+        <div className="h-16 md:hidden shrink-0" />
+        
+        <div className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-10 overflow-y-auto custom-scrollbar">
           {children}
         </div>
       </main>

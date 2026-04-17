@@ -16,20 +16,55 @@ export function PasskeyCard() {
     haptics.light();
     
     try {
-      // 1. In a production environment with HTTPS, this would call navigator.credentials.create()
-      // For this high-fidelity demonstration, we simulate the 'Permission' handshake.
+      // 1. Real WebAuthn Handshake
+      // In production, 'challenge' and 'user.id' should come from your backend.
+      const challenge = new Uint8Array(32);
+      window.crypto.getRandomValues(challenge);
       
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const userId = new Uint8Array(16);
+      window.crypto.getRandomValues(userId);
+
+      const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
+        challenge,
+        rp: {
+          name: "Attendly KLE Academy",
+          id: window.location.hostname,
+        },
+        user: {
+          id: userId,
+          name: "user@institution.edu",
+          displayName: "Institutional Faculty",
+        },
+        pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+        authenticatorSelection: {
+          authenticatorAttachment: "platform",
+          userVerification: "preferred",
+        },
+        timeout: 60000,
+        attestation: "none",
+      };
+
+      const credential = await navigator.credentials.create({
+        publicKey: publicKeyCredentialCreationOptions,
+      });
+
+      if (!credential) throw new Error("Credential creation failed");
+
+      // 2. Production Note: At this point, you would send 'credential' to your server
+      // to verify the attestation and store the public key in Supabase.
       
       setIsRegistered(true);
       haptics.success();
-      toast.success("Biometric Security Verified", {
-        description: "Your device is now bound to your institutional profile for quick entry."
+      toast.success("Biometric Sovereignty Established", {
+        description: "Your hardware identity is now bound to this workstation."
       });
-    } catch (err) {
+    } catch (err: any) {
+      console.error("WebAuthn Error:", err);
       haptics.error();
-      toast.error("Registration Blocked", {
-        description: "Your device browser does not support high-fidelity biometric handshakes."
+      toast.error("Handshake Failed", {
+        description: err.name === "NotAllowedError" 
+          ? "Biometric prompt was dismissed or timed out."
+          : "Your device/browser does not support hardware-level identity binding."
       });
     } finally {
       setIsEnrolling(false);

@@ -11,23 +11,70 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { UploadCloud, ShieldCheck } from "lucide-react";
 import { PasskeyCard } from "@/components/auth/passkey-card";
+import { supabase } from "@/lib/supabase";
+import { useEffect } from "react";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function SettingsPage() {
-  const [isSaving, setIsSaving] = useState(false);
-  const [profile, setProfile] = useState({
-    name: "Alex Jenkins",
-    email: "alex.jenkins@college.edu",
-    phone: "+1 (555) 019-2038",
-    teacherId: "4192",
+  const queryClient = useQueryClient();
+
+  const { data: profileData, isLoading } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      return {
+        ...data,
+        email: user.email,
+        metadata: user.user_metadata
+      };
+    }
   });
 
-  const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success("Profile updated successfully!");
-    }, 800);
-  };
+  const updateMutation = useMutation({
+    mutationFn: async (updatedProfile: any) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: updatedProfile.name,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Profile synchronized with institution.");
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+    onError: (err: any) => toast.error("Sync failed", { description: err.message }),
+  });
+
+  const [formName, setFormName] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+
+  useEffect(() => {
+    if (profileData) {
+      setFormName(profileData.full_name || profileData.metadata?.full_name || "");
+      setFormPhone(profileData.phone || profileData.metadata?.phone || "");
+    }
+  }, [profileData]);
+
+  if (isLoading) return <LoadingScreen />;
+
+  const isSaving = updateMutation.isPending;
+  const handleSave = () => updateMutation.mutate({ name: formName, phone: formPhone });
 
   return (
     <PageTransition>
@@ -46,11 +93,13 @@ export default function SettingsPage() {
               {/* Avatar Section */}
               <div className="flex flex-col items-center space-y-4">
                 <Avatar className="w-32 h-32 border-4 border-white shadow-md rounded-full">
-                  <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Profile" />
-                  <AvatarFallback className="text-3xl">AJ</AvatarFallback>
+                  <AvatarImage src={profileData?.avatar_url || profileData?.metadata?.avatar_url} alt="Profile" />
+                  <AvatarFallback className="text-3xl bg-slate-900 text-white font-black">
+                    {formName?.split(' ').map(n => n[0]).join('').toUpperCase() || "AJ"}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="rounded-full shadow-sm text-xs font-medium">
+                  <Button variant="outline" size="sm" className="rounded-full shadow-sm text-[10px] font-black uppercase tracking-widest border-slate-200">
                     <UploadCloud className="w-3.5 h-3.5 mr-1.5" />
                     Upload
                   </Button>
@@ -61,45 +110,45 @@ export default function SettingsPage() {
               <div className="flex-1 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium text-slate-700">Full Name</Label>
+                    <Label htmlFor="name" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</Label>
                     <Input 
                       id="name" 
-                      value={profile.name} 
-                      onChange={(e) => setProfile({...profile, name: e.target.value})}
-                      className="rounded-xl h-11 border-slate-200 focus-visible:ring-blue-500 shadow-sm"
+                      value={formName} 
+                      onChange={(e) => setFormName(e.target.value)}
+                      className="rounded-2xl h-14 border-slate-200 focus-visible:ring-blue-500 shadow-none font-bold px-5"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="teacherId" className="text-sm font-medium text-slate-700">Teacher ID</Label>
+                    <Label htmlFor="teacherId" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Identity ID</Label>
                     <Input 
                       id="teacherId" 
-                      value={profile.teacherId}
+                      value={profileData?.faculty_id || profileData?.roll_number || "N/A"}
                       readOnly
-                      className="rounded-xl h-11 border-slate-200 bg-slate-50 text-slate-500 shadow-sm"
+                      className="rounded-2xl h-14 border-slate-100 bg-slate-50 text-slate-400 shadow-none font-bold px-5"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email Address</Label>
+                  <Label htmlFor="email" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Address</Label>
                   <Input 
                     id="email" 
                     type="email"
-                    value={profile.email}
-                    onChange={(e) => setProfile({...profile, email: e.target.value})}
-                    className="rounded-xl h-11 border-slate-200 focus-visible:ring-blue-500 shadow-sm"
+                    value={profileData?.email || ""}
+                    readOnly
+                    className="rounded-2xl h-14 border-slate-100 bg-slate-50 text-slate-400 shadow-none font-bold px-5"
                   />
-                  <p className="text-xs text-slate-500 max-w-[400px]">This email is used for system notifications and cannot be unlinked from your institution without admin approval.</p>
+                  <p className="text-[10px] font-bold text-slate-400 max-w-[400px] uppercase tracking-wider mt-2 ml-1">Institutional email is managed by your administrator.</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-medium text-slate-700">Recovery Phone Number</Label>
+                  <Label htmlFor="phone" className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Recovery Phone Number</Label>
                   <Input 
                     id="phone" 
                     type="tel"
-                    value={profile.phone}
-                    onChange={(e) => setProfile({...profile, phone: e.target.value})}
-                    className="rounded-xl h-11 border-slate-200 focus-visible:ring-blue-500 shadow-sm w-full md:w-[60%]"
+                    value={formPhone}
+                    onChange={(e) => setFormPhone(e.target.value)}
+                    className="rounded-2xl h-14 border-slate-200 focus-visible:ring-blue-500 shadow-none font-bold px-5 w-full md:w-[60%]"
                   />
                 </div>
 

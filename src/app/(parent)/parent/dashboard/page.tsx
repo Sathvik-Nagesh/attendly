@@ -9,22 +9,69 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PageTransition } from "@/components/ui/page-transition";
+import { format } from "date-fns";
+
+import { useQuery } from "@tanstack/react-query";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { supabase } from "@/lib/supabase";
+import { academicService } from "@/services/academic";
+import { getParentInsights } from "@/services/marks.service";
+import { NotificationsList } from "@/components/notifications/notifications-list";
 
 export default function ParentDashboard() {
-  // Mock institutional context for the trial
-  const performance = {
-    attendance: 68, // Threshold risk
-    ciaTotal: 4.2,
-    attendanceMarks: 3,
-    totalSessions: 42,
-    missedSessions: 14
-  };
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['parent-dashboard'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-  const insights = {
-    status: 'risk',
-    alert: "Immediate attention required: Regularity has dropped below the 75% examination threshold.",
-    nextExam: "Oct 25, 2026 - Data Structures"
-  };
+      const childRollNumber = user.user_metadata?.child_roll_number;
+      if (!childRollNumber) return null;
+
+      const { data: student } = await supabase
+        .from('students')
+        .select('*, classes(name)')
+        .eq('roll_number', childRollNumber)
+        .single();
+
+      if (!student) return null;
+
+      const marks = await academicService.getStudentMarks(student.id);
+      
+      // Calculate performance based on marks
+      const totalMarks = marks.reduce((acc: number, m: any) => acc + (m.cia1 || 0) + (m.cia2 || 0) + (m.tests || 0), 0);
+      const avgMarks = marks.length > 0 ? totalMarks / marks.length : 0;
+      
+      // Assume attendance is stored in student or fetched separately. 
+      // For now, let's use a default or fetch if available.
+      const attendance = student.attendance_percentage || 75; 
+
+      const insights = getParentInsights(attendance, avgMarks);
+      const upcomingExam = await academicService.getUpcomingExam(student.class_id);
+
+      return {
+        student,
+        marks,
+        insights,
+        upcomingExam,
+        performance: {
+          attendance,
+          avgMarks
+        }
+      };
+    }
+  });
+
+  if (isLoading) return <LoadingScreen />;
+  if (!dashboardData) return (
+    <div className="flex flex-col items-center justify-center h-full space-y-4 p-10">
+      <AlertCircle className="w-12 h-12 text-slate-300" />
+      <h2 className="text-xl font-bold text-slate-900">Guardian Link Required</h2>
+      <p className="text-slate-500 text-center max-w-md">We couldn't find a student linked to your account. Please update your profile with a valid student roll number.</p>
+    </div>
+  );
+
+  const { student, insights, performance, upcomingExam } = dashboardData;
 
   return (
     <PageTransition>
@@ -33,18 +80,21 @@ export default function ParentDashboard() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-12 border-b border-slate-100">
             <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                    <span className="px-5 py-2 rounded-2xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-rose-200 animate-pulse">
-                        Action Required
+                    <span className={cn(
+                      "px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl",
+                      insights.status === 'risk' ? "bg-rose-500 text-white animate-pulse" : "bg-emerald-500 text-white"
+                    )}>
+                        {insights.status === 'risk' ? 'Action Required' : 'Status Clear'}
                     </span>
                     <span className="px-5 py-2 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl">
-                        U03FS23S0134
+                        {student.roll_number}
                     </span>
                 </div>
                 <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none">
                     Guardian <span className="text-slate-400">Portal.</span>
                 </h1>
                 <p className="text-lg text-slate-400 font-medium max-w-xl">
-                    Real-time academic oversight for <span className="text-slate-900 font-bold underline decoration-rose-500 underline-offset-4">Aryan Sharma</span> (BCA Section A).
+                    Real-time academic oversight for <span className="text-slate-900 font-bold underline decoration-rose-500 underline-offset-4">{student.name}</span> ({student.classes?.name}).
                 </p>
             </div>
             
@@ -53,10 +103,10 @@ export default function ParentDashboard() {
 
         {/* Vital Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <MetricCard label="Regularity" value={`${performance.attendance}%`} sub="75% Target" color="text-rose-600" icon={Clock} />
-            <MetricCard label="Internal Marks" value={`${performance.ciaTotal}/5`} sub="Current average" color="text-slate-900" icon={CheckCircle} />
-            <MetricCard label="Attendance Marks" value={`${performance.attendanceMarks}/5`} sub="Based on BU marks" color="text-slate-900" icon={Calendar} />
-            <MetricCard label="Upcoming Exam" value="Oct 25" sub="Data Structures" color="text-blue-600" icon={BookOpen} />
+            <MetricCard label="Regularity" value={`${performance.attendance}%`} sub="75% Target" color={performance.attendance < 75 ? "text-rose-600" : "text-emerald-600"} icon={Clock} />
+            <MetricCard label="Internal Marks" value={`${Math.round(performance.avgMarks)}/20`} sub="Current average" color="text-slate-900" icon={CheckCircle} />
+            <MetricCard label="Attendance Marks" value={`${Math.min(5, Math.floor(performance.attendance / 20))}/5`} sub="Based on BU marks" color="text-slate-900" icon={Calendar} />
+            <MetricCard label="Upcoming Exam" value={upcomingExam ? format(new Date(upcomingExam.exam_date), "MMM d") : "None"} sub={upcomingExam?.subject || "Subject"} color="text-blue-600" icon={BookOpen} />
         </div>
 
         {/* Alert System */}
@@ -123,20 +173,20 @@ export default function ParentDashboard() {
                             current={performance.attendance} 
                             target={75} 
                             unit="%" 
-                            color="bg-rose-500" 
+                            color={performance.attendance < 75 ? "bg-rose-500" : "bg-emerald-500"} 
                             icon={Clock} 
                         />
                         <ParentProgressItem 
                             label="Internal Assessments" 
-                            current={performance.ciaTotal} 
-                            target={5} 
-                            unit=" Points" 
+                            current={Math.round(performance.avgMarks)} 
+                            target={20} 
+                            unit=" Marks" 
                             color="bg-blue-600" 
                             icon={CheckCircle} 
                         />
                          <ParentProgressItem 
                             label="Continuous Evaluation" 
-                            current={performance.attendanceMarks} 
+                            current={Math.min(5, Math.floor(performance.attendance / 20))} 
                             target={5} 
                             unit=" Points" 
                             color="bg-emerald-500" 
@@ -145,17 +195,25 @@ export default function ParentDashboard() {
                     </div>
                 </Card>
 
-                {/* Subject Wise Grid - RESTORED */}
+                {/* Subject Wise Grid */}
                 <div className="space-y-6">
                     <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-blue-600 shadow-lg shadow-blue-200" />
                         Detailed Subject Insights
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <SubjectMiniCard subject="Data Structures" attendance={82} marks="4.5/5" status="good" />
-                        <SubjectMiniCard subject="Computer Networks" attendance={71} marks="3.8/5" status="warning" />
-                        <SubjectMiniCard subject="Operating Systems" attendance={65} marks="2.9/5" status="risk" />
-                        <SubjectMiniCard subject="Discrete Math" attendance={88} marks="4.8/5" status="good" />
+                        {dashboardData.marks.map((m: any) => (
+                            <SubjectMiniCard 
+                                key={m.id}
+                                subject={m.subject_name} 
+                                attendance={100} // Need real per-subject attendance
+                                marks={`${(m.cia1 || 0) + (m.cia2 || 0) + (m.tests || 0)}/20`}
+                                status={(m.cia1 + m.cia2 + m.tests) >= 15 ? "good" : (m.cia1 + m.cia2 + m.tests) >= 10 ? "warning" : "risk"} 
+                            />
+                        ))}
+                        {dashboardData.marks.length === 0 && (
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No subject records synchronized yet.</p>
+                        )}
                     </div>
                 </div>
 
@@ -166,9 +224,7 @@ export default function ParentDashboard() {
                         Institutional Correspondence
                     </h3>
                     <div className="space-y-3">
-                        <CorrespondenceItem title="Attendance Shortage Mailer" date="2 hours ago" type="Warning" />
-                        <CorrespondenceItem title="Semester Result Published" date="3 days ago" type="Notification" />
-                        <CorrespondenceItem title="Internal Marks Upload" date="1 week ago" type="System" />
+                        <NotificationsList recipientId={student.id} />
                     </div>
                 </div>
             </div>
@@ -302,30 +358,4 @@ function ParentProgressItem({ label, current, target, unit, color, icon: Icon }:
     );
 }
 
-function CorrespondenceItem({ title, date, type }: any) {
-    return (
-        <div className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-all cursor-pointer">
-            <div className="flex items-center gap-4">
-                <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shadow-inner",
-                    type === 'Warning' ? "bg-rose-50 text-rose-500" : "bg-blue-50 text-blue-500"
-                )}>
-                    {type === 'Warning' ? <AlertCircle className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
-                </div>
-                <div>
-                    <p className="text-sm font-bold text-slate-900">{title}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{date}</p>
-                </div>
-            </div>
-            <div className="flex items-center gap-3">
-                 <span className={cn(
-                    "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest",
-                    type === 'Warning' ? "bg-rose-100 text-rose-600" : "bg-blue-100 text-blue-600"
-                 )}>
-                    {type}
-                 </span>
-                 <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
-            </div>
-        </div>
-    );
-}
+

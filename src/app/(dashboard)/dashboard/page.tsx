@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { academicService } from "@/services/academic";
 import { supabase } from "@/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
 
 // Import export libraries
 import { jsPDF } from "jspdf";
@@ -75,46 +76,38 @@ const StatCard = ({ title, value, label, icon: Icon, delay = 0, trendClass = "te
 export default function DashboardPage() {
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
-  const [stats, setStats] = useState({ totalStudents: 0, totalClasses: 0, absenteesToday: 0 });
-  const [loading, setLoading] = useState(true);
-  const [pendingFaculty, setPendingFaculty] = useState<any[]>([]);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
 
-  useEffect(() => {
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            
-            // SECURITY SENTINEL: Redirect if no active session found
-            if (!user) {
-                router.push("/login");
-                return;
-            }
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      return profile;
+    }
+  });
 
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-            setUserProfile(profile);
-            
-            if (profile?.role === 'ADMIN') {
-                const pending = await academicService.getPendingFaculty();
-                setPendingFaculty(pending || []);
-            }
+  const { data: pendingFaculty = [] } = useQuery({
+    queryKey: ['pending-faculty'],
+    queryFn: () => academicService.getPendingFaculty(),
+    enabled: userProfile?.role === 'ADMIN'
+  });
 
-            const summary = await academicService.getSummaryStats();
-            setStats(summary);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
-    fetchData();
-  }, [router]);
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['dashboard-stats', timeframe],
+    queryFn: () => academicService.getSummaryStats(),
+  });
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['all-students'],
+    queryFn: () => academicService.getAllStudents(),
+    enabled: !!userProfile
+  });
 
   const handleApprove = async (id: string, name: string) => {
       try {
           await academicService.approveFaculty(id);
-          setPendingFaculty(prev => prev.filter(p => p.id !== id));
           toast.success(`Identity Verified: ${name}`, {
               description: "Faculty advisor has been granted administrative access."
           });
@@ -122,8 +115,8 @@ export default function DashboardPage() {
           toast.error("Verification system failure.");
       }
   };
-  const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
-  const activeData = (stats as any).weeklyTrend || [];
+
+  const activeData = stats?.weeklyTrend || [];
 
   const handleExportPDF = () => {
     setIsGenerating('PDF');
@@ -132,9 +125,8 @@ export default function DashboardPage() {
     setTimeout(() => {
         const doc = new jsPDF() as any;
         
-        // College Header
         doc.setFontSize(22);
-        doc.setTextColor(15, 23, 42); // slate-900
+        doc.setTextColor(15, 23, 42); 
         doc.text("Attendly College Portal", 105, 20, { align: "center" });
         
         doc.setFontSize(12);
@@ -142,22 +134,23 @@ export default function DashboardPage() {
         doc.text("Official Defaulter List - Attendance below 75%", 105, 30, { align: "center" });
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 38, { align: "center" });
         
-        // Line
         doc.setDrawColor(226, 232, 240);
         doc.line(20, 45, 190, 45);
 
-        // Sample Data for PDF Table
-        const defaulterData = [
-            ["1", "Brandon Cooper", "CS-02", "B.Tech CS", "68%"],
-            ["2", "George Harris", "CS-07", "Physics Hons", "61%"],
-            ["3", "Vihaan Gupta", "CS-13", "B.Tech CS", "72%"],
-            ["4", "Derek Evans", "CS-04", "Physics Hons", "74%"],
-        ];
+        const defaulterData = students
+            .filter((s: any) => (s.attendance_percentage || 0) < 75)
+            .map((s: any, i: number) => [
+                (i + 1).toString(),
+                s.name,
+                s.roll_number,
+                s.department || "N/A",
+                `${s.attendance_percentage || 0}%`
+            ]);
 
         doc.autoTable({
             startY: 55,
             head: [['#', 'Student Name', 'Roll Number', 'Department', 'Attendance']],
-            body: defaulterData,
+            body: defaulterData.length > 0 ? defaulterData : [["-", "No defaulters found", "-", "-", "-"]],
             theme: 'grid',
             headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
             styles: { fontSize: 10, cellPadding: 5 },
@@ -175,18 +168,19 @@ export default function DashboardPage() {
     toast.loading("Compiling Monthly Ledger...");
 
     setTimeout(() => {
-        const ledgerData = [
-            { id: "1", name: "Alena Smith", roll: "CS-01", department: "B.Tech CS", attendance: "98%", status: "Safe" },
-            { id: "2", name: "Brandon Cooper", roll: "CS-02", department: "B.Tech CS", attendance: "68%", status: "Risk" },
-            { id: "3", name: "Cynthia Davis", roll: "CS-03", department: "B.Tech CS", attendance: "92%", status: "Safe" },
-            { id: "4", name: "Derek Evans", roll: "CS-04", department: "Physics Hons", attendance: "74%", status: "Risk" },
-        ];
+        const ledgerData = students.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            roll: s.roll_number,
+            department: s.department || "N/A",
+            attendance: `${s.attendance_percentage || 0}%`,
+            status: (s.attendance_percentage || 0) < 75 ? "Risk" : "Safe"
+        }));
 
         const worksheet = XLSX.utils.json_to_sheet(ledgerData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Ledger");
         
-        // Fix headers
         XLSX.utils.sheet_add_aoa(worksheet, [["ID", "Student Name", "Roll Number", "Department", "Attendance %", "Status"]], { origin: "A1" });
 
         XLSX.writeFile(workbook, "attendly_monthly_ledger.xlsx");
@@ -244,7 +238,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-1">
             <StatCard
               title="Students Enrolled"
-              value={loading ? "..." : stats.totalStudents}
+              value={isLoading ? "..." : (stats?.totalStudents || 0)}
               label="Academic Population"
               icon={Users}
               delay={0.1}
@@ -252,7 +246,7 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Total Modules"
-              value={loading ? "..." : stats.totalClasses}
+              value={isLoading ? "..." : (stats?.totalClasses || 0)}
               label="Active Units"
               icon={FileText}
               delay={0.2}
@@ -260,7 +254,7 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Absentees Today"
-              value={loading ? "..." : stats.absenteesToday}
+              value={isLoading ? "..." : (stats?.absenteesToday || 0)}
               label="Pending Alerts"
               icon={UserX}
               delay={0.3}
@@ -340,7 +334,7 @@ export default function DashboardPage() {
                 <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
                     <h3 className="text-sm font-bold text-slate-900 mb-4">Recent Activity</h3>
                     <div className="space-y-4">
-                        {((stats as any).recentActivity || []).map((activity: any) => (
+                        {(stats?.recentActivity || []).map((activity: any) => (
                             <div key={activity.id} className="flex gap-3">
                                 <div className="mt-1">
                                     {activity.type === 'success' ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <AlertCircle className="w-3.5 h-3.5 text-amber-500" />}
@@ -351,7 +345,7 @@ export default function DashboardPage() {
                                 </div>
                             </div>
                         ))}
-                        {(!(stats as any).recentActivity?.length) && (
+                        {(!stats?.recentActivity?.length) && (
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center py-4">No recent activity</p>
                         )}
                     </div>
@@ -370,7 +364,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="space-y-5">
-                   {stats.absenteesToday === 0 ? (
+                   {stats?.absenteesToday === 0 ? (
                        <div className="py-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
                            <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-3 opacity-30" />
                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gateway Clear</p>
@@ -382,7 +376,7 @@ export default function DashboardPage() {
                                     <Bell className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold text-slate-900">{stats.absenteesToday} Alerts Queued</p>
+                                    <p className="text-xs font-bold text-slate-900">{stats?.absenteesToday} Alerts Queued</p>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Awaiting Faculty Execution</p>
                                 </div>
                             </div>
@@ -402,7 +396,7 @@ export default function DashboardPage() {
                   </div>
                   
                   <div className="space-y-6">
-                      {(stats as any).departmentPulse?.map((dept: any) => (
+                      {stats?.departmentPulse?.map((dept: any) => (
                           <div key={dept.name} className="space-y-3">
                               <div className="flex items-center justify-between text-[11px] font-black text-slate-700 uppercase tracking-tighter">
                                   <span>{dept.name}</span>

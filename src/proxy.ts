@@ -1,52 +1,64 @@
-  /**
- * Attendly — Production Security Perimeter
- * Enforces rate limiting on sensitive gateways and handles security headers.
- */
-
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 import { getCSPHeader } from "@/lib/middleware-utils";
 
-// In-memory request tracking (for trial-run dev server)
-const rateLimitMap = new Map<string, { count: number, lastReset: number }>();
-const RATE_LIMIT_THRESHOLD = 20; // Max requests per window
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute window
+export default async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-export default function proxy(req: NextRequest) {
-  const ip = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for") || "anonymous";
-  const path = req.nextUrl.pathname;
-
-  // 1. Target sensitive auth pathways for rate-limiting
-  const sensitivePaths = ["/login", "/signup", "/forgot-password", "/reset-password"];
-  
-  if (sensitivePaths.some(p => path.startsWith(p))) {
-    const now = Date.now();
-    const rateData = rateLimitMap.get(ip) || { count: 0, lastReset: now };
-
-    // Reset window if expired
-    if (now - rateData.lastReset > RATE_LIMIT_WINDOW) {
-      rateData.count = 0;
-      rateData.lastReset = now;
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
     }
+  );
 
-    rateData.count++;
-    rateLimitMap.set(ip, rateData);
+  // 1. Refresh session
+  const { data: { user } } = await supabase.auth.getUser();
 
-    if (rateData.count > RATE_LIMIT_THRESHOLD) {
-      console.warn(`[SECURITY] Throttling ${ip} on route ${path} - Rate limit exceeded.`);
-      return new NextResponse("Institutional Security: Too many attempts. Please wait 60 seconds.", { status: 429 });
-    }
+  // 2. Auth Guard
+  const path = request.nextUrl.pathname;
+  const isDashboard = path.startsWith("/dashboard") || 
+                      path.startsWith("/student") || 
+                      path.startsWith("/parent") ||
+                      path.startsWith("/attendance") ||
+                      path.startsWith("/settings") ||
+                      path.startsWith("/pulse") ||
+                      path.startsWith("/students") ||
+                      path.startsWith("/classes") ||
+                      path.startsWith("/subjects");
+
+  if (isDashboard && !user) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 2. Apply Security Headers
-  const response = NextResponse.next();
+  // 3. Security headers (Existing logic)
   response.headers.set("Content-Security-Policy", getCSPHeader());
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
-  
+
   return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|icons).*)"],
 };

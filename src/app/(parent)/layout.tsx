@@ -1,11 +1,14 @@
 import { UnifiedSidebar } from "@/components/layout/unified-sidebar";
 import { CommandMenu } from "@/components/ui/command-menu";
+import { protectRoute } from "@/lib/middleware-utils";
 
-export default function ParentLayout({
+export default async function ParentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await protectRoute("PARENT");
+
   return (
     <div className="flex h-screen bg-white lg:bg-slate-50 overflow-hidden">
       <CommandMenu />
