@@ -156,9 +156,9 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
 
     if (loading && schedule.length === 0) {
         return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 bg-slate-50">
-                <RefreshCcw className="w-8 h-8 text-blue-600 animate-spin" />
-                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">Synchronizing Calendar</p>
+            <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-slate-50">
+                <RefreshCcw className="w-10 h-10 text-blue-600 animate-spin" />
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Synchronizing Institutional Calendar</p>
             </div>
         );
     }

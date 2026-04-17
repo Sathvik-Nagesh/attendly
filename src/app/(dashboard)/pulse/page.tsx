@@ -21,6 +21,7 @@ import {
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useState, useEffect } from "react";
 import { 
   BarChart, 
   Bar, 
@@ -36,7 +37,13 @@ import { academicService } from "@/services/academic";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { useQuery } from "@tanstack/react-query";
 
-export default function CampusPulsePage() {
+export default function PulsePage() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ['campus-pulse'],
     queryFn: () => academicService.getSummaryStats(),
@@ -103,33 +110,35 @@ export default function CampusPulsePage() {
                     </button>
                 </div>
 
-                <div className="h-[350px] w-full mt-4" style={{ minHeight: '350px' }}>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                        <BarChart data={stats.departmentPulse} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={40}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis 
-                                dataKey="name" 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} 
-                                height={40}
-                            />
-                            <YAxis 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} 
-                            />
-                            <Tooltip 
-                                contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: '800' }}
-                                cursor={{ fill: '#f8fafc' }}
-                            />
-                            <Bar dataKey="percentage" radius={[12, 12, 0, 0]}>
-                                {stats.departmentPulse.map((entry: any, index: number) => (
-                                    <Cell key={`cell-${index}`} fill={["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd"][index % 4]} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                 <div className="h-[350px] w-full mt-4" style={{ minHeight: '350px' }}>
+                    {isMounted && (
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                          <BarChart data={stats.departmentPulse} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={40}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis 
+                                  dataKey="name" 
+                                  axisLine={false} 
+                                  tickLine={false} 
+                                  tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} 
+                                  height={40}
+                              />
+                              <YAxis 
+                                  axisLine={false} 
+                                  tickLine={false} 
+                                  tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }} 
+                              />
+                              <Tooltip 
+                                  contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: '800' }}
+                                  cursor={{ fill: '#f8fafc' }}
+                              />
+                              <Bar dataKey="percentage" radius={[12, 12, 0, 0]}>
+                                  {stats.departmentPulse.map((entry: any, index: number) => (
+                                      <Cell key={`cell-${index}`} fill={["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd"][index % 4]} />
+                                  ))}
+                              </Bar>
+                          </BarChart>
+                      </ResponsiveContainer>
+                    )}
                 </div>
             </Card>
 
