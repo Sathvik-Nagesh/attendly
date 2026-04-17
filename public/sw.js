@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kle-academy-v2';
+const CACHE_NAME = 'attendly-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/login',
@@ -30,23 +30,33 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 3. Strategic Fetching: Stale-While-Revalidate for APIs, Cache-First for Assets
+// 3. Strategic Fetching: Optimized Stale-While-Revalidate
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  
+  // Only handle GET requests for caching
+  if (request.method !== 'GET') return;
+
   const url = new URL(request.url);
 
-  // Strategy: Stale-While-Revalidate for Data (API calls to Supabase)
+  // Strategy: Network-First for APIs (Supabase), Cache-First for static
   if (url.origin.includes('supabase.co')) {
     event.respondWith(
-      caches.open('kle-data-cache').then((cache) => {
-        return cache.match(request).then((cachedResponse) => {
-          const fetchedResponse = fetch(request).then((networkResponse) => {
-            cache.put(request, networkResponse.clone());
-            return networkResponse;
-          });
-          return cachedResponse || fetchedResponse;
-        });
-      })
+      fetch(request)
+        .then((networkResponse) => {
+          // Cache a copy of the valid response
+          if (networkResponse.ok) {
+            const responseToCache = networkResponse.clone();
+            caches.open('attendly-data-cache').then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(request);
+        })
     );
     return;
   }
@@ -54,7 +64,13 @@ self.addEventListener('fetch', (event) => {
   // Strategy: Cache-First for Local Static Assets
   event.respondWith(
     caches.match(request).then((response) => {
-      return response || fetch(request);
+      return response || fetch(request).then(networkResponse => {
+          if (networkResponse.ok && !url.pathname.includes('chrome-extension')) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, responseToCache));
+          }
+          return networkResponse;
+      });
     })
   );
 });
@@ -63,10 +79,9 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-attendance') {
     event.waitUntil(
-      // This will trigger a message to the client to execute the ROPE Sync
       self.clients.matchAll().then(clients => {
         clients.forEach(client => {
-          client.postMessage({ type: 'SYNC_REQUISITION' });
+          client.postMessage({ type: 'ROPE_SYNC_REQUIRED' });
         });
       })
     );
@@ -75,7 +90,7 @@ self.addEventListener('sync', (event) => {
 
 // 5. Native Push Notifications
 self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : { title: 'KLE Academy', body: 'New institutional alert.' };
+  const data = event.data ? event.data.json() : { title: 'Attendly', body: 'New institutional alert.' };
   
   const options = {
     body: data.body,
@@ -96,3 +111,4 @@ self.addEventListener('notificationclick', (event) => {
     self.clients.openWindow(event.notification.data.url)
   );
 });
+

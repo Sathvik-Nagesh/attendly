@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { RefreshCcw, ShieldAlert, WifiOff, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { haptics } from "@/lib/haptics";
+import { AlertTriangle, RefreshCcw, Home } from "lucide-react";
 import Link from "next/link";
 
-export default function GlobalError({
+export default function Error({
   error,
   reset,
 }: {
@@ -15,68 +13,55 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Critical System Recovery Triggered:", error);
-    haptics.error();
+    // Log the error to an institutional reporting service
+    console.error("Critical System Fault:", error);
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 overflow-hidden relative">
-      {/* Background Security Pulse */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-indigo-600/5 blur-[120px] rounded-full -z-10 animate-pulse" />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 flex-col text-center">
+      <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-blue-500/5 blur-3xl" />
+      
+      <div className="relative z-10 space-y-8 max-w-lg">
+        <div className="w-20 h-20 bg-rose-100 rounded-[2rem] mx-auto flex items-center justify-center shadow-xl shadow-rose-500/10 border border-rose-200">
+          <AlertTriangle className="w-10 h-10 text-rose-600" />
+        </div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-[3rem] p-10 shadow-2xl relative z-10"
-      >
-        <div className="flex flex-col items-center text-center space-y-8">
-          <div className="w-24 h-24 rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 shadow-2xl shadow-indigo-500/10">
-            <ShieldAlert className="w-12 h-12" />
-          </div>
-
-          <div className="space-y-4">
-            <h1 className="text-3xl font-[1000] text-white tracking-tighter uppercase leading-none">
-              System Stability Alert
-            </h1>
-            <p className="text-slate-400 font-bold leading-relaxed">
-               A technical anomaly was detected in the grid. Our automated recovery engine is standing by to restore your connection safely.
+        <div className="space-y-3">
+          <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic">System Interruption</h1>
+          <p className="text-slate-500 font-medium leading-relaxed">
+            The workstation encountered an unexpected runtime error. This incident has been logged for institutional audit.
+          </p>
+          <div className="p-3 bg-slate-100 rounded-xl mt-4 border border-slate-200 overflow-hidden">
+            <p className="text-[10px] font-mono text-slate-400 break-all">
+              FAULT_ID: {error.digest || "UNKNOWN_EXCEPTION"}
             </p>
           </div>
-
-          <div className="w-full space-y-3 pt-4">
-            <Button
-              onClick={() => {
-                haptics.light();
-                reset();
-              }}
-              size="lg"
-              className="w-full h-16 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 font-black uppercase tracking-widest text-sm transition-all active:scale-95 group shadow-xl shadow-indigo-600/20"
-            >
-              <RefreshCcw className="mr-3 w-5 h-5 group-hover:rotate-180 transition-transform duration-700" />
-              Attempt Secure Reset
-            </Button>
-            
-            <Link href="/" className="block w-full">
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full h-16 rounded-2xl border-slate-800 bg-transparent text-slate-400 hover:text-white hover:bg-slate-800 font-black uppercase tracking-widest text-xs transition-all"
-              >
-                <Home className="mr-3 w-4 h-4" />
-                Return to Landing Page
-              </Button>
-            </Link>
-          </div>
-
-          <div className="pt-6 border-t border-slate-800 w-full flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-600">
-             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
-              Instance: BU-STABLE-ALPHA
-            </div>
-            <span>Build Finalized</span>
-          </div>
         </div>
-      </motion.div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Button
+            onClick={() => reset()}
+            className="h-14 px-8 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 group"
+          >
+            <RefreshCcw className="w-4 h-4 mr-2 group-hover:rotate-180 transition-transform duration-500" />
+            Resume Session
+          </Button>
+          
+          <Link href="/">
+            <Button
+              variant="outline"
+              className="h-14 px-8 rounded-2xl border-slate-200 bg-white text-slate-600 font-black uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all active:scale-95"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Emergency Exit
+            </Button>
+          </Link>
+        </div>
+
+        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] pt-8">
+          Institutional Reliability Protocol 404-E
+        </p>
+      </div>
     </div>
   );
 }

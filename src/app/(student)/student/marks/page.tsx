@@ -19,38 +19,63 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { supabase } from "@/lib/supabase";
 
 export default function StudentMarksPage() {
-  const { data: marks = [], isLoading } = useQuery({
-    queryKey: ['student-marks'],
+  const { data: academicData, isLoading } = useQuery({
+    queryKey: ['student-academic-data'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Resolve student identity via email
-      const { data: student } = await supabase
-        .from('students')
-        .select('id')
-        .eq('email', user.email)
-        .single();
+      const student = await academicService.getStudentByEmail(user.email!);
+      if (!student) return null;
 
-      if (!student) return [];
+      const [marks, summary] = await Promise.all([
+        academicService.getStudentMarks(student.id),
+        academicService.getStudentSummary(student.id)
+      ]);
 
-      const data = await academicService.getStudentMarks(student.id);
-      return data || [];
+      return { student, marks, summary };
     }
   });
 
-  const displaySubjects = marks.map((m: any) => ({
-    name: m.subject_name,
-    code: m.subject_code || "GEN",
-    credits: 4,
-    marks: { 
-      cia: `${m.cia1 + m.cia2}/10`, 
-      tests: `${m.tests}/10`, 
-      attendance: "100%", 
-      total: `${m.cia1 + m.cia2 + m.tests}/20` 
-    },
-    grade: (m.cia1 + m.cia2 + m.tests) >= 18 ? "O" : (m.cia1 + m.cia2 + m.tests) >= 15 ? "A+" : "A"
-  }));
+  const marks = academicData?.marks;
+  const summary = academicData?.summary;
+
+  const displaySubjects = marks ? [
+    { name: "Mathematics", code: "MAT", marks: marks.math },
+    { name: "Science", code: "SCI", marks: marks.science },
+    { name: "English", code: "ENG", marks: marks.english },
+    { name: "Physics", code: "PHY", marks: marks.physics },
+    { name: "Computer Science", code: "CS", marks: marks.computer_science },
+    { name: "History", code: "HIS", marks: marks.history },
+  ].map(s => {
+    // Standardize to 20 for Internal Display
+    const internalMarks = s.marks > 20 ? Math.round((s.marks / 100) * 20) : s.marks;
+    
+    // Calculate Attendance Marks based on slabs
+    const attPct = summary?.attendancePct || 0;
+    let attMarks = 2;
+    if (attPct >= 90) attMarks = 5;
+    else if (attPct >= 80) attMarks = 4;
+    else if (attPct >= 75) attMarks = 3;
+
+    // Remaining 15 marks split between CIA (5) and Tests (10)
+    // We use a 1:2 ratio for the remaining score if we don't have granular data
+    const remaining = Math.max(0, internalMarks - attMarks);
+    const cia = Math.min(5, Math.round(remaining * (5/15)));
+    const tests = Math.min(10, remaining - cia);
+
+    return {
+        ...s,
+        credits: 4,
+        displayMarks: { 
+          cia: `${cia}/5`, 
+          tests: `${tests}/10`, 
+          attendance: `${attMarks}/5`, 
+          total: `${internalMarks}/20` 
+        },
+        grade: internalMarks >= 18 ? "O" : internalMarks >= 15 ? "A+" : internalMarks >= 12 ? "A" : "B"
+    };
+  }) : [];
 
   if (isLoading) return <LoadingScreen />;
   return (
@@ -64,7 +89,7 @@ export default function StudentMarksPage() {
                 </Button>
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Academic Records</h1>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Session: Spring 2026 (Semester IV)</p>
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Session: Spring 2026 ({academicData?.student?.department || "General"})</p>
                 </div>
             </div>
         </header>
@@ -76,22 +101,18 @@ export default function StudentMarksPage() {
                 <div className="relative z-10">
                     <Award className="w-8 h-8 text-yellow-400 mb-4" />
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Internal CGPA</p>
-                    <h2 className="text-4xl font-bold">9.2</h2>
+                    <h2 className="text-4xl font-bold">{summary?.cgpa || "0.0"}</h2>
                 </div>
             </Card>
-            <StatusStat label="Total Credits" value="22 / 24" icon={BookOpen} color="blue" />
-            <StatusStat label="Dept Rank" value="#12" icon={Trophy} color="emerald" />
+            <StatusStat label="Total Credits" value={summary?.credits || "0 / 24"} icon={BookOpen} color="blue" />
+            <StatusStat label="Dept Rank" value={summary?.rank || "N/A"} icon={Trophy} color="emerald" />
         </div>
 
         {/* Detailed Table */}
         <section className="space-y-6">
             <h3 className="text-lg font-bold text-slate-800 tracking-tight">Subject-wise Breakdown</h3>
             <div className="grid grid-cols-1 gap-4">
-                {isLoading ? (
-                   Array(3).fill(0).map((_, i) => (
-                       <div key={i} className="h-24 rounded-3xl bg-slate-50 border border-slate-100 animate-pulse" />
-                   ))
-                ) : displaySubjects.map((sub, i) => (
+                {displaySubjects.map((sub, i) => (
                     <motion.div
                         key={sub.code}
                         initial={{ opacity: 0, y: 10 }}
@@ -111,12 +132,12 @@ export default function StudentMarksPage() {
                                 </div>
                                 
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 flex-1">
-                                    <MarkItem label="CIA" val={sub.marks.cia} />
-                                    <MarkItem label="Test Wt." val={sub.marks.tests} />
-                                    <MarkItem label="Attendance" val={sub.marks.attendance} />
+                                    <MarkItem label="CIA" val={sub.displayMarks.cia} />
+                                    <MarkItem label="Test Wt." val={sub.displayMarks.tests} />
+                                    <MarkItem label="Attendance" val={sub.displayMarks.attendance} />
                                     <div className="text-right">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Final Score</p>
-                                        <p className="text-sm font-bold text-blue-600">{sub.marks.total}</p>
+                                        <p className="text-sm font-bold text-blue-600">{sub.displayMarks.total}</p>
                                     </div>
                                 </div>
 
@@ -143,12 +164,17 @@ export default function StudentMarksPage() {
                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
                    <Star className="w-6 h-6 text-indigo-500 fill-indigo-500/20" />
                </div>
-               <p className="text-sm font-bold text-indigo-900/80 italic leading-relaxed">"Consistent high attendance in MA403 is boosting your final weightage by 5%!"</p>
+               <p className="text-sm font-bold text-indigo-900/80 italic leading-relaxed">
+                 {summary?.attendancePct && summary.attendancePct > 90 
+                   ? "Excellent! Your high attendance is boosting your internal weightage."
+                   : "Reminder: Consistent attendance is key to improving your academic weightage."}
+               </p>
             </div>
             <Button className="px-8 py-6 bg-slate-900 border-none text-white text-xs font-bold rounded-2xl shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all">
                 Download Official Marksheet
             </Button>
         </div>
+
       </div>
     </PageTransition>
   );

@@ -1,11 +1,12 @@
 import { haptics } from "@/lib/haptics";
 import { toast } from "sonner";
+import { get, set, del, keys } from "idb-keyval";
 
 /**
  * Attendly — Relational Offline Persistence (ROPE)
  * 
- * Manages institutional data durability during campus-wide network 
- * fluctuations and cellular dead-zones.
+ * High-performance IndexedDB-based durability layer for institutional
+ * data during campus-wide network fluctuations.
  */
 
 const STORAGE_KEY = "attendly_offline_queue";
@@ -25,40 +26,60 @@ export const offlineService = {
   // Save a session locally when the network is unstable
   saveDraft: async (data: Omit<OfflineAttendance, "id" | "timestamp">) => {
     try {
-      const drafts = offlineService.getDrafts();
+      const drafts = await offlineService.getDrafts();
       const newDraft: OfflineAttendance = {
         ...data,
         id: crypto.randomUUID(),
         timestamp: Date.now(),
       };
       
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...drafts, newDraft]));
+      await set(STORAGE_KEY, [...drafts, newDraft]);
+      
+      // Trigger Background Sync if available
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        const registration = await navigator.serviceWorker.ready;
+        try {
+          // @ts-ignore
+          await registration.sync.register('sync-attendance');
+        } catch {
+          // Fallback to manual sync trigger
+          window.dispatchEvent(new CustomEvent('rope-sync-force'));
+        }
+      }
+
       haptics.success();
       return true;
     } catch (err) {
-      console.error("Draft Save Failed", err);
+      console.error("ROPE Save Failed", err);
       haptics.error();
       return false;
     }
   },
 
-  getDrafts: (): OfflineAttendance[] => {
+  getDrafts: async (): Promise<OfflineAttendance[]> => {
     if (typeof window === 'undefined') return [];
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    try {
+      const drafts = await get(STORAGE_KEY);
+      return drafts || [];
+    } catch {
+      return [];
+    }
   },
 
-  removeDraft: (id: string) => {
-    const drafts = offlineService.getDrafts().filter(d => d.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts));
+  removeDraft: async (id: string) => {
+    const drafts = await offlineService.getDrafts();
+    const filtered = drafts.filter(d => d.id !== id);
+    await set(STORAGE_KEY, filtered);
   },
 
-  clearAll: () => {
-    localStorage.removeItem(STORAGE_KEY);
+  clearAll: async () => {
+    await del(STORAGE_KEY);
   },
 
-  // Heuristic check if ofline queue has pending items
-  hasPendingSync: () => {
-    return offlineService.getDrafts().length > 0;
+  // Heuristic check if offline queue has pending items
+  hasPendingSync: async () => {
+    const drafts = await offlineService.getDrafts();
+    return drafts.length > 0;
   }
 };
+

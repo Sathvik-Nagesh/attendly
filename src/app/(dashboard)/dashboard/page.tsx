@@ -14,8 +14,12 @@ import { useRouter } from "next/navigation";
 import { academicService } from "@/services/academic";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
+import { useStudents, useClasses, useDashboardStats, useNotifications } from "@/hooks/use-academic";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
+import { StatCardSkeleton, ActivitySkeleton } from "@/components/ui/skeletons";
 
 // Import export libraries
+
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -74,6 +78,7 @@ const StatCard = ({ title, value, label, icon: Icon, delay = 0, trendClass = "te
 };
 
 export default function DashboardPage() {
+
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState<'week' | 'month'>('week');
@@ -94,10 +99,15 @@ export default function DashboardPage() {
     enabled: userProfile?.role === 'ADMIN'
   });
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['dashboard-stats', timeframe],
-    queryFn: () => academicService.getSummaryStats(),
-  });
+  const { data: stats, isLoading, refetch } = useDashboardStats(timeframe);
+
+  const handleRefresh = async () => {
+    await refetch();
+    toast.success("Registry Refreshed", {
+        description: "Dashboard stats have been updated to the latest state."
+    });
+  };
+
 
   const { data: students = [] } = useQuery({
     queryKey: ['all-students'],
@@ -196,6 +206,9 @@ export default function DashboardPage() {
         <Header title="Dashboard" />
         
         <div className="flex-1 py-8 space-y-6">
+
+
+
           {/* Admin Approval Queue */}
           <AnimatePresence>
               {userProfile?.role === 'ADMIN' && pendingFaculty.length > 0 && (

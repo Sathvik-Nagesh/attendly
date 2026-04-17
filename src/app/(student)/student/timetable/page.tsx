@@ -29,13 +29,36 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
   const loadSchedule = async () => {
     try {
       setLoading(true);
-      // For trial run, we fetch all schedules the teacher/student should see
-      // In production, we'd filter by the user's class_id
-      const { data, error } = await supabase
-        .from('timetable')
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Resolve class_id for the user
+      let classId = null;
+      if (isParentView) {
+          const student = await academicService.getStudentByParentEmail(user.email!);
+          classId = student?.class_id;
+      } else {
+          const { data: profile } = await supabase.from('profiles').select('class_id').eq('id', user.id).single();
+          classId = profile?.class_id;
+      }
+
+      if (!classId && !isTeacherView) {
+          setSchedule([]);
+          setLoading(false);
+          return;
+      }
+
+      let query = supabase
+        .from('timetables')
         .select('*, classes(name, section)')
         .eq('day_of_week', selectedDay)
         .order('start_time', { ascending: true });
+      
+      if (classId) {
+          query = query.eq('class_id', classId);
+      }
+
+      const { data, error } = await query;
       
       if (error) throw error;
       setSchedule(data || []);
@@ -54,6 +77,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadSchedule();
@@ -89,7 +113,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
              return { ...p, class_id: matchingClass?.id };
         }).filter(p => p.class_id);
 
-        const { error } = await supabase.from('timetable').insert(finalPayload);
+        const { error } = await supabase.from('timetables').insert(finalPayload);
         if (error) throw error;
 
         toast.dismiss();
@@ -182,13 +206,14 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                             {schedule.map((slot: any, i: number) => (
                                 <Card key={slot.id} className="p-10 border-none ring-1 ring-slate-100 rounded-[3rem] bg-white group hover:shadow-3xl transition-all relative overflow-hidden">
                                     <div className={cn("absolute left-0 top-0 bottom-0 w-2.5 shadow-xl", {
-                                        "bg-blue-600": slot.color === 'blue',
-                                        "bg-indigo-600": slot.color === 'indigo',
-                                        "bg-rose-600": slot.color === 'rose',
-                                        "bg-emerald-600": slot.color === 'emerald',
-                                        "bg-amber-600": slot.color === 'amber',
-                                        "bg-slate-600": slot.color === 'slate',
+                                        "bg-blue-600": slot.color_code === 'blue',
+                                        "bg-indigo-600": slot.color_code === 'indigo',
+                                        "bg-rose-600": slot.color_code === 'rose',
+                                        "bg-emerald-600": slot.color_code === 'emerald',
+                                        "bg-amber-600": slot.color_code === 'amber',
+                                        "bg-slate-600": slot.color_code === 'slate',
                                     })} />
+
                                     
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                                         <div className="flex items-center gap-10">

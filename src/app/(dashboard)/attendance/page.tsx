@@ -25,6 +25,10 @@ import { StudentList } from "@/components/attendance/student-list";
 import { AttendanceSyncDialog } from "@/components/attendance/sync-dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { useStudents, useClasses } from "@/hooks/use-academic";
+import { TableRowSkeleton } from "@/components/ui/skeletons";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
+
 
 export default function AttendancePage() {
   const [selectedClassId, setSelectedClassId] = useState<string>("");
@@ -45,36 +49,10 @@ export default function AttendancePage() {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            router.push("/login");
-            return;
-        }
-
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        
-        if (profile?.role === 'STUDENT') {
-            router.push("/student/dashboard");
-        } else if (profile?.role === 'PARENT') {
-            router.push("/parent/dashboard");
-        }
-    };
-    checkAuth();
-  }, [router]);
-
   // Queries
-  const { data: classes = [], isLoading: classesLoading } = useQuery({
-    queryKey: ['classes'],
-    queryFn: () => academicService.getClasses(),
-  });
+  const { data: classes = [], isLoading: classesLoading, refetch: refetchClasses } = useClasses();
 
-  const { data: students = [], isLoading: studentsLoading } = useQuery({
-    queryKey: ['students', selectedClassId],
-    queryFn: () => academicService.getStudentsByClass(selectedClassId),
-    enabled: !!selectedClassId,
-  });
+  const { data: students = [], isLoading: studentsLoading, refetch: refetchStudents } = useStudents(selectedClassId);
 
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery({
     queryKey: ['subjects', selectedClassId],
@@ -96,19 +74,11 @@ export default function AttendancePage() {
     }
   }, [classes, selectedClassId]);
 
-  // Realtime Subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('attendance-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['attendance'] });
-      })
-      .subscribe();
+  const handleRefresh = async () => {
+    await Promise.all([refetchClasses(), refetchStudents()]);
+    toast.success("Institutional Records Synced");
+  };
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
 
   const { data: assignments = [] } = useQuery({
     queryKey: ['assignments', selectedClassId],
@@ -483,6 +453,9 @@ export default function AttendancePage() {
               />
             </div>
           </Card>
+
+
+
         </div>
 
         <StudentProfile
