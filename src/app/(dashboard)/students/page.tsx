@@ -19,13 +19,14 @@ import { academicService } from "@/services/academic";
 
 export default function StudentsPage() {
   const [search, setSearch] = useState("");
+  const [selectedSection, setSelectedSection] = useState<string>("all");
   const [studentList, setStudentList] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -36,8 +37,8 @@ export default function StudentsPage() {
   const [isUploading, setIsUploading] = useState(false);
 
   // Form States
-  const [formData, setFormData] = useState<{name: string, roll: string, email: string, class: string, parent_email: string}>({ 
-    name: "", roll: "", email: "", class: "", parent_email: "" 
+  const [formData, setFormData] = useState<{ name: string, roll: string, email: string, class: string, parent_email: string }>({
+    name: "", roll: "", email: "", class: "", parent_email: ""
   });
 
   const handleFormChange = (key: string, value: string) => {
@@ -63,9 +64,11 @@ export default function StudentsPage() {
 
   useEffect(() => { loadData(page); }, [page]);
 
-  const filteredStudents = studentList.filter(s =>
-    fuzzySearch(search, `${s.name} ${s.roll_number} ${s.email}`)
-  );
+  const filteredStudents = studentList.filter(s => {
+    const matchesSearch = fuzzySearch(search, `${s.name} ${s.roll_number} ${s.email}`);
+    const matchesSection = selectedSection === "all" || s.classes?.section === selectedSection;
+    return matchesSearch && matchesSection;
+  });
 
   const [importStatus, setImportStatus] = useState<'idle' | 'reading' | 'mapping' | 'success'>('idle');
   const [importProgress, setImportProgress] = useState(0);
@@ -98,29 +101,77 @@ export default function StudentsPage() {
         const rollIdx = headers.indexOf('roll');
         const emailIdx = headers.indexOf('email');
         const parentIdx = headers.indexOf('parent_email');
+        const tcIdx = headers.indexOf('tc');
+        const tpIdx = headers.indexOf('tp');
 
-        const newStudents = lines.slice(1).map((line) => {
+        const headerIndices: Record<string, number> = {};
+        headers.forEach((h, i) => { headerIndices[h] = i; });
+
+        const tcCols = headers.filter(h => h.startsWith('tc_'));
+        const subjectList = await academicService.getSubjects({ department: classes.find(c => c.id === formData.class)?.department });
+
+        const newStudentsData = lines.slice(1).map((line) => {
           const values = line.split(',').map(v => v.trim());
-          return {
-            name: values[nameIdx],
-            roll_number: values[rollIdx],
-            email: values[emailIdx],
-            parent_email: parentIdx !== -1 ? values[parentIdx] : null,
+          const student = {
+            name: values[headerIndices['name']],
+            roll_number: values[headerIndices['roll']],
+            email: values[headerIndices['email']],
+            parent_email: headerIndices['parent_email'] !== undefined ? values[headerIndices['parent_email']] : null,
+            initial_total_classes: headerIndices['tc'] !== undefined ? parseInt(values[headerIndices['tc']]) || 0 : 0,
+            initial_total_present: headerIndices['tp'] !== undefined ? parseInt(values[headerIndices['tp']]) || 0 : 0,
             class_id: formData.class,
             department: classes.find(c => c.id === formData.class)?.department || 'General'
           };
+
+          const initialAttendance = tcCols.map(tcCol => {
+            const suffix = tcCol.replace('tc_', '').toLowerCase();
+            const tpCol = `tp_${suffix}`;
+
+            // Try to find a matching subject
+            const matchedSubject = subjectList.find(s =>
+              s.code.toLowerCase().includes(suffix) ||
+              s.name.toLowerCase().includes(suffix)
+            );
+
+            return {
+              subject_code: matchedSubject ? matchedSubject.code : suffix.toUpperCase(),
+              total_classes: parseInt(values[headerIndices[tcCol]]) || 0,
+              total_present: parseInt(values[headerIndices[tpCol]]) || 0
+            };
+          });
+
+          return { student, initialAttendance };
         });
 
         setImportProgress(60);
-        await academicService.importStudents(newStudents);
-        
+        const studentsToInsert = newStudentsData.map(d => d.student);
+        const insertedStudents = await academicService.importStudents(studentsToInsert);
+
+        // Map initial attendance to student IDs
+        const initialRecords: any[] = [];
+        insertedStudents.forEach((st: any) => {
+          const original = newStudentsData.find(d => d.student.roll_number === st.roll_number);
+          if (original) {
+            original.initialAttendance.forEach(rec => {
+              initialRecords.push({
+                student_id: st.id,
+                ...rec
+              });
+            });
+          }
+        });
+
+        if (initialRecords.length > 0) {
+          await academicService.importInitialAttendance(initialRecords);
+        }
+
         setImportProgress(100);
         setImportStatus('success');
         toast.success(`Successfully synchronized ${newStudents.length} students to the cloud.`);
         loadData();
         setTimeout(() => {
-            setIsImportOpen(false);
-            setIsUploading(false);
+          setIsImportOpen(false);
+          setIsUploading(false);
         }, 1000);
 
       } catch (err: any) {
@@ -132,59 +183,59 @@ export default function StudentsPage() {
   };
 
   const handleCreate = async () => {
-      if (!formData.name || !formData.roll || !formData.class) return toast.error("Missing required fields");
-      try {
-          await academicService.addStudent({
-              name: formData.name,
-              roll_number: formData.roll,
-              email: formData.email,
-              parent_email: formData.parent_email,
-              class_id: formData.class,
-              department: classes.find(c => c.id === formData.class)?.department || 'General'
-          });
-          toast.success("Student records persisted to database");
-          setIsAddOpen(false);
-          loadData();
-      } catch (err) {
-          toast.error("Failed to create record");
-      }
+    if (!formData.name || !formData.roll || !formData.class) return toast.error("Missing required fields");
+    try {
+      await academicService.addStudent({
+        name: formData.name,
+        roll_number: formData.roll,
+        email: formData.email,
+        parent_email: formData.parent_email,
+        class_id: formData.class,
+        department: classes.find(c => c.id === formData.class)?.department || 'General'
+      });
+      toast.success("Student records persisted to database");
+      setIsAddOpen(false);
+      loadData();
+    } catch (err) {
+      toast.error("Failed to create record");
+    }
   };
 
   const handleUpdate = async () => {
-      try {
-          await academicService.updateStudent(selectedStudent.id, {
-              name: formData.name,
-              roll_number: formData.roll,
-              email: formData.email,
-              parent_email: formData.parent_email
-          });
-          toast.success("Profile updated in registry");
-          setIsEditOpen(false);
-          loadData();
-      } catch (err) {
-          toast.error("Update failed");
-      }
+    try {
+      await academicService.updateStudent(selectedStudent.id, {
+        name: formData.name,
+        roll_number: formData.roll,
+        email: formData.email,
+        parent_email: formData.parent_email
+      });
+      toast.success("Profile updated in registry");
+      setIsEditOpen(false);
+      loadData();
+    } catch (err) {
+      toast.error("Update failed");
+    }
   };
 
   const handleDelete = async () => {
-      try {
-          await academicService.deleteStudent(selectedStudent.id);
-          toast.success("Record purged from database");
-          setIsDeleteOpen(false);
-          loadData();
-      } catch (err) {
-          toast.error("Deletion failed");
-      }
+    try {
+      await academicService.deleteStudent(selectedStudent.id);
+      toast.success("Record purged from database");
+      setIsDeleteOpen(false);
+      loadData();
+    } catch (err) {
+      toast.error("Deletion failed");
+    }
   };
 
   const handleAction = (type: 'edit' | 'history' | 'delete', student: any) => {
     setSelectedStudent(student);
     setFormData({
-        name: student.name,
-        roll: student.roll_number,
-        email: student.email,
-        class: student.class_id,
-        parent_email: student.parent_email || ""
+      name: student.name,
+      roll: student.roll_number,
+      email: student.email,
+      class: student.class_id,
+      parent_email: student.parent_email || ""
     });
     if (type === 'edit') setIsEditOpen(true);
     if (type === 'history') setIsHistoryOpen(true);
@@ -193,8 +244,8 @@ export default function StudentsPage() {
 
   if (loading) return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-6">
-        <RefreshCcw className="w-10 h-10 text-blue-600 animate-spin" />
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Synchronizing Institutional Roster</p>
+      <RefreshCcw className="w-10 h-10 text-blue-600 animate-spin" />
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Synchronizing Institutional Roster</p>
     </div>
   );
 
@@ -202,7 +253,7 @@ export default function StudentsPage() {
     <PageTransition>
       <div className="flex flex-col min-h-full">
         <Header title="Institutional Roster" />
-        
+
         <div className="flex-1 space-y-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 bg-slate-900 p-4 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
             <div className="absolute inset-0 bg-blue-600 opacity-5 group-hover:opacity-10 transition-opacity" />
@@ -218,6 +269,18 @@ export default function StudentsPage() {
               </div>
 
               <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+                <Select value={selectedSection} onValueChange={setSelectedSection}>
+                  <SelectTrigger className="w-[120px] border-none bg-white/10 text-white font-bold h-12 md:h-14 rounded-xl md:rounded-2xl">
+                    <SelectValue placeholder="Section" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="A">Sec A</SelectItem>
+                    <SelectItem value="B">Sec B</SelectItem>
+                    <SelectItem value="C">Sec C</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
                   <DialogTrigger render={
                     <Button variant="ghost" className="h-12 md:h-14 flex-1 md:flex-none rounded-xl md:rounded-2xl text-slate-400 font-bold text-[9px] md:text-xs gap-2 md:gap-3 hover:text-white hover:bg-white/5 uppercase tracking-widest px-4 md:px-6">
@@ -227,31 +290,31 @@ export default function StudentsPage() {
                   <DialogContent className="w-[95vw] max-w-[450px] rounded-[2rem] md:rounded-[2.5rem] p-0 overflow-hidden bg-white border border-slate-200 shadow-2xl">
                     <div className="p-6 md:p-8 space-y-6">
                       <DialogHeader>
-                        <DialogTitle className="text-xl md:text-2xl font-black italic uppercase">Ingest Data</DialogTitle>
+                        <DialogTitle className="text-xl md:text-2xl font-black uppercase">Ingest Data</DialogTitle>
                         <DialogDescription className="text-slate-500 font-bold text-xs">
                           Upload your class registry to instantly sync with the cloud.
                         </DialogDescription>
                       </DialogHeader>
 
                       <div className="space-y-4">
-                          <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Target Class</Label>
-                          <Select onValueChange={(v) => v && handleFormChange('class', String(v))}>
-                            <SelectTrigger className="h-12 md:h-14 rounded-xl md:rounded-2xl border-slate-200 bg-slate-50/50 font-bold text-sm">
-                              <SelectValue placeholder="Select Classroom" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-100 p-2">
-                               {classes.map(c => <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.name}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
+                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Target Class</Label>
+                        <Select onValueChange={(v) => v && handleFormChange('class', String(v))}>
+                          <SelectTrigger className="h-12 md:h-14 rounded-xl md:rounded-2xl border-slate-200 bg-slate-50/50 font-bold text-sm">
+                            <SelectValue placeholder="Select Classroom" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-slate-100 p-2">
+                            {classes.map(c => <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="bg-slate-50 border border-slate-100 p-4 md:p-6 rounded-2xl md:rounded-3xl space-y-3 mb-2">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Required CSV Columns</p>
-                          <div className="flex flex-wrap gap-2">
-                              {['name', 'roll', 'email'].map(col => (
-                                  <span key={col} className="px-2 py-1 bg-white border border-slate-100 rounded-lg text-[9px] font-bold text-slate-600 shadow-sm">{col}</span>
-                              ))}
-                          </div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Required CSV Columns</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['name', 'roll', 'email'].map(col => (
+                            <span key={col} className="px-2 py-1 bg-white border border-slate-100 rounded-lg text-[9px] font-bold text-slate-600 shadow-sm">{col}</span>
+                          ))}
+                        </div>
                       </div>
 
                       <div className="space-y-4">
@@ -271,17 +334,17 @@ export default function StudentsPage() {
 
                 <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                   <DialogTrigger render={
-                      <Button 
-                          onClick={() => setFormData({ name: "", roll: "", email: "", class: "", parent_email: "" })}
-                          className="h-12 md:h-14 flex-[1.5] md:flex-none rounded-xl md:rounded-2xl bg-white text-slate-900 font-black uppercase tracking-widest hover:bg-slate-100 shadow-xl transition-all px-4 md:px-8 gap-2 text-[9px] md:text-xs"
-                      >
-                          <Plus className="w-4 h-4 md:w-5 md:h-5 text-blue-600" /> Enroll <span className="hidden sm:inline">Student</span>
-                      </Button>
+                    <Button
+                      onClick={() => setFormData({ name: "", roll: "", email: "", class: "", parent_email: "" })}
+                      className="h-12 md:h-14 flex-[1.5] md:flex-none rounded-xl md:rounded-2xl bg-white text-slate-900 font-black uppercase tracking-widest hover:bg-slate-100 shadow-xl transition-all px-4 md:px-8 gap-2 text-[9px] md:text-xs"
+                    >
+                      <Plus className="w-4 h-4 md:w-5 md:h-5 text-blue-600" /> Enroll <span className="hidden sm:inline">Student</span>
+                    </Button>
                   } />
                   <DialogContent className="w-[95vw] max-w-[500px] rounded-[2rem] md:rounded-[2.5rem] p-0 overflow-hidden bg-white border border-slate-200">
                     <div className="p-6 md:p-8">
                       <DialogHeader className="mb-6 md:mb-8 text-center">
-                        <DialogTitle className="text-xl md:text-2xl font-black italic uppercase">New Enrollment</DialogTitle>
+                        <DialogTitle className="text-xl md:text-2xl font-black uppercase">New Enrollment</DialogTitle>
                         <DialogDescription className="font-bold text-slate-400 text-xs">Enter personal and academic coordinates.</DialogDescription>
                       </DialogHeader>
                       <div className="grid grid-cols-2 gap-4 md:gap-6">
@@ -296,12 +359,12 @@ export default function StudentsPage() {
                         <div className="space-y-2">
                           <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Classroom</Label>
                           <Select onValueChange={(v) => v && handleFormChange('class', String(v))}>
-                              <SelectTrigger className="h-12 rounded-xl md:rounded-2xl border-slate-200 font-bold text-sm">
-                                  <SelectValue placeholder="Select" />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-xl p-2">
-                               {classes.map(c => <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.name}</SelectItem>)}
-                              </SelectContent>
+                            <SelectTrigger className="h-12 rounded-xl md:rounded-2xl border-slate-200 font-bold text-sm">
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl p-2">
+                              {classes.map(c => <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.name}</SelectItem>)}
+                            </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2 col-span-2">
@@ -346,16 +409,16 @@ export default function StudentsPage() {
                           {st.classes?.name || 'Unassigned'}
                         </span>
                       </td>
-                       <td className="px-8 py-6 font-bold text-slate-400 text-xs uppercase tracking-widest">
+                      <td className="px-8 py-6 font-bold text-slate-400 text-xs uppercase tracking-widest">
                         {st.department || 'General'}
                       </td>
                       <td className="px-8 py-6 text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
-                        <DropdownMenuTrigger render={
-                          <Button variant="ghost" className="h-10 w-10 rounded-xl hover:bg-slate-100 outline-none">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        } />
+                          <DropdownMenuTrigger render={
+                            <Button variant="ghost" className="h-10 w-10 rounded-xl hover:bg-slate-100 outline-none">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          } />
                           <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 bg-white border border-slate-100 shadow-2xl">
                             <DropdownMenuItem onClick={() => handleAction('edit', st)} className="rounded-xl p-3 flex items-center gap-3 font-bold text-xs">
                               <UserRoundPen className="w-4 h-4 text-blue-600" /> Edit Profile
@@ -382,7 +445,7 @@ export default function StudentsPage() {
                 <div key={st.id} className="p-5 space-y-4 active:bg-slate-50 transition-colors" onClick={() => { setSelectedStudent(st); setIsProfileOpen(true); }}>
                   <div className="flex justify-between items-start">
                     <div className="flex-1 min-w-0 pr-2">
-                      <div className="font-black text-slate-900 leading-tight text-base truncate uppercase italic">{st.name}</div>
+                      <div className="font-black text-slate-900 leading-tight text-base truncate uppercase">{st.name}</div>
                       <div className="text-[9px] text-slate-400 font-bold mt-0.5 truncate lowercase">{st.email}</div>
                     </div>
                     <div onClick={(e) => e.stopPropagation()}>
@@ -425,14 +488,14 @@ export default function StudentsPage() {
                 <Trash2 className="w-10 h-10" />
               </div>
               <DialogHeader className="mb-6">
-                <DialogTitle className="text-2xl font-black text-center italic">PURGE UNIT?</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-center">PURGE STUDENT?</DialogTitle>
                 <DialogDescription className="text-center font-bold text-slate-400">
-                  Irreversible action. Deleting <strong>{selectedStudent?.name}</strong> will wipe all associated trail-run data.
+                  Irreversible action. Deleting {selectedStudent?.name} will wipe all associated trail-run data.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex flex-col gap-3">
-                  <Button className="h-14 rounded-2xl bg-rose-600 text-white font-black uppercase tracking-widest hover:bg-rose-700 shadow-xl shadow-rose-500/10" onClick={handleDelete}>Confirm Purge</Button>
-                  <Button variant="ghost" className="h-12 rounded-xl text-slate-400 font-bold text-xs" onClick={() => setIsDeleteOpen(false)}>Abort Action</Button>
+                <Button className="h-14 rounded-2xl bg-rose-600 text-white font-black uppercase tracking-widest hover:bg-rose-700 shadow-xl shadow-rose-500/10" onClick={handleDelete}>Confirm Purge</Button>
+                <Button variant="ghost" className="h-12 rounded-xl text-slate-400 font-bold text-xs" onClick={() => setIsDeleteOpen(false)}>Abort Action</Button>
               </div>
             </div>
           </DialogContent>

@@ -45,8 +45,15 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      let email = formData.email;
+      if (role === 'STUDENT') {
+        email = `${formData.roleSpecificId.toLowerCase()}@attendly.local`;
+      } else if (role === 'PARENT') {
+        email = `p_${formData.roleSpecificId.toLowerCase()}@attendly.local`;
+      }
+
       const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
+        email: email,
         password: formData.password,
         options: {
           data: {
@@ -142,18 +149,20 @@ export default function SignupPage() {
               </div>
             )}
 
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-              <Input 
-                type="email" 
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="Institutional Email" 
-                autoComplete="email"
-                className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm"
-                required
-              />
-            </div>
+            {role === 'TEACHER' && (
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                <Input 
+                  type="email" 
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  placeholder="Institutional Email" 
+                  autoComplete="email"
+                  className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm"
+                  required
+                />
+              </div>
+            )}
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
               <Input 

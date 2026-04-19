@@ -50,16 +50,16 @@ export function StudentList({
               transition={{ delay: i * 0.02 }}
               key={student.id}
               className={cn(
-                "group px-8 py-5 flex items-center justify-between transition-colors",
+                "group px-3 md:px-8 py-4 md:py-5 flex items-center justify-between transition-colors",
                 isAbsent && "bg-red-50/40 hover:bg-red-50/60",
                 isOD && "bg-blue-50/40 hover:bg-blue-50/60",
                 isMedical && "bg-amber-50/40 hover:bg-amber-50/60",
                 !isAbsent && !isOD && !isMedical && "hover:bg-slate-50/50"
               )}
             >
-              <div className="flex items-center gap-5 flex-1 min-w-0">
+              <div className="flex items-center gap-2 md:gap-5 flex-1 min-w-0">
                 <div className={cn(
-                  "w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-all border shrink-0 shadow-sm",
+                  "w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center text-sm font-bold transition-all border shrink-0 shadow-sm",
                   isAbsent ? "bg-red-100 text-red-600 border-red-200" :
                     isOD ? "bg-blue-100 text-blue-600 border-blue-200" :
                     isMedical ? "bg-amber-100 text-amber-600 border-amber-200" :
@@ -68,7 +68,7 @@ export function StudentList({
                   {student.avatar || student.name?.charAt(0)}
                 </div>
                 <div className="min-w-0">
-                  <div className={cn("font-bold text-base transition-colors flex items-center gap-3 truncate",
+                  <div className={cn("font-bold text-sm md:text-base transition-colors flex items-center gap-2 md:gap-3 truncate",
                     isAbsent ? "text-red-900" :
                       isOD ? "text-blue-900" : "text-slate-900"
                   )}>
@@ -89,51 +89,37 @@ export function StudentList({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-xl border border-slate-200 shrink-0">
-                <button
-                  onClick={() => onToggle(student.id, 'present')}
-                  className={cn(
-                    "w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
-                    !isAbsent && !isOD && !isMedical
-                      ? "bg-white text-emerald-600 shadow-sm scale-105"
-                      : "text-slate-400 hover:text-slate-600"
-                  )}
-                >
-                  P
-                </button>
-                <button
-                  onClick={() => onToggle(student.id, 'absent')}
-                  className={cn(
-                    "w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
-                    isAbsent
-                      ? "bg-white text-red-600 shadow-sm scale-105"
-                      : "text-slate-400 hover:text-slate-600"
-                  )}
-                >
-                  A
-                </button>
-                <button
-                  onClick={() => onToggle(student.id, 'od')}
-                  className={cn(
-                    "w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
-                    isOD
-                      ? "bg-white text-blue-600 shadow-sm scale-105"
-                      : "text-slate-400 hover:text-slate-600"
-                  )}
-                >
-                  OD
-                </button>
-                <button
-                  onClick={() => onMedical(student.id)}
-                  className={cn(
-                    "w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center",
-                    isMedical
-                      ? "bg-white text-amber-600 shadow-sm scale-105"
-                      : "text-slate-400 hover:text-slate-600"
-                  )}
-                >
-                  ML
-                </button>
+              <div className="w-[150px] md:w-[180px] flex justify-center items-center shrink-0">
+                <div className="flex items-center gap-1 md:gap-2 bg-slate-100/80 p-0.5 md:p-1.5 rounded-xl border border-slate-200 ml-1">
+                  <button
+                    onClick={() => onToggle(student.id, 'present')}
+                    className={cn(
+                      "w-8 h-8 md:w-10 md:h-10 rounded-lg text-[10px] md:text-xs font-bold transition-all flex items-center justify-center",
+                      !isAbsent && !isOD && !isMedical ? "bg-white text-emerald-600 shadow-md ring-1 ring-emerald-500/10" : "text-slate-400 hover:text-slate-600 hover:bg-white"
+                    )}
+                  >P</button>
+                  <button
+                    onClick={() => onToggle(student.id, 'absent')}
+                    className={cn(
+                      "w-8 h-8 md:w-10 md:h-10 rounded-lg text-[10px] md:text-xs font-bold transition-all flex items-center justify-center",
+                      isAbsent ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "text-slate-400 hover:text-slate-600 hover:bg-white"
+                    )}
+                  >A</button>
+                  <button
+                    onClick={() => onToggle(student.id, 'od')}
+                    className={cn(
+                      "w-8 h-8 md:w-10 md:h-10 rounded-lg text-[10px] md:text-xs font-bold transition-all flex items-center justify-center",
+                      isOD ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20" : "text-slate-400 hover:text-slate-600 hover:bg-white"
+                    )}
+                  >OD</button>
+                  <button
+                    onClick={() => onMedical(student.id)}
+                    className={cn(
+                      "w-8 h-8 md:w-10 md:h-10 rounded-lg text-[10px] md:text-xs font-bold transition-all flex items-center justify-center",
+                      isMedical ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "text-slate-400 hover:text-slate-600 hover:bg-white"
+                    )}
+                  >ML</button>
+                </div>
               </div>
             </motion.div>
           );

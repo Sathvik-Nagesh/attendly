@@ -116,7 +116,6 @@ const VARIANT_CONFIG = {
       { name: "Attendance", href: "/attendance", icon: CheckCircle },
       { name: "Students", href: "/students", icon: Users },
       { name: "Classes", href: "/classes", icon: GraduationCap },
-      { name: "Subject Registry", href: "/subjects", icon: Library },
       { name: "Schedule", href: "/timetable", icon: History },
       { name: "Results", href: "/results", icon: BookOpen },
       { name: "Alerts", href: "/notifications", icon: Bell },

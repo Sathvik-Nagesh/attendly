@@ -15,6 +15,8 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
+import { academicService } from "@/services/academic";
+
 interface StudentProfileProps {
   student: any;
   onClose: () => void;
@@ -22,6 +24,23 @@ interface StudentProfileProps {
 
 export function StudentProfile({ student, onClose }: StudentProfileProps) {
   const [mounted, setMounted] = useState(false);
+  const [summary, setSummary] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!student?.id) return;
+    const loadSummary = async () => {
+        try {
+            const data = await academicService.getStudentSummary(student.id);
+            setSummary(data);
+        } catch (err) {
+            console.error("Failed to load student summary:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    loadSummary();
+  }, [student?.id]);
 
   const handleExportPDF = () => {
     try {
@@ -46,34 +65,31 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
       doc.setTextColor(30, 41, 59);
       doc.text(`Identity: ${student.name}`, 20, 48);
       doc.text(`Reg No: ${student.roll || student.roll_number || 'N/A'}`, 20, 56);
-      doc.text(`Current Attendance: ${student.attendance || '85'}%`, 120, 48);
-      doc.text(`Risk Status: ${parseInt(student.attendance || "85") < 75 ? 'HIGH' : 'LOW'}`, 120, 56);
+      doc.text(`Current Attendance: ${attendanceValue}%`, 120, 48);
+      doc.text(`Risk Status: ${isAtRisk ? 'HIGH' : 'LOW'}`, 120, 56);
 
-      // 3. Activity Timeline (Optimized for Trial)
-      const activityData = [
-          ["Today, 10:00 AM", "Absent for OS Lecture", "LT-01", "MISSED"],
-          ["Yesterday, 11:30 AM", "Marked Present in Maths", "CS-LAB", "PRESENT"],
-          ["Oct 12, 2:00 PM", "Internal Assessment 1", "MPH", "COMPLETED"]
-      ];
+      // 3. Subject-wise Analysis
+      const subjectData = summary?.subjectWise?.map((sw: any) => [
+          sw.name,
+          `${sw.present}/${sw.total}`,
+          `${sw.pct}%`,
+          sw.pct < 75 ? "AT RISK" : "NORMAL"
+      ]) || [];
 
       doc.setFontSize(12);
-      doc.text("Recent Activity Trail", 14, 85);
+      doc.text("Subject-wise Attendance Ledger", 14, 85);
 
       autoTable(doc, {
           startY: 90,
-          head: [["Timestamp", "Activity Description", "Location", "Resolution"]],
-          body: activityData,
+          head: [["Course Blueprint", "Ratio (P/T)", "Percentage", "Status"]],
+          body: subjectData,
           theme: "grid",
           headStyles: { fillColor: [15, 23, 42] }
       });
 
       // 4. Verification Footer
       const finY = (doc as any).lastAutoTable.finalY + 30;
-      doc.setFontSize(10);
-      doc.text("FAVORABLE / UNFAVORABLE", 14, finY);
-      doc.text("REGISTRAR SIGNATURE: __________________________", 14, finY + 15);
-
-      doc.save(`Audit_Report_${student.name.replace(/\s/g, '_')}.pdf`);
+      doc.save(`Performance_Audit_${student.name.replace(/\s/g, '_')}.pdf`);
       toast.success("Individual Audit PDF Generated");
     } catch (err) {
       console.error(err);
@@ -91,7 +107,7 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
 
   if (!student) return null;
 
-  const attendanceValue = parseInt(student.attendance || "85");
+  const attendanceValue = summary ? summary.attendancePct : parseInt(student.attendance || "0");
   const isAtRisk = attendanceValue < 75;
 
   const content = (
@@ -122,13 +138,11 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
           {/* Left Sidebar / Top Header on Mobile */}
           <div className="w-full md:w-[320px] bg-slate-50 p-6 md:p-10 flex flex-col items-center justify-center space-y-4 md:space-y-6 border-b md:border-b-0 md:border-r border-slate-100 shrink-0">
              <div className="relative">
-                <div className="w-20 h-20 md:w-40 md:h-40 rounded-[1.5rem] md:rounded-[3rem] bg-white flex items-center justify-center overflow-hidden ring-4 md:ring-8 ring-white shadow-2xl">
-                   <img 
-                      src={`https://i.pravatar.cc/300?u=${student.roll || student.roll_number || student.rollNumber}`} 
-                      alt={student.name}
-                      className="w-full h-full object-cover"
-                   />
-                </div>
+                 <div className="w-20 h-20 md:w-40 md:h-40 rounded-[1.5rem] md:rounded-[3rem] bg-white flex items-center justify-center overflow-hidden ring-4 md:ring-8 ring-white shadow-2xl">
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                        <UserRound className="w-10 h-10 md:w-20 md:h-20 text-slate-300" />
+                    </div>
+                 </div>
                 <div className={cn(
                   "absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 w-7 h-7 md:w-10 md:h-10 rounded-lg md:rounded-2xl border-4 border-white flex items-center justify-center shadow-lg",
                   isAtRisk ? 'bg-red-500' : 'bg-emerald-500'
@@ -138,14 +152,16 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
              </div>
 
              <div className="text-center space-y-1 md:space-y-2">
-                <h2 className="text-lg md:text-2xl font-black text-slate-900 leading-tight uppercase italic">{student.name}</h2>
+                 <h2 className="text-lg md:text-2xl font-black text-slate-900 leading-tight uppercase">{student.name}</h2>
                 <span className="inline-block px-3 py-1 rounded-lg md:rounded-xl bg-blue-100 text-blue-700 text-[9px] md:text-xs font-black uppercase tracking-widest">{student.roll || student.roll_number || student.rollNumber}</span>
              </div>
 
              <div className="w-full grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-3">
                 <div className="flex justify-between items-center px-3 py-2 md:py-3 bg-white rounded-xl md:rounded-2xl border border-slate-100 shadow-sm">
                    <span className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Attendance</span>
-                   <span className={cn("text-xs md:text-lg font-black", isAtRisk ? 'text-red-600' : 'text-slate-900')}>{student.attendance || "85%"}</span>
+                   <span className={cn("text-xs md:text-lg font-black", isAtRisk ? 'text-red-600' : 'text-slate-900')}>
+                     {loading ? "..." : `${attendanceValue}%`}
+                   </span>
                 </div>
                 <div className="flex justify-between items-center px-3 py-2 md:py-3 bg-white rounded-xl md:rounded-2xl border border-slate-100 shadow-sm">
                    <span className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Risk Score</span>
@@ -156,7 +172,34 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
 
           {/* Scrollable Content Area */}
           <div className="flex-1 overflow-y-auto p-5 md:p-10 space-y-6 md:space-y-10 custom-scrollbar bg-white">
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
+            {/* Subject-wise Grid */}
+            <div className="space-y-4">
+                <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Academic Blueprint Coverage</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {loading ? (
+                        Array(4).fill(0).map((_, i) => (
+                            <div key={i} className="h-20 bg-slate-50 rounded-2xl animate-pulse" />
+                        ))
+                    ) : (
+                        summary?.subjectWise?.map((sw: any) => (
+                            <div key={sw.name} className="p-5 bg-white rounded-[1.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-all">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{sw.name}</p>
+                                    <p className="text-sm font-black text-slate-900">{sw.present} / {sw.total} Sessions</p>
+                                </div>
+                                <div className={cn(
+                                    "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-black shadow-sm",
+                                    sw.pct < 75 ? "bg-red-50 text-red-600 border border-red-100" : "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                                )}>
+                                    {sw.pct}%
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 md:gap-4 pt-4">
               <Button className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100 text-xs md:text-sm">
                 <Mail className="w-4 h-4 mr-2" /> Email
               </Button>
@@ -165,34 +208,9 @@ export function StudentProfile({ student, onClose }: StudentProfileProps) {
               </Button>
             </div>
 
-            <div className="space-y-4">
-                <h4 className="text-[10px] md:text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Academic Engagement</h4>
-                <div className="flex gap-1 justify-between bg-slate-50 p-2 rounded-xl md:rounded-2xl overflow-hidden min-h-[40px] md:min-h-[50px]">
-                    {[1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,0,1,1,1].map((p, i) => (
-                        <div key={i} className={cn("flex-1 h-6 md:h-10 rounded-sm md:rounded-lg", p === 1 ? 'bg-emerald-400' : 'bg-red-400')} />
-                    ))}
-                </div>
-            </div>
 
-            <div className="space-y-6">
-                <h4 className="text-[10px] md:text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Recent Activity Log</h4>
-                <div className="space-y-6 relative pl-6 before:absolute before:left-[1px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
-                   {[
-                     { title: "Absent for OS Lecture", time: "Today, 10:00 AM", status: "missed", room: "LT-01" },
-                     { title: "Marked Present in Maths", time: "Yesterday, 11:30 AM", status: "present", room: "CS-LAB" },
-                     { title: "Internal Assessment 1", time: "Oct 12, 2:00 PM", status: "exam", room: "MPH" }
-                   ].map((item, idx) => (
-                     <div key={idx} className="relative">
-                        <div className={cn(
-                          "absolute -left-[30px] top-1 w-3.5 h-3.5 md:w-4 md:h-4 rounded-full border-4 border-white shadow-sm",
-                          item.status === 'missed' ? 'bg-red-500' : item.status === 'present' ? 'bg-emerald-500' : 'bg-blue-500'
-                        )} />
-                        <p className="text-sm font-bold text-slate-900 leading-none">{item.title}</p>
-                        <p className="text-[9px] md:text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-wider">{item.time} • {item.room}</p>
-                     </div>
-                   ))}
-                </div>
-            </div>
+
+
 
             <div className="pt-4 md:pt-6">
                <Button 

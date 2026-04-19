@@ -36,11 +36,11 @@ export default function ParentDashboard() {
 
       if (!student) return null;
 
-      const marks = await academicService.getStudentMarks(student.id);
+      const { data: marks } = await academicService.getStudentMarks(student.id);
       
-      // Calculate performance based on marks
-      const totalMarks = marks.reduce((acc: number, m: any) => acc + (m.cia1 || 0) + (m.cia2 || 0) + (m.tests || 0), 0);
-      const avgMarks = marks.length > 0 ? totalMarks / marks.length : 0;
+      // Calculate performance based on marks (assuming internal assessment row)
+      const totalMarks = marks ? (marks.math || 0) : 0; // Simplified for display
+      const avgMarks = marks ? (totalMarks) : 0; 
       
       // Assume attendance is stored in student or fetched separately. 
       // For now, let's use a default or fetch if available.
@@ -202,16 +202,16 @@ export default function ParentDashboard() {
                         Detailed Subject Insights
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {dashboardData.marks.map((m: any) => (
+                        {dashboardData.marks && (
                             <SubjectMiniCard 
-                                key={m.id}
-                                subject={m.subject_name} 
-                                attendance={100} // Need real per-subject attendance
-                                marks={`${(m.cia1 || 0) + (m.cia2 || 0) + (m.tests || 0)}/20`}
-                                status={(m.cia1 + m.cia2 + m.tests) >= 15 ? "good" : (m.cia1 + m.cia2 + m.tests) >= 10 ? "warning" : "risk"} 
+                                key="math"
+                                subject="Mathematics" 
+                                attendance={dashboardData.performance.attendance} 
+                                marks={`${dashboardData.marks.math || 0}/20`}
+                                status={(dashboardData.marks.math || 0) >= 15 ? "good" : (dashboardData.marks.math || 0) >= 10 ? "warning" : "risk"} 
                             />
-                        ))}
-                        {dashboardData.marks.length === 0 && (
+                        )}
+                        {!dashboardData.marks && (
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No subject records synchronized yet.</p>
                         )}
                     </div>

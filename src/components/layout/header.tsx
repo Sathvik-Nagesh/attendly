@@ -28,9 +28,9 @@ export function Header({ title = "Overview" }: { title?: React.ReactNode }) {
   }, []);
 
   return (
-    <header className="h-16 px-4 md:px-8 flex items-center justify-between border-b border-slate-100/50 bg-white/50 backdrop-blur-sm relative">
-      <div className="absolute inset-0 flex items-center justify-center md:static md:justify-start pointer-events-none md:pointer-events-auto">
-        <h1 className="text-lg md:text-2xl font-black text-slate-900 tracking-tight uppercase italic">{title}</h1>
+    <header className="h-12 md:h-16 px-4 md:px-8 flex items-center justify-between border-slate-100/50 md:border-b md:bg-white/50 md:backdrop-blur-sm relative">
+      <div className="flex items-center gap-4">
+        <h1 className="text-sm md:text-2xl font-black text-slate-900 tracking-tight uppercase">{title}</h1>
       </div>
 
       <div className="flex items-center gap-3 md:gap-6">

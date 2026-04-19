@@ -25,10 +25,11 @@ export default function StudentMarksPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const student = await academicService.getStudentByEmail(user.email!);
+      const rollNumber = user.user_metadata.roll_number;
+      const student = await academicService.getStudentByRoll(rollNumber);
       if (!student) return null;
 
-      const [marks, summary] = await Promise.all([
+      const [{ data: marks }, summary] = await Promise.all([
         academicService.getStudentMarks(student.id),
         academicService.getStudentSummary(student.id)
       ]);

@@ -43,11 +43,11 @@ export default function Error({
 
           <div className="space-y-4">
             <h1 className="text-3xl font-[1000] text-white tracking-tighter uppercase leading-none">
-              Connection Interrupted
+              Session Paused
             </h1>
             <p className="text-slate-400 font-bold leading-relaxed">
-              We've identified a sovereign synchronization error. Your current session has been 
-              <span className="text-blue-400"> securely vaulted </span> locally to prevent data loss.
+              We're having trouble connecting to the institutional network. Don't worry, your progress has been 
+              <span className="text-blue-400"> automatically saved </span> on this device and will sync when you're back online.
             </p>
           </div>
 
@@ -61,7 +61,7 @@ export default function Error({
               className="w-full h-16 rounded-2xl bg-white text-slate-900 hover:bg-slate-100 font-black uppercase tracking-widest text-sm transition-all active:scale-95 group"
             >
               <RefreshCcw className="mr-3 w-5 h-5 group-hover:rotate-180 transition-transform duration-700" />
-              Secure Re-sync Now
+              Try Reconnecting
             </Button>
             
             <Link href="/dashboard" className="block w-full">
@@ -71,7 +71,7 @@ export default function Error({
                 className="w-full h-16 rounded-2xl border-slate-800 bg-transparent text-slate-400 hover:text-white hover:bg-slate-800 font-black uppercase tracking-widest text-xs transition-all"
               >
                 <ArrowLeft className="mr-3 w-4 h-4" />
-                Return to Terminal
+                Back to Dashboard
               </Button>
             </Link>
           </div>

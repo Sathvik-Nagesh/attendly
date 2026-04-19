@@ -4,6 +4,7 @@ import { CheckCircle2, RefreshCcw, Bell } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface AttendanceSyncDialogProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface AttendanceSyncDialogProps {
   lecture: string;
   date: Date;
   sampleAbsentRoll?: string;
+  triggerClassName?: string;
 }
 
 export function AttendanceSyncDialog({
@@ -28,22 +30,27 @@ export function AttendanceSyncDialog({
   stats,
   lecture,
   date,
-  sampleAbsentRoll
+  sampleAbsentRoll,
+  triggerClassName
 }: AttendanceSyncDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger render={
-        <Button className="h-12 px-6 rounded-2xl bg-blue-600 text-white font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/10 flex items-center gap-2 border-none active:scale-95">
-          <CheckCircle2 className="w-5 h-5" />
-          Finalize Sync
+        <Button className={cn(
+          "h-12 px-4 md:px-6 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2 border-none active:scale-95 text-xs md:text-sm",
+          triggerClassName
+        )}>
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <span className="hidden sm:inline">SUBMIT ROLL CALL</span>
+          <span className="sm:hidden">SUBMIT</span>
         </Button>
       } />
       <DialogContent className="sm:max-w-[450px] rounded-[3rem] p-0 overflow-hidden bg-white border border-slate-200 text-slate-900">
         <div className="p-10">
           <DialogHeader className="mb-8">
-            <DialogTitle className="text-3xl font-black tracking-tight">Confirm Sync</DialogTitle>
+            <DialogTitle className="text-3xl font-black tracking-tight">Confirm Roll Call</DialogTitle>
             <DialogDescription className="text-slate-500 font-bold text-base mt-2">
-              Review attendance for <strong>{lecture}</strong> before pushing to MSG91 gateway.
+              Review attendance for <strong>{lecture}</strong> before publishing to the cloud.
             </DialogDescription>
           </DialogHeader>
 
@@ -97,7 +104,7 @@ export function AttendanceSyncDialog({
             ) : (
               <>
                 <CheckCircle2 className="w-6 h-6" />
-                Execute Sync
+                Publish to Cloud
               </>
             )}
           </Button>

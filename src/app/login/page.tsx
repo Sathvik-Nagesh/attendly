@@ -22,6 +22,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<'TEACHER' | 'STUDENT' | 'PARENT'>('STUDENT');
   const { branding } = useBranding();
 
   const {
@@ -36,8 +37,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
+      let email = values.identifier;
+      if (!values.identifier.includes('@')) {
+        const id = values.identifier.toLowerCase();
+        email = role === 'STUDENT' ? `${id}@attendly.local` : role === 'PARENT' ? `p_${id}@attendly.local` : id;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
+        email: email,
         password: values.password,
       });
 
@@ -83,21 +90,37 @@ export default function LoginPage() {
           </div>
 
           <Card className="p-8 md:p-10 border-slate-100 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] md:rounded-[3rem] border border-slate-100">
+            <div className="flex p-1 bg-slate-100 rounded-2xl mb-8">
+              {(['STUDENT', 'TEACHER', 'PARENT'] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={cn(
+                    "flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
+                    role === r ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-500"
+                  )}
+                >
+                  {r === 'TEACHER' ? 'Faculty' : r === 'STUDENT' ? 'Student' : 'Guardian'}
+                </button>
+              ))}
+            </div>
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
               <div className="space-y-3">
-                <Label htmlFor="email" className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Email Address</Label>
+                <Label htmlFor="identifier" className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Institutional Identifier</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  {...register("email")}
-                  placeholder="Enter your institutional email"
-                  autoComplete="username email"
+                  id="identifier"
+                  type="text"
+                  {...register("identifier")}
+                  placeholder="Email or Roll Number"
+                  autoComplete="username"
                   className={cn(
                     "h-14 rounded-2xl border-slate-100 bg-slate-50/50 shadow-none focus-visible:ring-blue-500 font-bold px-5 text-base transition-all",
-                    errors.email && "border-rose-500 bg-rose-50/30"
+                    errors.identifier && "border-rose-500 bg-rose-50/30"
                   )}
                 />
-                {errors.email && <p className="text-[10px] font-bold text-rose-500 ml-1 uppercase">{errors.email.message}</p>}
+                {errors.identifier && <p className="text-[10px] font-bold text-rose-500 ml-1 uppercase">{errors.identifier.message}</p>}
               </div>
 
               <div className="space-y-3">

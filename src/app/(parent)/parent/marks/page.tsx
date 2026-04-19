@@ -29,7 +29,7 @@ export default function ParentMarksPage() {
       const student = await academicService.getStudentByParentEmail(user.email!);
       if (!student) return null;
 
-      const [marks, summary] = await Promise.all([
+      const [{ data: marks }, summary] = await Promise.all([
         academicService.getStudentMarks(student.id),
         academicService.getStudentSummary(student.id)
       ]);

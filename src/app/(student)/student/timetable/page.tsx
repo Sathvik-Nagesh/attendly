@@ -268,7 +268,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2 mb-1">
-                                                            <h3 className="text-sm font-black text-slate-900 italic uppercase tracking-tight truncate">{slot.subject}</h3>
+                                                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight truncate">{slot.subject}</h3>
                                                             <span className="shrink-0 px-1.5 py-0.5 bg-slate-100 text-[7px] font-black text-slate-500 rounded-md uppercase">{slot.classes?.section || 'A'}</span>
                                                         </div>
                                                         <div className="flex flex-wrap gap-3 text-[9px] font-bold text-slate-400 uppercase tracking-wide">
@@ -296,7 +296,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                                             <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-2">
                                                 <Calendar className="w-5 h-5 text-slate-300" />
                                             </div>
-                                            <p className="text-slate-300 font-black uppercase text-[9px] tracking-[0.3em] italic">
+                                            <p className="text-slate-300 font-black uppercase text-[9px] tracking-[0.3em]">
                                                 No sessions for <span className="text-slate-500">{selectedDay}</span>
                                             </p>
                                         </div>
@@ -311,7 +311,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                             <Card className="border-none rounded-2xl bg-slate-900 text-white shadow-xl overflow-hidden relative">
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
                                 <div className="relative z-10 p-5 md:p-6">
-                                    <h3 className="text-sm font-black italic uppercase tracking-tight">Final Exam</h3>
+                                    <h3 className="text-sm font-black uppercase tracking-tight">Final Exam</h3>
                                     <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-0.5 mb-4">Institutional Milestone</p>
                                     {exams.length > 0 ? (
                                         <div className="p-3.5 rounded-2xl bg-white/10 border border-white/10 space-y-2.5">
@@ -323,11 +323,11 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                                                 <div className="w-7 h-7 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
                                                     <Calendar className="w-3.5 h-3.5" />
                                                 </div>
-                                                <span className="text-sm font-black tracking-tight uppercase italic">{new Date(exams[0].exam_date).toLocaleDateString()}</span>
+                                                <span className="text-sm font-black tracking-tight uppercase">{new Date(exams[0].exam_date).toLocaleDateString()}</span>
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="text-center py-6 text-slate-600 text-[9px] font-black uppercase tracking-widest italic">No Examinations Found</p>
+                                        <p className="text-center py-6 text-slate-600 text-[9px] font-black uppercase tracking-widest">No Examinations Found</p>
                                     )}
                                 </div>
                             </Card>
@@ -350,7 +350,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                                             </div>
                                         ))}
                                         {alerts.length === 0 && (
-                                            <p className="text-center py-6 text-slate-300 font-black uppercase text-[8px] tracking-widest italic">All Nodes Silent</p>
+                                            <p className="text-center py-6 text-slate-300 font-black uppercase text-[8px] tracking-widest">All Nodes Silent</p>
                                         )}
                                     </div>
                                 </div>

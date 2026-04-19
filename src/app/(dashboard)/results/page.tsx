@@ -179,8 +179,8 @@ export default function ResultsPage() {
                                         </div>
                                     </div>
 
-                                    <h3 className="text-sm md:text-lg font-black text-slate-900 leading-tight mb-1 pr-4 uppercase italic truncate">{res.class_name}</h3>
-                                    <p className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 md:mb-8">Section {res.section || 'N/A'} • {res.student_count} Units</p>
+                                    <h3 className="text-sm md:text-lg font-black text-slate-900 leading-tight mb-1 pr-4 uppercase truncate">{res.class_name}</h3>
+                                    <p className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 md:mb-8">Section {res.section || 'N/A'} • {res.student_count} Students</p>
                                     
                                     <div className="mt-auto pt-4 md:pt-8 border-t border-slate-50 grid grid-cols-2 gap-3 md:gap-8 items-end">
                                         <div>
@@ -203,7 +203,7 @@ export default function ResultsPage() {
                     ))}
                 </AnimatePresence>
                 {filteredResults.length === 0 && (
-                    <div className="col-span-full py-32 text-center text-slate-400 font-black text-sm uppercase tracking-[0.4em] opacity-30 italic">No Academic Records Identified</div>
+                    <div className="col-span-full py-32 text-center text-slate-400 font-black text-sm uppercase tracking-[0.4em] opacity-30">No Academic Records Identified</div>
                 )}
              </div>
         </div>
@@ -222,7 +222,7 @@ function ResultStat({ label, value, icon: Icon, color }: any) {
         <Card className="p-4 md:p-6 rounded-[1.5rem] md:rounded-[2.5rem] border-none bg-white shadow-xl flex items-center justify-between group hover:shadow-2xl transition-all ring-1 ring-slate-100">
             <div>
                 <p className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 md:mb-2">{label}</p>
-                <p className="text-xl md:text-3xl font-black text-slate-900 tracking-tighter italic italic-none">{value}</p>
+                <p className="text-xl md:text-3xl font-black text-slate-900 tracking-tighter">{value}</p>
             </div>
             <div className={cn("w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center border shadow-xl", colors[color])}>
                 <Icon className="w-5 h-5 md:w-7 md:h-7" />

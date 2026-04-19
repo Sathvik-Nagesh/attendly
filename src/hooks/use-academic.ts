@@ -2,12 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { academicService } from "@/services/academic";
 import { toast } from "sonner";
 
-export function useStudents(classId?: string) {
+export function useStudents(classId?: string, subjectId?: string) {
   return useQuery<any[]>({
-    queryKey: ['students', classId],
+    queryKey: ['students', classId, subjectId],
     queryFn: async () => {
       const result = classId 
-        ? await academicService.getStudentsByClass(classId) 
+        ? await academicService.getStudentsByClass(classId, subjectId) 
         : await academicService.getAllStudents();
       return Array.isArray(result) ? result : (result?.data || []);
     },

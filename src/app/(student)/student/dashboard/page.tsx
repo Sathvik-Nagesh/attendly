@@ -45,11 +45,12 @@ export default function StudentDashboard() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // 2. Fetch Student Profile by Email
+        // 2. Fetch Student Profile by Roll Number (Most Reliable)
+        const rollNumber = user.user_metadata.roll_number;
         const { data: studentRecord } = await supabase
           .from('students')
           .select('*, classes(*)')
-          .eq('email', user.email)
+          .eq('roll_number', rollNumber)
           .single();
 
         if (!studentRecord) {
@@ -57,15 +58,15 @@ export default function StudentDashboard() {
           return;
         }
 
-        // 3. Fetch Real-time Attendance Logs for math
-        const { data: attendanceLogs } = await supabase
-          .from('attendance')
-          .select('status')
+        // 3. Fetch Consolidated Attendance Stats
+        const { data: attendanceStats } = await supabase
+          .from('consolidated_attendance')
+          .select('total_tc, total_tp')
           .eq('student_id', studentRecord.id);
 
-        const conductedCount = attendanceLogs?.length || 0;
-        const presentCount = attendanceLogs?.filter(l => l.status === 'present' || l.status === 'od' || l.status === 'ml').length || 0;
-        const livePercentage = conductedCount > 0 ? (presentCount / conductedCount) * 100 : 85; // Default for fresh trial
+        const totalConducted = attendanceStats?.reduce((acc, curr) => acc + curr.total_tc, 0) || 0;
+        const totalPresent = attendanceStats?.reduce((acc, curr) => acc + curr.total_tp, 0) || 0;
+        const livePercentage = totalConducted > 0 ? (totalPresent / totalConducted) * 100 : 0;
 
         setStudent({ 
           name: studentRecord.name, 
@@ -80,10 +81,10 @@ export default function StudentDashboard() {
         setNextExam(exam);
         
         // 5. Load Performance Context
-        const marksData = await academicService.getStudentMarks(studentRecord.id);
-        if (marksData && marksData.length > 0) {
+        const { data: marksRow } = await academicService.getStudentMarks(studentRecord.id);
+        if (marksRow) {
             setPerformance(getStudentPerformance({
-                ...marksData[0],
+                ...marksRow,
                 attendancePercentage: livePercentage
             }));
         } else {

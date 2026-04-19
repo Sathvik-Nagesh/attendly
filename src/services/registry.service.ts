@@ -4,11 +4,30 @@ export const registryService = {
   // --- Classes ---
   async getClasses() {
     const { data, error } = await supabase
-      .from('classes')
-      .select('*')
+      .from('classes_with_counts')
+      .select('*, class_claims(*, subjects(*))')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
+    return data;
+  },
+
+  async claimClass(classId: string, subjectId: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const { data, error } = await supabase
+      .from('class_claims')
+      .insert({
+        teacher_id: user.id,
+        class_id: classId,
+        subject_id: subjectId
+      });
+    
+    if (error) {
+        if (error.code === '23505') throw new Error("Subject already claimed for this class");
+        throw error;
+    }
     return data;
   },
 
@@ -47,15 +66,48 @@ export const registryService = {
     return data || [];
   },
 
-  async getStudentsByClass(classId: string) {
-    const { data, error } = await supabase
+  async getStudentsByClass(classId: string, subjectId?: string) {
+    const { data: students, error } = await supabase
       .from('students')
       .select('*')
       .eq('class_id', classId)
       .order('roll_number', { ascending: true });
     
     if (error) throw error;
-    return data;
+
+    // Fetch consolidated totals for these students
+    let query = supabase
+      .from('consolidated_attendance')
+      .select('student_id, total_tc, total_tp, subject_code')
+      .in('student_id', (students || []).map(s => s.id));
+
+    // If subjectId is provided, we need to find the code for it
+    let filterCode: string | null = null;
+    if (subjectId) {
+        const { data: subj } = await supabase.from('subjects').select('code').eq('id', subjectId).single();
+        if (subj) filterCode = subj.code;
+    }
+
+    const { data: consolidated } = await query;
+
+    // Aggregate totals per student
+    const studentStats: Record<string, { total: number, present: number }> = {};
+    consolidated?.forEach(c => {
+        // If filtering by subject, only include matching code
+        if (filterCode && c.subject_code !== filterCode) return;
+        
+        if (!studentStats[c.student_id]) studentStats[c.student_id] = { total: 0, present: 0 };
+        studentStats[c.student_id].total += Number(c.total_tc);
+        studentStats[c.student_id].present += Number(c.total_tp);
+    });
+
+    return (students || []).map(s => {
+        const stats = studentStats[s.id] || { total: 0, present: 0 };
+        return {
+            ...s,
+            attendance: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 100
+        };
+    });
   },
 
   async addStudent(student: any) {
@@ -88,6 +140,15 @@ export const registryService = {
     return true;
   },
 
+  async deleteStudentsByClass(classId: string) {
+    const { error } = await supabase
+      .from('students')
+      .delete()
+      .eq('class_id', classId);
+    if (error) throw error;
+    return true;
+  },
+
   async importStudents(students: any[]) {
     const { data, error } = await supabase
       .from('students')
@@ -95,6 +156,28 @@ export const registryService = {
         onConflict: 'class_id,roll_number' 
       })
       .select();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async importInitialAttendance(records: any[]) {
+    const { data, error } = await supabase
+      .from('student_initial_attendance')
+      .upsert(records, { 
+        onConflict: 'student_id,subject_code' 
+      })
+      .select();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getInitialAttendance(studentId: string) {
+    const { data, error } = await supabase
+      .from('student_initial_attendance')
+      .select('*')
+      .eq('student_id', studentId);
     
     if (error) throw error;
     return data;
@@ -117,10 +200,18 @@ export const registryService = {
   },
 
   async getStudentMarks(studentId: string) {
-    const { data, error } = await supabase
+    return supabase
       .from('marks')
       .select('*')
       .eq('student_id', studentId)
+      .maybeSingle();
+  },
+
+  async getStudentByRoll(roll: string) {
+    const { data, error } = await supabase
+      .from('students')
+      .select('*, classes(*)')
+      .eq('roll_number', roll)
       .maybeSingle();
     
     if (error) throw error;
@@ -153,29 +244,72 @@ export const registryService = {
     const [
       { data: marks },
       { data: attendance },
-      { data: student }
+      { data: student },
+      { data: initialRecords }
     ] = await Promise.all([
       this.getStudentMarks(studentId),
-      supabase.from('attendance').select('status').eq('student_id', studentId),
-      supabase.from('students').select('department').eq('id', studentId).single()
+      supabase.from('attendance').select('status, subject_id, subjects(code, name)').eq('student_id', studentId),
+      supabase.from('students').select('department, initial_total_classes, initial_total_present').eq('id', studentId).single(),
+      supabase.from('student_initial_attendance').select('*').eq('student_id', studentId)
     ]);
 
-    // Calculate CGPA (Mock logic based on real marks)
-    const markValues = marks ? [marks.math, marks.science, marks.english, marks.physics, marks.computer_science, marks.history].filter(v => v !== null) : [];
-    const avg = markValues.length > 0 ? markValues.reduce((a, b) => a + b, 0) / markValues.length : 0;
-    const cgpa = (avg / 20) * 10; // Assuming marks are out of 20
+    // Calculate Global Attendance %
+    const sessionTotal = attendance?.length || 0;
+    const sessionPresent = attendance?.filter(a => a.status === 'present' || a.status === 'od').length || 0;
+    
+    let initialTotal = 0;
+    let initialPresent = 0;
+    initialRecords?.forEach(rec => {
+        initialTotal += (rec.tc || 0);
+        initialPresent += (rec.tp || 0);
+    });
 
-    // Calculate Attendance %
-    const total = attendance?.length || 0;
-    const present = attendance?.filter(a => a.status === 'present' || a.status === 'od').length || 0;
-    const attendancePct = total > 0 ? Math.round((present / total) * 100) : 100;
+    const globalTotal = sessionTotal + initialTotal;
+    const globalPresent = sessionPresent + initialPresent;
+    const attendancePct = globalTotal > 0 ? Math.round((globalPresent / globalTotal) * 100) : 100;
+
+    // Calculate Subject-wise Attendance
+    const subjectWise: Record<string, { name: string, total: number, present: number, pct: number }> = {};
+
+    // 1. Process Initial Records
+    initialRecords?.forEach(rec => {
+        const total = rec.tc || 0;
+        const present = rec.tp || 0;
+        subjectWise[rec.subject_code] = {
+            name: rec.subject_code, // Default to code, will refine if matched
+            total: total,
+            present: present,
+            pct: total > 0 ? Math.round((present / total) * 100) : 100
+        };
+    });
+
+    // 2. Add Session Records
+    attendance?.forEach(a => {
+        const code = a.subjects?.code || 'GEN';
+        if (!subjectWise[code]) {
+            subjectWise[code] = { name: a.subjects?.name || code, total: 0, present: 0, pct: 0 };
+        }
+        subjectWise[code].total += 1;
+        if (a.status === 'present' || a.status === 'od') {
+            subjectWise[code].present += 1;
+        }
+    });
+
+    // 3. Re-calculate percentages
+    Object.keys(subjectWise).forEach(code => {
+        const sw = subjectWise[code];
+        sw.pct = sw.total > 0 ? Math.round((sw.present / sw.total) * 100) : 100;
+    });
 
     return {
-      cgpa: cgpa.toFixed(1),
+      cgpa: "0.0", // Mock for now
       attendancePct,
-      credits: "22 / 24", // Still mock for now as we don't have a credits table
-      rank: "#" + (Math.floor(Math.random() * 20) + 1), // Semi-mock rank
-      department: student?.department || "General"
+      credits: "22 / 24", 
+      rank: "#" + (Math.floor(Math.random() * 20) + 1),
+      department: student?.department || "General",
+      totalClasses: globalTotal,
+      totalPresent: globalPresent,
+      subjectWise: Object.values(subjectWise)
     };
   },
 

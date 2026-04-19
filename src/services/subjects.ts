@@ -42,10 +42,21 @@ export const subjectService = {
     return data as Subject;
   },
 
+  async updateSubject(id: string, updates: Partial<Subject>) {
+    const { data, error } = await supabase
+      .from('subjects')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as Subject;
+  },
+
   // 2. The Lock-In Logic (Teacher Claiming)
   async claimSubject(subjectId: string, classId: string, teacherId: string) {
     const { data, error } = await supabase
-      .from('subject_assignments')
+      .from('class_claims')
       .insert([{
         subject_id: subjectId,
         class_id: classId,
@@ -60,12 +71,12 @@ export const subjectService = {
       }
       throw error;
     }
-    return data as SubjectAssignment;
+    return data;
   },
 
   async getAssignmentsForClass(classId: string) {
     const { data, error } = await supabase
-      .from('subject_assignments')
+      .from('class_claims')
       .select(`
         *,
         subject:subjects(*)
@@ -78,7 +89,7 @@ export const subjectService = {
 
   async getAssignmentsByTeacher(teacherId: string) {
     const { data, error } = await supabase
-      .from('subject_assignments')
+      .from('class_claims')
       .select(`
         *,
         subject:subjects(*),
