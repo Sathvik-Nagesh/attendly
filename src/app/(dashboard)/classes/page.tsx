@@ -507,7 +507,7 @@ export default function ClassesPage() {
                         </div>
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Academic Year</Label>
-                            <Select value={newRegYear} onValueChange={(v) => v && setNewRegYear(v)}>
+                            <Select value={newRegYear} onValueChange={(v) => v && setNewRegYear(v as string)}>
                                 <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black text-sm">
                                     <SelectValue placeholder="Year" />
                                 </SelectTrigger>
@@ -523,7 +523,7 @@ export default function ClassesPage() {
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Institutional Dept</Label>
-                            <Select value={newRegDept} onValueChange={(v) => v && setNewRegDept(v)}>
+                            <Select value={newRegDept} onValueChange={(v) => v && setNewRegDept(v as string)}>
                                 <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black text-sm">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -538,7 +538,7 @@ export default function ClassesPage() {
                         </div>
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Current Semester</Label>
-                            <Select value={newRegSem} onValueChange={(v) => v && setNewRegSem(v)}>
+                            <Select value={newRegSem} onValueChange={(v) => v && setNewRegSem(v as string)}>
                                 <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black text-sm">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -593,7 +593,7 @@ export default function ClassesPage() {
 
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Course Identity</Label>
-                            <Select value={claimSubject} onValueChange={setClaimSubject}>
+                            <Select value={claimSubject} onValueChange={(v) => v && setClaimSubject(v)}>
                                 <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                                     <SelectValue placeholder="Select Subject Blueprint" />
                                 </SelectTrigger>

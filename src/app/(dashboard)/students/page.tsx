@@ -128,7 +128,7 @@ export default function StudentsPage() {
             const tpCol = `tp_${suffix}`;
 
             // Try to find a matching subject
-            const matchedSubject = subjectList.find(s =>
+            const matchedSubject = subjectList.find((s: any) =>
               s.code.toLowerCase().includes(suffix) ||
               s.name.toLowerCase().includes(suffix)
             );
@@ -167,7 +167,7 @@ export default function StudentsPage() {
 
         setImportProgress(100);
         setImportStatus('success');
-        toast.success(`Successfully synchronized ${newStudents.length} students to the cloud.`);
+        toast.success(`Successfully synchronized ${newStudentsData.length} students to the cloud.`);
         loadData();
         setTimeout(() => {
           setIsImportOpen(false);
@@ -269,7 +269,7 @@ export default function StudentsPage() {
               </div>
 
               <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
-                <Select value={selectedSection} onValueChange={setSelectedSection}>
+                <Select value={selectedSection} onValueChange={(v) => v && setSelectedSection(v)}>
                   <SelectTrigger className="w-[120px] border-none bg-white/10 text-white font-bold h-12 md:h-14 rounded-xl md:rounded-2xl">
                     <SelectValue placeholder="Section" />
                   </SelectTrigger>

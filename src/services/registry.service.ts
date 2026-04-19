@@ -31,13 +31,23 @@ export const registryService = {
     return data;
   },
 
-  async createClass(cls: { name: string; section?: string; year: number; department: string; teacher_id?: string }) {
+  async createClass(cls: { name: string; section?: string; year: number; semester?: number; department: string; teacher_id?: string }) {
     const { data, error } = await supabase
       .from('classes')
       .insert([cls])
       .select()
       .single();
     
+    if (error) throw error;
+    return data;
+  },
+
+  async getSubjects(filter?: { department?: string; semester?: number }) {
+    let query = supabase.from('subjects').select('*');
+    if (filter?.department) query = query.eq('department', filter.department);
+    if (filter?.semester) query = query.eq('semester', filter.semester);
+    
+    const { data, error } = await query.order('name', { ascending: true });
     if (error) throw error;
     return data;
   },
@@ -284,10 +294,11 @@ export const registryService = {
     });
 
     // 2. Add Session Records
-    attendance?.forEach(a => {
-        const code = a.subjects?.code || 'GEN';
+    attendance?.forEach((a: any) => {
+        const subjectData = Array.isArray(a.subjects) ? a.subjects[0] : a.subjects;
+        const code = subjectData?.code || 'GEN';
         if (!subjectWise[code]) {
-            subjectWise[code] = { name: a.subjects?.name || code, total: 0, present: 0, pct: 0 };
+            subjectWise[code] = { name: subjectData?.name || code, total: 0, present: 0, pct: 0 };
         }
         subjectWise[code].total += 1;
         if (a.status === 'present' || a.status === 'od') {
