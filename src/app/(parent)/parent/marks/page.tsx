@@ -113,7 +113,7 @@ export default function ParentMarksPage() {
                         <Lightbulb className="w-6 h-6 text-amber-500" />
                         <h3 className="text-xl font-bold text-slate-800">Faculty Feedback</h3>
                     </div>
-                    <p className="text-slate-500 font-medium italic">
+                    <p className="text-slate-500 font-medium">
                         "{student?.name?.split(' ')[0]} shows strong potential in core subjects. 
                         Encourage them to maintain their current {summary?.attendancePct}% attendance for consistent results."
                     </p>

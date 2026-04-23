@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ─── Enums ───────────────────────────────────────────────────
@@ -34,18 +33,18 @@ enum NotificationStatus {
 
 model Organization {
   id        String   @id @default(cuid())
-  name      String                          // "Global Institute of Technology"
-  code      String   @unique               // "GIT"
+  name      String // "Global Institute of Technology"
+  code      String   @unique // "GIT"
   logo      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  classes        Class[]
-  students       Student[]
-  teachers       Teacher[]
-  parents        Parent[]
-  notifications  NotificationLog[]
+  classes       Class[]
+  students      Student[]
+  teachers      Teacher[]
+  parents       Parent[]
+  notifications NotificationLog[]
 
   @@index([code])
 }
@@ -57,7 +56,7 @@ model Teacher {
   name           String
   email          String       @unique
   phone          String?
-  passwordHash   String                    // bcrypt hash, never plaintext
+  passwordHash   String // bcrypt hash, never plaintext
   role           Role         @default(TEACHER)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -65,7 +64,10 @@ model Teacher {
   updatedAt      DateTime     @updatedAt
 
   // Relations
-  attendanceLogs AttendanceLog[]          // records they marked
+  attendanceLogs  AttendanceLog[] // records they marked
+  subjects        Subject[]
+  pointsEntries   PointsEntry[]
+  pointsAuditLogs PointsAuditLog[]
 
   @@index([organizationId])
   @@index([email])
@@ -75,9 +77,9 @@ model Teacher {
 
 model Class {
   id             String       @id @default(cuid())
-  name           String                    // "Computer Science 101"
-  year           Int                       // academic year: 2024
-  semester       Int          @default(1)  // 1 or 2
+  name           String // "Computer Science 101"
+  year           Int // academic year: 2024
+  semester       Int          @default(1) // 1 or 2
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime     @default(now())
@@ -87,6 +89,8 @@ model Class {
   students       Student[]
   attendanceLogs AttendanceLog[]
   marks          Marks[]
+  subjects       Subject[]
+  pointsEntries  PointsEntry[]
 
   @@unique([name, organizationId, year, semester])
   @@index([organizationId])
@@ -100,8 +104,8 @@ model Student {
   rollNumber     String
   email          String?
   phone          String?
-  batch          String?                   // "Batch A", "Batch B"
-  passwordHash   String                   // bcrypt hash
+  batch          String? // "Batch A", "Batch B"
+  passwordHash   String // bcrypt hash
   role           Role         @default(STUDENT)
   classId        String
   class          Class        @relation(fields: [classId], references: [id])
@@ -116,10 +120,10 @@ model Student {
   parents        Parent[]
   notifications  NotificationLog[]
 
-  @@unique([rollNumber, organizationId])    // roll unique per org
+  @@unique([rollNumber, organizationId]) // roll unique per org
   @@index([classId])
   @@index([organizationId])
-  @@index([organizationId, classId])        // composite for filtered queries
+  @@index([organizationId, classId]) // composite for filtered queries
 }
 
 // ─── Parent ──────────────────────────────────────────────────
@@ -129,7 +133,7 @@ model Parent {
   name           String
   phone          String
   email          String?
-  passwordHash   String                   // bcrypt hash
+  passwordHash   String // bcrypt hash
   role           Role         @default(PARENT)
   studentId      String
   student        Student      @relation(fields: [studentId], references: [id])
@@ -138,62 +142,83 @@ model Parent {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  @@unique([phone, organizationId])        // unique per org
+  @@unique([phone, organizationId]) // unique per org
   @@index([studentId])
   @@index([organizationId])
+}
+
+// ─── Subject ───────────────────────────────────────────────────
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+  teacherId String
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  marks Marks[]
+
+  @@index([classId])
+  @@index([teacherId])
 }
 
 // ─── Marks (Normalized — Per Subject/Semester) ───────────────
 
 model Marks {
-  id             String   @id @default(cuid())
-  studentId      String
-  student        Student  @relation(fields: [studentId], references: [id])
-  classId        String
-  class          Class    @relation(fields: [classId], references: [id])
-  subject        String                   // "Data Structures", "OS"
-  semester       Int                      // 1, 2, etc.
-  year           Int                      // academic year
+  id        String  @id @default(cuid())
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+  classId   String
+  class     Class   @relation(fields: [classId], references: [id])
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  semester  Int // 1, 2, etc.
+  year      Int // academic year
 
   // Individual components
-  cia1           Float    @default(0)     // out of 2.5
-  cia2           Float    @default(0)     // out of 2.5
-  test1          Float    @default(0)     // raw out of 40
-  test2          Float    @default(0)     // raw out of 40
-  assignment     Float    @default(0)     // out of 10
+  cia1       Float @default(0) // out of 2.5
+  cia2       Float @default(0) // out of 2.5
+  test1      Float @default(0) // raw out of 40
+  test2      Float @default(0) // raw out of 40
+  assignment Float @default(0) // out of 10
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([studentId, classId, subject, semester, year])
+  @@unique([studentId, classId, subjectId, semester, year])
   @@index([studentId])
   @@index([classId])
+  @@index([subjectId])
   @@index([studentId, classId])
 }
 
 // ─── Attendance Log ──────────────────────────────────────────
 
 model AttendanceLog {
-  id             String           @id @default(cuid())
-  date           DateTime
-  lectureNumber  Int              @default(1)
-  status         AttendanceStatus
-  studentId      String
-  student        Student          @relation(fields: [studentId], references: [id])
-  classId        String
-  class          Class            @relation(fields: [classId], references: [id])
-  markedById     String?                   // who marked it
-  markedBy       Teacher?         @relation(fields: [markedById], references: [id])
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  date          DateTime
+  lectureNumber Int              @default(1)
+  status        AttendanceStatus
+  studentId     String
+  student       Student          @relation(fields: [studentId], references: [id])
+  classId       String
+  class         Class            @relation(fields: [classId], references: [id])
+  markedById    String? // who marked it
+  markedBy      Teacher?         @relation(fields: [markedById], references: [id])
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   // Prevent duplicate entries for the same student, date, lecture
   @@unique([date, studentId, lectureNumber])
   @@index([studentId])
   @@index([classId])
   @@index([date])
-  @@index([studentId, date])               // for date-range student queries
-  @@index([classId, date])                 // for daily class view
+  @@index([studentId, date]) // for date-range student queries
+  @@index([classId, date]) // for daily class view
 }
 
 // ─── Notification Log ────────────────────────────────────────
@@ -205,13 +230,84 @@ model NotificationLog {
   organizationId String
   organization   Organization       @relation(fields: [organizationId], references: [id])
   message        String
-  channel        String             @default("SMS")  // SMS, WHATSAPP, EMAIL
+  channel        String             @default("SMS") // SMS, WHATSAPP, EMAIL
   status         NotificationStatus @default(PENDING)
   sentAt         DateTime?
-  error          String?                              // store failure reason
+  error          String? // store failure reason
   createdAt      DateTime           @default(now())
 
   @@index([studentId])
   @@index([organizationId])
-  @@index([status])                                   // for retry queries
+  @@index([status]) // for retry queries
+}
+
+// ─── Events & Sports ─────────────────────────────────────────
+
+enum EventStatus {
+  DRAFT
+  LIVE
+  COMPLETED
+  PUBLISHED
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  date        DateTime
+  status      EventStatus @default(DRAFT)
+  isPublished Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  categories    EventCategory[]
+  pointsEntries PointsEntry[]
+}
+
+model EventCategory {
+  id        String @id @default(cuid())
+  eventId   String
+  event     Event  @relation(fields: [eventId], references: [id])
+  name      String
+  maxPoints Int?
+
+  // Relations
+  pointsEntries PointsEntry[]
+}
+
+model PointsEntry {
+  id            String        @id @default(cuid())
+  eventId       String
+  event         Event         @relation(fields: [eventId], references: [id])
+  categoryId    String
+  category      EventCategory @relation(fields: [categoryId], references: [id])
+  classId       String
+  class         Class         @relation(fields: [classId], references: [id])
+  pointsAwarded Int
+  position      String?
+  createdById   String
+  createdBy     Teacher       @relation(fields: [createdById], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  auditLogs PointsAuditLog[]
+
+  @@unique([categoryId, classId])
+}
+
+enum AuditAction {
+  CREATED
+  UPDATED
+  DELETED
+}
+
+model PointsAuditLog {
+  id            String      @id @default(cuid())
+  pointsEntryId String
+  pointsEntry   PointsEntry @relation(fields: [pointsEntryId], references: [id])
+  action        AuditAction
+  performedById String
+  performedBy   Teacher     @relation(fields: [performedById], references: [id])
+  timestamp     DateTime    @default(now())
 }

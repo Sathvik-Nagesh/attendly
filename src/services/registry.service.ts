@@ -240,11 +240,18 @@ export const registryService = {
   },
 
   async getStudentByParentEmail(email: string) {
-    const { data, error } = await supabase
-      .from('students')
-      .select('*, classes(*)')
-      .eq('parent_email', email)
-      .maybeSingle();
+    let query = supabase.from('students').select('*, classes(*)');
+
+    // Handle synthetic parent emails created via signup (e.g., p_cs-01@attendly.local)
+    if (email.startsWith('p_') && email.endsWith('@attendly.local')) {
+      const rollNumber = email.slice(2, email.indexOf('@'));
+      query = query.ilike('roll_number', rollNumber);
+    } else {
+      // Fallback for real parent emails
+      query = query.eq('parent_email', email);
+    }
+
+    const { data, error } = await query.maybeSingle();
     
     if (error) throw error;
     return data;

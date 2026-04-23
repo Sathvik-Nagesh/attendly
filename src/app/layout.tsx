@@ -47,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full bg-slate-50 antialiased overflow-x-hidden">
-      <body className={`${inter.className} min-h-full flex flex-col text-slate-900`}>
+      <body className={`${inter.className} min-h-full flex flex-col text-slate-900 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]`}>
         <Providers>
           <Suspense fallback={<LoadingScreen />}>
             {children}

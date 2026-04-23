@@ -2,7 +2,7 @@
   "name": "KLE Academy | Attendly",
   "short_name": "KLE Academy",
   "description": "Premium institutional command center for high-performance attendance and academic tracking.",
-  "start_url": "/",
+  "start_url": "/login",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f172a",
