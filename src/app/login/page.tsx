@@ -60,8 +60,8 @@ export default function LoginPage() {
         .eq('id', data.user?.id)
         .single();
 
-      const role = profile?.role || data.user?.user_metadata?.role || "TEACHER";
-      const redirectPath = role === "STUDENT" ? "/student/dashboard" : role === "PARENT" ? "/parent/dashboard" : "/dashboard";
+      const userRole = profile?.role || data.user?.user_metadata?.role || "TEACHER";
+      const redirectPath = userRole === "STUDENT" ? "/student/dashboard" : userRole === "PARENT" ? "/parent/dashboard" : "/dashboard";
       
       router.push(redirectPath);
     } catch (err: any) {

@@ -8,4 +8,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Global Browser Client (Legacy Support)
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createBrowserClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder'
+);
