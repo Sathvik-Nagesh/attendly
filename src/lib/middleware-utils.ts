@@ -1,5 +1,5 @@
 /**
- * Attendly — Middleware Utilities
+ * Attendex — Middleware Utilities
  *
  * CSP headers live here (Edge-compatible, no Node APIs).
  * Auth is handled solely by middleware.ts — do NOT call protectRoute
@@ -32,3 +32,4 @@ export function getCSPHeader() {
     .map(([key, values]) => `${key} ${values.join(" ")}`)
     .join("; ");
 }
+

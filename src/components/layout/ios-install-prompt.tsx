@@ -52,7 +52,7 @@ export function IosInstallPrompt() {
               
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-white font-black uppercase tracking-tight text-lg">Install Attendly</h3>
+                  <h3 className="text-white font-black uppercase tracking-tight text-lg">Install Attendex</h3>
                   <button 
                     onClick={(e) => {
                         e.preventDefault();
@@ -99,3 +99,4 @@ export function IosInstallPrompt() {
     </AnimatePresence>
   );
 }
+

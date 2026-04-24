@@ -98,7 +98,7 @@ export default function ResultsPage() {
 
                                     // 1. Branding Header
                                     doc.setFontSize(22);
-                                    doc.text("ATTENDEX CONSOLIDATED MERIT LIST", 105, 20, { align: "center" });
+                                    doc.text("Attendex CONSOLIDATED MERIT LIST", 105, 20, { align: "center" });
                                     
                                     doc.setFontSize(10);
                                     doc.text(`Institutional Analytics Summary | Generated: ${timestamp}`, 105, 28, { align: "center" });
@@ -230,3 +230,4 @@ function ResultStat({ label, value, icon: Icon, color }: any) {
         </Card>
     );
 }
+

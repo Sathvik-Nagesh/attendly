@@ -14,7 +14,10 @@ import {
   Globe,
   Users,
   BarChart3,
-  Mail
+  Mail,
+  Trophy,
+  BookOpen,
+  Medal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -186,19 +189,19 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
-              icon={Zap}
-              title="Hyper-Fast Entry"
-              description="Record absent numbers in seconds. Our intelligent autocomplete and batch-select speeds up taking attendance by 80%."
+              icon={Trophy}
+              title="Academic Leaderboards"
+              description="Foster healthy competition with dynamic, real-time rankings based on internal performance and event achievements."
             />
             <FeatureCard
-              icon={Smartphone}
-              title="Smart SMS Bridge"
-              description="Direct integration with premium SMS gateways. Parents are notified instantly of absence via SMS, WhatsApp, or Email."
+              icon={BookOpen}
+              title="CIA Marks Registry"
+              description="Streamlined entry for Continuous Internal Assessment (CIA) marks. Automates weighting and grade calculations."
             />
             <FeatureCard
-              icon={BarChart3}
-              title="One-Click PDF Reports"
-              description="Instantly generate Defaulter Lists (below 75%) or Semester-end reports in professionally formatted PDF or Excel sheets."
+              icon={Medal}
+              title="Sports & Event Points"
+              description="Integrated tracking for co-curricular achievements. Reward excellence in sports and events with automated points."
             />
             <FeatureCard
               icon={Users}
@@ -326,7 +329,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto pt-16 mt-16 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
             <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
-              © 2026 Attendly Systems.
+              © 2026 Attendex Systems.
             </p>
             <div className="hidden md:block w-1 h-1 rounded-full bg-slate-300" />
             <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
@@ -368,3 +371,4 @@ function SecurityFeature({ icon: Icon, title, desc }: any) {
     </div>
   )
 }
+

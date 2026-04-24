@@ -44,7 +44,7 @@ export default function ProxyAuditPage() {
             <div className="relative z-10">
               <h3 className="text-amber-900 text-lg font-black tracking-tight mb-2 uppercase">Behavioral Anomaly Detection Active</h3>
               <p className="text-amber-800/70 text-sm font-bold leading-relaxed max-w-2xl">
-                The Attendly heuristic engine is currently scanning trail-run logs for "Proxy Presence" and "Early Departures." Identified patterns are flagged for HOD intervention.
+                The Attendex heuristic engine is currently scanning trail-run logs for "Proxy Presence" and "Early Departures." Identified patterns are flagged for HOD intervention.
               </p>
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-white/60 rounded-2xl border border-amber-200/50">
@@ -141,3 +141,4 @@ export default function ProxyAuditPage() {
 function cn(...inputs: any[]) {
     return inputs.filter(Boolean).join(" ");
 }
+

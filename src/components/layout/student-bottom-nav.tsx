@@ -22,7 +22,7 @@ export function StudentBottomNav() {
             {/* Blur backdrop */}
             <div className="absolute inset-0 bg-white/90 backdrop-blur-xl border-t border-slate-100" />
 
-            <div className="relative flex items-center justify-around px-2 h-16 safe-area-bottom">
+            <div className="relative flex items-center justify-around px-2 h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)]">
                 {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
                     const isActive = pathname === href || pathname.startsWith(href + "/");
                     return (

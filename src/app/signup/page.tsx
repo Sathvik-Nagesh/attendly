@@ -47,9 +47,9 @@ export default function SignupPage() {
     try {
       let email = formData.email;
       if (role === 'STUDENT') {
-        email = `${formData.roleSpecificId.toLowerCase()}@attendly.local`;
+        email = `${formData.roleSpecificId.toLowerCase()}@Attendex.local`;
       } else if (role === 'PARENT') {
-        email = `p_${formData.roleSpecificId.toLowerCase()}@attendly.local`;
+        email = `p_${formData.roleSpecificId.toLowerCase()}@Attendex.local`;
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -216,3 +216,4 @@ export default function SignupPage() {
     </div>
   );
 }
+

@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Calendar, CheckCircle, Clock, ShieldAlert, TrendingUp, AlertCircle,
-  Bell, BookOpen, UserCheck, MessageSquare, ChevronRight, Download, GraduationCap
+  Bell, BookOpen, UserCheck, MessageSquare, ChevronRight, Download, GraduationCap, Trophy
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -106,7 +106,7 @@ export default function ParentDashboard() {
             <MetricCard label="Regularity" value={`${performance.attendance}%`} sub="75% Target" color={performance.attendance < 75 ? "text-rose-600" : "text-emerald-600"} icon={Clock} />
             <MetricCard label="Internal Marks" value={`${Math.round(performance.avgMarks)}/20`} sub="Current average" color="text-slate-900" icon={CheckCircle} />
             <MetricCard label="Attendance Marks" value={`${Math.min(5, Math.floor(performance.attendance / 20))}/5`} sub="Based on BU marks" color="text-slate-900" icon={Calendar} />
-            <MetricCard label="Upcoming Exam" value={upcomingExam ? format(new Date(upcomingExam.exam_date), "MMM d") : "None"} sub={upcomingExam?.subject || "Subject"} color="text-blue-600" icon={BookOpen} />
+            <MetricCard label="Sports Points" value="450 XP" sub="Institutional Achievement" color="text-orange-500" icon={Trophy} />
         </div>
 
         {/* Alert System */}

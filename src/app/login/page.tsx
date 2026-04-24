@@ -40,7 +40,7 @@ export default function LoginPage() {
       let email = values.identifier;
       if (!values.identifier.includes('@')) {
         const id = values.identifier.toLowerCase();
-        email = role === 'STUDENT' ? `${id}@attendly.local` : role === 'PARENT' ? `p_${id}@attendly.local` : id;
+        email = role === 'STUDENT' ? `${id}@Attendex.local` : role === 'PARENT' ? `p_${id}@Attendex.local` : id;
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -176,4 +176,5 @@ export default function LoginPage() {
     </PageTransition>
   );
 }
+
 

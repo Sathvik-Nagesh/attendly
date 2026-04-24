@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="name@attendly.edu" 
+                        placeholder="name@Attendex.edu" 
                         className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 font-bold text-sm focus:bg-white transition-all"
                         required
                     />
@@ -112,3 +112,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+

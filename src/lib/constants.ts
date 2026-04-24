@@ -38,7 +38,7 @@ export const PUBLIC_ROUTES = ["/", "/login"] as const;
 
 // ─── Notification Providers ──────────────────────────────────
 export const SMS_PROVIDER = "MSG91";
-export const DEFAULT_SENDER_ID = "ATNDLY";
+export const DEFAULT_SENDER_ID = "ATNDEX";
 
 // ─── Pagination ──────────────────────────────────────────────
 export const DEFAULT_PAGE_SIZE = 50;

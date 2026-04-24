@@ -204,7 +204,7 @@ export default function StudentDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <StatCard title="Total Presence" value={`${student?.attendancePercentage.toFixed(1)}%`} color="bg-blue-600" icon={CheckCircle} delay={0.2} />
-                <StatCard title="Financial Clearance" value="Clearance Reg." color="bg-emerald-500" icon={CreditCard} delay={0.3} />
+                <StatCard title="Sports Achievement" value="450 XP" color="bg-orange-500" icon={Trophy} delay={0.3} />
             </div>
 
             <Card className="p-10 border-slate-100 rounded-[3.5rem] bg-white shadow-sm border border-slate-100">

@@ -27,7 +27,7 @@ export function PasskeyCard() {
       const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
         challenge,
         rp: {
-          name: "Attendly KLE Academy",
+          name: "Attendex KLE Academy",
           id: window.location.hostname,
         },
         user: {
@@ -123,3 +123,4 @@ export function PasskeyCard() {
     </Card>
   );
 }
+

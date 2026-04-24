@@ -123,3 +123,5 @@ export const PARENT_ATTENDANCE_HISTORY = [
   { name: "Week 3", rate: 75 },
   { name: "Week 4", rate: 72 },
 ];
+
+

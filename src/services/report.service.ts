@@ -88,3 +88,5 @@ export function generateReport(request: ReportRequest): ReportOutput {
       throw new Error(`Unknown report type: ${request.type}`);
   }
 }
+
+

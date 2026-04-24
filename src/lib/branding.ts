@@ -9,13 +9,13 @@ export interface BrandingConfig {
 }
 
 export const DEFAULT_BRANDING: BrandingConfig = {
-  name: "KLE Academy",
-  shortName: "KLE",
+  name: "Attendex",
+  shortName: "Attendex",
   logoUrl: "/icons/KLE_logo.jpg",
   primaryColor: "#0f172a", // slate-900
   accentColor: "#2563eb",  // blue-600
   faviconUrl: "/favicon.ico",
-  supportEmail: "support@attendly.com",
+  supportEmail: "support@attendex.com",
 };
 
 // This could eventually fetch from Supabase based on the URL or User's Org

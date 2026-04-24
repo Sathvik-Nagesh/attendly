@@ -3,13 +3,13 @@ import { toast } from "sonner";
 import { get, set, del, keys } from "idb-keyval";
 
 /**
- * Attendly — Relational Offline Persistence (ROPE)
+ * Attendex — Relational Offline Persistence (ROPE)
  * 
  * High-performance IndexedDB-based durability layer for institutional
  * data during campus-wide network fluctuations.
  */
 
-const STORAGE_KEY = "attendly_offline_queue";
+const STORAGE_KEY = "Attendex_offline_queue";
 
 export interface OfflineAttendance {
   id: string;
@@ -82,4 +82,5 @@ export const offlineService = {
     return drafts.length > 0;
   }
 };
+
 

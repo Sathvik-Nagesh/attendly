@@ -35,7 +35,10 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Library
+  Library,
+  Trophy,
+  Medal,
+  Award as AwardIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -60,12 +63,15 @@ const ADMIN_LINKS: SidebarLink[] = [
   { name: "Promotion Center", href: "/promotion", icon: RefreshCcw },
   { name: "Pattern Audit", href: "/audit", icon: SearchCode },
   { name: "Notifications", href: "/notifications", icon: Bell },
+  { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
+  { name: "Sports & Events", href: "/sports", icon: Medal },
 ];
 
 const STUDENT_LINKS: SidebarLink[] = [
   { name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
   { name: "Marks & Grades", href: "/student/marks", icon: BookOpen },
   { name: "Attendance Log", href: "/student/history", icon: History },
+  { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "My Profile", href: "/student/profile", icon: UserRound },
 ];
 
@@ -73,6 +79,7 @@ const PARENT_LINKS: SidebarLink[] = [
   { name: "Overview", href: "/parent/dashboard", icon: Home },
   { name: "Academic Standing", href: "/parent/marks", icon: BookOpen },
   { name: "Attendance History", href: "/parent/history", icon: History },
+  { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "Notifications", href: "/parent/notifications", icon: Bell },
 ];
 
@@ -82,6 +89,7 @@ const VARIANT_CONFIG = {
       ...ADMIN_LINKS,
       { name: "Timetable", href: "/timetable", icon: History },
       { name: "Results & Exams", href: "/results", icon: BookOpen },
+      { name: "Manage Marks", href: "/results/manage", icon: AwardIcon },
     ],
     title: "KLE Academy",
     subtitle: "Administration",
@@ -94,7 +102,7 @@ const VARIANT_CONFIG = {
       { name: "My Timetable", href: "/student/timetable", icon: History },
       { name: "Exams & Results", href: "/student/marks", icon: BookOpen },
     ],
-    title: "KLE Academy",
+    title: "Attendex",
     subtitle: "Student Portal",
     showSettings: false,
     accentColor: "indigo",
@@ -105,7 +113,7 @@ const VARIANT_CONFIG = {
       { name: "Child's Timetable", href: "/parent/timetable", icon: History },
       { name: "Results Portal", href: "/parent/marks", icon: BookOpen },
     ],
-    title: "KLE Academy",
+    title: "Attendex",
     subtitle: "Family Portal",
     showSettings: false,
     accentColor: "rose",
@@ -117,10 +125,12 @@ const VARIANT_CONFIG = {
       { name: "Students", href: "/students", icon: Users },
       { name: "Classes", href: "/classes", icon: GraduationCap },
       { name: "Schedule", href: "/timetable", icon: History },
-      { name: "Results", href: "/results", icon: BookOpen },
+      { name: "Manage Marks", href: "/results/manage", icon: BookOpen },
+      { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
+      { name: "Sports Entry", href: "/sports", icon: Medal },
       { name: "Alerts", href: "/notifications", icon: Bell },
     ],
-    title: "KLE Academy",
+    title: "Attendex",
     subtitle: "Faculty Portal",
     showSettings: true,
     accentColor: "blue",
@@ -255,7 +265,7 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 z-[60] md:hidden flex items-center px-4 justify-between">
+      <div className="fixed top-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] bg-white/80 backdrop-blur-md border-b border-slate-100 z-[60] md:hidden flex items-center px-4 justify-between">
          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-100 shadow-sm">
                <img src={branding.logoUrl} alt={branding.shortName} className="w-full h-auto" />
@@ -289,7 +299,7 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute left-0 top-0 bottom-0 w-[280px] bg-white shadow-2xl flex flex-col pt-2"
+              className="absolute left-0 top-0 bottom-0 w-[280px] bg-white shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]"
             >
               <div className="flex justify-end p-4">
                 <button onClick={() => setIsMobileOpen(false)} className="p-2 text-slate-400">
@@ -314,3 +324,5 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
     </>
   );
 }
+
+

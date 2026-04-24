@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Card } from "@/components/ui/card";
-import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight, MessageSquare, AlertCircle, Loader2, Shield, Bell } from "lucide-react";
+import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight, MessageSquare, AlertCircle, Loader2, Shield, Bell, BookOpen, Trophy, Award as AwardIcon, Medal } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -139,7 +139,7 @@ export default function DashboardPage() {
         
         doc.setFontSize(22);
         doc.setTextColor(15, 23, 42); 
-        doc.text("Attendly College Portal", 105, 20, { align: "center" });
+        doc.text("Attendex College Portal", 105, 20, { align: "center" });
         
         doc.setFontSize(12);
         doc.setTextColor(100);
@@ -168,7 +168,7 @@ export default function DashboardPage() {
             styles: { fontSize: 10, cellPadding: 5 },
         });
 
-        doc.save("attendly_defaulter_list.pdf");
+        doc.save("Attendex_defaulter_list.pdf");
         setIsGenerating(null);
         toast.dismiss();
         toast.success("Defaulter List (PDF) exported successfully!");
@@ -195,7 +195,7 @@ export default function DashboardPage() {
         
         XLSX.utils.sheet_add_aoa(worksheet, [["ID", "Student Name", "Roll Number", "Department", "Attendance %", "Status"]], { origin: "A1" });
 
-        XLSX.writeFile(workbook, "attendly_monthly_ledger.xlsx");
+        XLSX.writeFile(workbook, "Attendex_monthly_ledger.xlsx");
         setIsGenerating(null);
         toast.dismiss();
         toast.success("Monthly Ledger (XLS) exported successfully!");
@@ -346,6 +346,48 @@ export default function DashboardPage() {
                              <span>Monthly Sheet (XLS)</span>
                         </div>
                         <ArrowRight className="w-3 h-3 text-slate-300 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
+                </Card>
+                
+                <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
+                  <h3 className="text-sm font-bold text-slate-900 mb-4">Institutional Quick Actions</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="h-12 rounded-lg border-slate-100 font-semibold gap-2 justify-start px-4 hover:bg-slate-50 transition-all"
+                        onClick={() => router.push('/results/manage')}
+                    >
+                        <BookOpen className="w-4 h-4 text-blue-600" />
+                        <span>CIA Entry</span>
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="h-12 rounded-lg border-slate-100 font-semibold gap-2 justify-start px-4 hover:bg-slate-50 transition-all"
+                        onClick={() => router.push('/sports')}
+                    >
+                        <Trophy className="w-4 h-4 text-emerald-600" />
+                        <span>Sports</span>
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="h-12 rounded-lg border-slate-100 font-semibold gap-2 justify-start px-4 hover:bg-slate-50 transition-all"
+                        onClick={() => router.push('/leaderboard')}
+                    >
+                        <AwardIcon className="w-4 h-4 text-amber-600" />
+                        <span>Leaderboard</span>
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="h-12 rounded-lg border-slate-100 font-semibold gap-2 justify-start px-4 hover:bg-slate-50 transition-all"
+                        onClick={() => router.push('/notifications')}
+                    >
+                        <Bell className="w-4 h-4 text-rose-600" />
+                        <span>Alerts</span>
                     </Button>
                   </div>
                 </Card>

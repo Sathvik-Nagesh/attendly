@@ -1,7 +1,7 @@
 import DOMPurify from "isomorphic-dompurify";
 
 /**
- * Attendly — Security Utilities
+ * Attendex — Security Utilities
  *
  * Input sanitization (XSS protection).
  * Note: Password hashing is handled by Supabase Auth — no manual bcrypt needed.
@@ -28,3 +28,4 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
   }
   return result;
 }
+

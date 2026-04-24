@@ -10,10 +10,10 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const brandName = "KLE Academy"; // This will eventually come from getBranding() or params
+  const brandName = "Attendex";
   
   return {
-    title: `${brandName} | Attendly`,
+    title: brandName,
     description: "Advanced institutional command center for high-performance academic tracking.",
     manifest: "/manifest.json",
     appleWebApp: {
@@ -47,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full bg-slate-50 antialiased overflow-x-hidden">
-      <body className={`${inter.className} min-h-full flex flex-col text-slate-900 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]`}>
+      <body className={`${inter.className} min-h-full flex flex-col text-slate-900`}>
         <Providers>
           <Suspense fallback={<LoadingScreen />}>
             {children}
@@ -106,3 +106,4 @@ export default function RootLayout({
     </html>
   );
 }
+

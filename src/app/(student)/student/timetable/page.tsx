@@ -225,7 +225,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                                             const content = "class,section,day,subject,faculty,room,start,end\nBCA,A,Monday,Web Design,Dr. Smith,Lab-1,09:00:00,10:00:00";
                                             const a = document.createElement('a');
                                             a.href = URL.createObjectURL(new Blob([content], { type: 'text/csv' }));
-                                            a.download = 'attendly_template.csv';
+                                            a.download = 'Attendex_template.csv';
                                             a.click();
                                         }}
                                     >
@@ -366,3 +366,4 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
         </PageTransition>
     );
 }
+
