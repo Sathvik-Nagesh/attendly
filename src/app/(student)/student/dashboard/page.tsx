@@ -29,12 +29,14 @@ import { Button } from "@/components/ui/button";
 import { academicService } from "@/services/academic";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
+import { projectAttendance } from "@/services/analytics.service";
 
 export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<any>(null);
   const [nextExam, setNextExam] = useState<any>(null);
   const [performance, setPerformance] = useState<any>(null);
+  const [projection, setProjection] = useState<any>(null);
 
   useEffect(() => {
     const loadAcademicPulse = async () => {
@@ -75,6 +77,10 @@ export default function StudentDashboard() {
           className: studentRecord.classes?.name,
           attendancePercentage: livePercentage
         });
+
+        // 3.5 Project Attendance (Assuming 50 classes for now)
+        const proj = projectAttendance(totalPresent, totalConducted, 50);
+        setProjection(proj);
 
         // 4. Fetch Next Exam relative to student's class
         const exam = await academicService.getUpcomingExam(studentRecord.class_id);
@@ -163,8 +169,8 @@ export default function StudentDashboard() {
                                 </h2>
                                 <p className="text-sm font-bold opacity-60 max-w-xs leading-relaxed">
                                     {isEligible 
-                                        ? "Your attendance meets institutional norms. Download your entry QR below."
-                                        : "Regularity falls below 75%. Hall ticket withholding protocol initiated."
+                                        ? `You are on track. Safe buffer: You can afford to miss up to ${projection?.safeBuffer || 0} more lectures.` 
+                                        : `Critical shortage. You MUST attend at least ${projection?.targetRemaining || 0} more lectures to reach 75% eligibility.`
                                     }
                                 </p>
                             </div>

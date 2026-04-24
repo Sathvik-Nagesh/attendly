@@ -91,7 +91,7 @@ const VARIANT_CONFIG = {
       { name: "Results & Exams", href: "/results", icon: BookOpen },
       { name: "Manage Marks", href: "/results/manage", icon: AwardIcon },
     ],
-    title: "KLE Academy",
+    title: "Attendex",
     subtitle: "Administration",
     showSettings: true,
     accentColor: "blue",

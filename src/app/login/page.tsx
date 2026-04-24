@@ -16,7 +16,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginFormValues } from "@/lib/schemas";
 import { useBranding } from "@/context/branding-context";
 
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Fingerprint } from "lucide-react";
+import { useWebAuthn } from "@/hooks/use-webauthn";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<'TEACHER' | 'STUDENT' | 'PARENT'>('STUDENT');
   const { branding } = useBranding();
+  const { authenticateWithPasskey, isLoading: isBiometricLoading } = useWebAuthn();
 
   const {
     register,
@@ -68,7 +70,20 @@ export default function LoginPage() {
         toast.error("Authorization Failed", {
             description: err.message || "Please verify your credentials or contact tech support."
         });
+    } finally {
         setIsLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    const success = await authenticateWithPasskey();
+    if (success) {
+      // In a real app, the authenticateWithPasskey would return a user object or token.
+      // For this implementation, we simulate the redirect to the dashboard.
+      toast.success("Biometric Sovereignty Authorized", {
+          description: "Access granted via trusted hardware."
+      });
+      router.push("/dashboard");
     }
   };
 
@@ -157,6 +172,22 @@ export default function LoginPage() {
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Log In"}
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-100" /></div>
+                <div className="relative flex justify-center text-[10px] uppercase tracking-widest"><span className="bg-white px-2 text-slate-400 font-black">OR</span></div>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleBiometricLogin}
+                disabled={isBiometricLoading || isLoading}
+                variant="outline"
+                className="w-full h-16 rounded-2xl border-slate-100 bg-slate-50/50 hover:bg-slate-100 text-slate-900 font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3"
+              >
+                {isBiometricLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Fingerprint className="w-5 h-5 text-blue-600" />}
+                Biometric Login
               </Button>
             </form>
           </Card>

@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { useStudents, useClasses, useDashboardStats, useNotifications } from "@/hooks/use-academic";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
+import { AtRiskPanel } from "@/components/dashboard/at-risk-panel";
 
 // Import export libraries
 
@@ -101,6 +102,8 @@ export default function DashboardPage() {
     enabled: userProfile?.role === 'ADMIN'
   });
 
+  const { data: students = [], isLoading: isLoadingStudents } = useStudents();
+
   const { data: stats, isLoading, refetch } = useDashboardStats(timeframe);
 
   const handleRefresh = async () => {
@@ -111,7 +114,7 @@ export default function DashboardPage() {
   };
 
 
-  const { data: students = [] } = useQuery({
+  const { data: studentsForExport = [] } = useQuery({
     queryKey: ['all-students-export'],
     queryFn: () => academicService.getAllStudentsUnpaginated(),
     enabled: !!userProfile
@@ -149,7 +152,7 @@ export default function DashboardPage() {
         doc.setDrawColor(226, 232, 240);
         doc.line(20, 45, 190, 45);
 
-        const defaulterData = students
+        const defaulterData = studentsForExport
             .filter((s: any) => (s.attendance_percentage || 0) < 75)
             .map((s: any, i: number) => [
                 (i + 1).toString(),
@@ -180,7 +183,7 @@ export default function DashboardPage() {
     toast.loading("Compiling Monthly Ledger...");
 
     setTimeout(() => {
-        const ledgerData = students.map((s: any) => ({
+        const ledgerData = studentsForExport.map((s: any) => ({
             id: s.id,
             name: s.name,
             roll: s.roll_number,
@@ -318,6 +321,8 @@ export default function DashboardPage() {
               </Card>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AtRiskPanel students={students} />
+                
                 <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
                   <h3 className="text-sm font-bold text-slate-900 mb-4">Quick Exports</h3>
                   <div className="space-y-3">

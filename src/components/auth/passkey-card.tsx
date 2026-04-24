@@ -6,68 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { haptics } from "@/lib/haptics";
+import { useWebAuthn } from "@/hooks/use-webauthn";
 
 export function PasskeyCard() {
-  const [isEnrolling, setIsEnrolling] = useState(false);
+  const { registerPasskey, isLoading: isEnrolling } = useWebAuthn();
   const [isRegistered, setIsRegistered] = useState(false);
 
   const startEnrollment = async () => {
-    setIsEnrolling(true);
     haptics.light();
-    
-    try {
-      // 1. Real WebAuthn Handshake
-      // In production, 'challenge' and 'user.id' should come from your backend.
-      const challenge = new Uint8Array(32);
-      window.crypto.getRandomValues(challenge);
-      
-      const userId = new Uint8Array(16);
-      window.crypto.getRandomValues(userId);
-
-      const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
-        challenge,
-        rp: {
-          name: "Attendex KLE Academy",
-          id: window.location.hostname,
-        },
-        user: {
-          id: userId,
-          name: "user@institution.edu",
-          displayName: "Institutional Faculty",
-        },
-        pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
-        authenticatorSelection: {
-          authenticatorAttachment: "platform",
-          userVerification: "preferred",
-        },
-        timeout: 60000,
-        attestation: "none",
-      };
-
-      const credential = await navigator.credentials.create({
-        publicKey: publicKeyCredentialCreationOptions,
-      });
-
-      if (!credential) throw new Error("Credential creation failed");
-
-      // 2. Production Note: At this point, you would send 'credential' to your server
-      // to verify the attestation and store the public key in Supabase.
-      
+    const success = await registerPasskey();
+    if (success) {
       setIsRegistered(true);
       haptics.success();
-      toast.success("Biometric Sovereignty Established", {
-        description: "Your hardware identity is now bound to this workstation."
-      });
-    } catch (err: any) {
-      console.error("WebAuthn Error:", err);
+    } else {
       haptics.error();
-      toast.error("Handshake Failed", {
-        description: err.name === "NotAllowedError" 
-          ? "Biometric prompt was dismissed or timed out."
-          : "Your device/browser does not support hardware-level identity binding."
-      });
-    } finally {
-      setIsEnrolling(false);
     }
   };
 
