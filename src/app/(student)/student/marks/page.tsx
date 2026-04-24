@@ -1,5 +1,6 @@
 "use client";
 
+import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Card } from "@/components/ui/card";
 import { 
@@ -83,17 +84,7 @@ export default function StudentMarksPage() {
     <PageTransition>
       <div className="flex flex-col min-h-full pb-20 pt-8 max-w-6xl mx-auto space-y-10 px-4 md:px-0">
         
-        <header className="flex flex-col gap-2">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-slate-400 md:hidden" onClick={() => window.history.back()}>
-                    <ChevronRight className="w-5 h-5 rotate-180" />
-                </Button>
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Academic Records</h1>
-                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Session: Spring 2026 ({academicData?.student?.department || "General"})</p>
-                </div>
-            </div>
-        </header>
+        <Header title="My Marks" showBack />
 
         {/* GPA Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

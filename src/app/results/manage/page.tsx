@@ -126,7 +126,7 @@ export default function MarksManagementPage() {
   };
 
   const filteredStudents = students.filter(s => 
-    s.full_name.toLowerCase().includes(search.toLowerCase()) ||
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.roll_number.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -140,7 +140,7 @@ export default function MarksManagementPage() {
   return (
     <PageTransition>
       <div className="flex flex-col min-h-full">
-        <Header title="Continuous Internal Assessment (CIA) Terminal" />
+        <Header title="Enter Student Marks" showBack />
         
         <div className="flex-1 py-10 space-y-10 px-6 md:px-0">
           
@@ -163,7 +163,7 @@ export default function MarksManagementPage() {
                <div className="relative w-full md:w-80">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <Input 
-                    placeholder="Identify scholar..."
+                    placeholder="Search student..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-12 h-14 rounded-2xl border-none bg-white/10 text-white placeholder:text-slate-500 font-bold focus:ring-4 focus:ring-blue-500/20 transition-all"
@@ -177,7 +177,7 @@ export default function MarksManagementPage() {
               className="relative z-10 h-14 px-10 rounded-2xl bg-white text-slate-900 font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 shadow-xl transition-all gap-3 w-full lg:w-auto"
             >
               {saving ? <RefreshCcw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-              {saving ? "Synchronizing..." : "Commit Results"}
+              {saving ? "Saving..." : "Save Marks"}
             </Button>
           </div>
 
@@ -187,13 +187,13 @@ export default function MarksManagementPage() {
                 <table className="w-full">
                    <thead>
                       <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">
-                         <th className="py-6 px-8">Scholar Registry</th>
+                         <th className="py-6 px-8">Student Name</th>
                          <th className="py-6 px-4">Attendance %</th>
                          <th className="py-6 px-4">CIA 1 (10)</th>
                          <th className="py-6 px-4">CIA 2 (10)</th>
                          <th className="py-6 px-4">Test 1 (25)</th>
                          <th className="py-6 px-4">Test 2 (25)</th>
-                         <th className="py-6 px-4 text-right">Calculated Merit</th>
+                         <th className="py-6 px-4 text-right">Final Marks</th>
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-50">
@@ -218,7 +218,7 @@ export default function MarksManagementPage() {
                                           {s.roll_number.split('-').pop()}
                                         </div>
                                         <div>
-                                          <p className="text-sm font-bold text-slate-900 leading-tight">{s.full_name}</p>
+                                          <p className="text-sm font-bold text-slate-900 leading-tight">{s.name}</p>
                                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.roll_number}</p>
                                         </div>
                                      </div>
@@ -286,7 +286,7 @@ export default function MarksManagementPage() {
                 {filteredStudents.length === 0 && (
                    <div className="py-32 flex flex-col items-center justify-center text-center">
                       <AlertCircle className="w-12 h-12 text-slate-100 mb-4" />
-                      <h4 className="font-black text-slate-900 uppercase tracking-widest mb-1">No Scholars Found</h4>
+                      <h4 className="font-black text-slate-900 uppercase tracking-widest mb-1">No Students Found</h4>
                       <p className="text-xs font-bold text-slate-400">Try adjusting your search or selecting a different class.</p>
                    </div>
                 )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Card } from "@/components/ui/card";
 import { 
@@ -36,25 +37,7 @@ export default function ParentHistoryPage() {
     <PageTransition>
       <div className="flex flex-col min-h-full pb-20 pt-8 max-w-5xl mx-auto space-y-10">
         
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Daily Presence</h1>
-                <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-1">Live tracking for Alex Johnson</p>
-            </div>
-            
-            <div className="flex items-center bg-white border border-slate-100 p-1.5 rounded-2xl shadow-sm">
-                <button className="p-2 hover:bg-slate-50 rounded-xl transition-colors">
-                    <ArrowLeft className="w-4 h-4 text-slate-400" />
-                </button>
-                <div className="px-4 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-rose-500" />
-                    <span className="text-sm font-bold text-slate-700">April 2024</span>
-                </div>
-                <button className="p-2 hover:bg-slate-50 rounded-xl transition-colors">
-                    <ArrowRight className="w-4 h-4 text-slate-400" />
-                </button>
-            </div>
-        </header>
+        <Header title="Attendance History" showBack />
 
         {/* Weekly Engagement Chart (Decorative) */}
         <div className="grid grid-cols-7 gap-3 h-20">
@@ -128,11 +111,11 @@ export default function ParentHistoryPage() {
         {/* Contact Teacher Prompt */}
         <div className="p-8 rounded-[3rem] bg-indigo-900 text-white flex flex-col md:flex-row items-center justify-between gap-8 mt-12">
             <div className="space-y-2 text-center md:text-left">
-                <h4 className="text-xl font-bold">Concerned about an absence?</h4>
-                <p className="text-indigo-200 text-sm font-medium">Instantly notify the department head regarding leave or medical issues.</p>
+                <h4 className="text-xl font-bold">Need to report an absence?</h4>
+                <p className="text-indigo-200 text-sm font-medium">Instantly notify the teacher regarding leave or medical issues.</p>
             </div>
             <button className="whitespace-nowrap px-8 py-3 bg-white text-indigo-900 text-xs font-black rounded-2xl hover:bg-indigo-50 transition-all shadow-xl shadow-black/20">
-                Submit Leave Info
+                Message Teacher
             </button>
         </div>
       </div>

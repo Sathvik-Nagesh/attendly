@@ -34,7 +34,7 @@ export default function LeaderboardPage() {
       const { data, error } = await supabase
         .from('students')
         .select(`
-          full_name,
+          name,
           roll_number,
           class:classes(name, section)
         `)
@@ -45,7 +45,7 @@ export default function LeaderboardPage() {
       // Mocking the marks/points for the leaderboard visual
       const mockEntries: LeaderboardEntry[] = (data || []).map((s: any, i: number) => ({
         rank: i + 1,
-        student_name: s.full_name,
+        student_name: s.name,
         section_name: `${s.class?.name || ''} ${s.class?.section || ''}`,
         total_marks: 20 - (i * 0.5),
         points: 500 - (i * 15),
@@ -72,7 +72,7 @@ export default function LeaderboardPage() {
   if (loading) return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-6">
         <RefreshCcw className="w-10 h-10 text-blue-600 animate-spin" />
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Calculating Institutional Rankings</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Loading Leaderboard</p>
     </div>
   );
 
@@ -82,7 +82,7 @@ export default function LeaderboardPage() {
   return (
     <PageTransition>
       <div className="flex flex-col min-h-full">
-        <Header title="Institutional Merit Leaderboard" />
+        <Header title="Student Leaderboard" showBack />
         
         <div className="flex-1 py-10 space-y-12 px-6 md:px-0">
           
@@ -106,7 +106,7 @@ export default function LeaderboardPage() {
             <div className="relative w-full md:w-96">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input 
-                placeholder="Search for a scholar..."
+                placeholder="Search for a student..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-12 h-14 rounded-2xl border-slate-100 bg-white shadow-sm focus:ring-4 focus:ring-blue-500/10 transition-all font-bold"
@@ -126,10 +126,9 @@ export default function LeaderboardPage() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -mr-32 -mt-32" />
             
             <div className="relative z-10 space-y-4">
-              <div className="grid grid-cols-6 px-8 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
                 <div className="col-span-1">Rank</div>
-                <div className="col-span-3">Scholar</div>
-                <div className="col-span-1 text-center">Score</div>
+                <div className="col-span-3">Student</div>
+                <div className="col-span-1 text-center">Marks</div>
                 <div className="col-span-1 text-right">Points</div>
               </div>
 
@@ -164,8 +163,6 @@ export default function LeaderboardPage() {
                 ))}
               </AnimatePresence>
             </div>
-          </div>
-
         </div>
       </div>
     </PageTransition>
@@ -177,21 +174,21 @@ function PodiumCard({ entry, rank, color }: { entry: LeaderboardEntry, rank: num
     gold: { 
       bg: "bg-gradient-to-br from-yellow-400 to-yellow-600", 
       icon: Trophy, 
-      label: "Institutional 1st",
+      label: "1st Place",
       height: "h-80 md:h-[24rem]",
       border: "border-yellow-300/50 shadow-yellow-500/20"
     },
     slate: { 
       bg: "bg-gradient-to-br from-slate-400 to-slate-600", 
       icon: Medal, 
-      label: "Merit 2nd",
+      label: "2nd Place",
       height: "h-72 md:h-80",
       border: "border-slate-300/50 shadow-slate-500/20"
     },
     amber: { 
       bg: "bg-gradient-to-br from-orange-400 to-orange-600", 
       icon: Award, 
-      label: "Merit 3rd",
+      label: "3rd Place",
       height: "h-64 md:h-72",
       border: "border-orange-300/50 shadow-orange-500/20"
     }
@@ -235,7 +232,7 @@ function PodiumCard({ entry, rank, color }: { entry: LeaderboardEntry, rank: num
       {rank === 1 && (
         <div className="absolute -top-6 left-1/2 -translate-x-1/2">
            <div className="bg-white px-6 py-2 rounded-full shadow-2xl border border-slate-100">
-             <span className="text-[10px] font-black uppercase tracking-widest text-slate-900">Champion</span>
+             <span className="text-[10px] font-black uppercase tracking-widest text-slate-900">Rank 1</span>
            </div>
         </div>
       )}

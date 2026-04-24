@@ -24,9 +24,9 @@ import { Card } from "@/components/ui/card";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-900 flex flex-col">
+    <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-900 flex flex-col pt-[env(safe-area-inset-top)]">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 pt-[env(safe-area-inset-top)]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-slate-900 font-bold text-xl tracking-tight">
             <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -68,18 +68,18 @@ export default function LandingPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
             </span>
-            The Standard for Modern Education
+            Simple Attendance & Marks Management
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-[1000] text-slate-900 tracking-tighter leading-[0.95] mb-10">
-            Precision Logistics. <br className="hidden sm:block" />
+            Streamlined Management. <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600">
-              Zero Fricition.
+              Easy to Use.
             </span>
           </h1>
 
           <p className="text-base sm:text-lg md:text-xl text-slate-500 mb-14 max-w-2xl mx-auto leading-relaxed font-bold">
-            Ditch the register. Automate notifications, generate one-click administration reports, and tracking performance with industrial precision.
+            Replace your paper registers. Automate student notifications, generate one-click reports, and track academic performance easily.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
@@ -119,7 +119,7 @@ export default function LandingPage() {
                   <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">+12.5% Today</span>
                 </div>
                 <h4 className="text-3xl font-black text-slate-900 tracking-tighter">94.2%</h4>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Campus Attendance Pulse</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Overall Campus Attendance</p>
                 <div className="mt-6 flex gap-1 h-1.5">
                   <div className="flex-[0.94] bg-blue-600 rounded-full" />
                   <div className="flex-[0.06] bg-slate-100 rounded-full" />
@@ -165,7 +165,7 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6">Automated Bridge Status</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6">Message System Status</p>
               </motion.div>
             </div>
 
@@ -233,8 +233,8 @@ export default function LandingPage() {
               </div>
               <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
                 Your Data. <br />
-                Military-Grade <br />
-                <span className="text-blue-500">Security.</span>
+                Completely <br />
+                <span className="text-blue-500">Secure.</span>
               </h2>
               <p className="text-slate-400 text-lg leading-relaxed">
                 We take student privacy and data integrity seriously. Attendex implements multiple layers of protection to ensure your institution's data remains safe.

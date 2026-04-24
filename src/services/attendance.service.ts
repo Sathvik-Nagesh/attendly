@@ -90,6 +90,7 @@ export const attendanceService = {
         totalStudents: studentCount || 0,
         totalClasses: classCount || 0,
         absenteesToday: todayAbsentees?.length || 0,
+        attendanceRate: studentCount ? Math.round(((studentCount - (todayAbsentees?.length || 0)) / studentCount) * 100) : 100,
         weeklyTrend: (trends || []).map((t: any) => ({
             name: t.day_name,
             present: Number(t.present_count),

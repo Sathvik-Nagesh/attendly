@@ -66,8 +66,8 @@ export default function ParentDashboard() {
   if (!dashboardData) return (
     <div className="flex flex-col items-center justify-center h-full space-y-4 p-10">
       <AlertCircle className="w-12 h-12 text-slate-300" />
-      <h2 className="text-xl font-bold text-slate-900">Guardian Link Required</h2>
-      <p className="text-slate-500 text-center max-w-md">We couldn't find a student linked to your account. Please update your profile with a valid student roll number.</p>
+      <h2 className="text-xl font-bold text-slate-900">Link Student</h2>
+      <p className="text-slate-500 text-center max-w-md">We couldn't find a student linked to your account. Please update your profile with your child's roll number.</p>
     </div>
   );
 
@@ -84,17 +84,17 @@ export default function ParentDashboard() {
                       "px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl",
                       insights.status === 'risk' ? "bg-rose-500 text-white animate-pulse" : "bg-emerald-500 text-white"
                     )}>
-                        {insights.status === 'risk' ? 'Action Required' : 'Status Clear'}
+                        {insights.status === 'risk' ? 'Needs Attention' : 'All Good'}
                     </span>
                     <span className="px-5 py-2 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl">
                         {student.roll_number}
                     </span>
                 </div>
                 <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none">
-                    Guardian <span className="text-slate-400">Portal.</span>
+                    Parent <span className="text-slate-400">Dashboard</span>
                 </h1>
                 <p className="text-lg text-slate-400 font-medium max-w-xl">
-                    Real-time academic oversight for <span className="text-slate-900 font-bold underline decoration-rose-500 underline-offset-4">{student.name}</span> ({student.classes?.name}).
+                    Real-time academic updates for <span className="text-slate-900 font-bold underline decoration-rose-500 underline-offset-4">{student.name}</span> ({student.classes?.name}).
                 </p>
             </div>
             
@@ -103,10 +103,10 @@ export default function ParentDashboard() {
 
         {/* Vital Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <MetricCard label="Regularity" value={`${performance.attendance}%`} sub="75% Target" color={performance.attendance < 75 ? "text-rose-600" : "text-emerald-600"} icon={Clock} />
+            <MetricCard label="Attendance" value={`${performance.attendance}%`} sub="75% Target" color={performance.attendance < 75 ? "text-rose-600" : "text-emerald-600"} icon={Clock} />
             <MetricCard label="Internal Marks" value={`${Math.round(performance.avgMarks)}/20`} sub="Current average" color="text-slate-900" icon={CheckCircle} />
-            <MetricCard label="Attendance Marks" value={`${Math.min(5, Math.floor(performance.attendance / 20))}/5`} sub="Based on BU marks" color="text-slate-900" icon={Calendar} />
-            <MetricCard label="Sports Points" value="450 XP" sub="Institutional Achievement" color="text-orange-500" icon={Trophy} />
+            <MetricCard label="Attendance Marks" value={`${Math.min(5, Math.floor(performance.attendance / 20))}/5`} sub="Extra marks" color="text-slate-900" icon={Calendar} />
+            <MetricCard label="Sports Points" value="450 XP" sub="Sports Achievement" color="text-orange-500" icon={Trophy} />
         </div>
 
         {/* Alert System */}
@@ -129,7 +129,7 @@ export default function ParentDashboard() {
                         </div>
                         <div className="flex-1 text-center md:text-left space-y-4">
                             <h3 className={cn("text-2xl font-black", insights.status === 'risk' ? "text-rose-900" : "text-amber-900")}>
-                                Institutional Alert
+                                School Alert
                             </h3>
                             <p className={cn("text-lg font-bold leading-relaxed", insights.status === 'risk' ? "text-rose-700/80" : "text-amber-700/80")}>
                                 {insights.alert}
@@ -158,7 +158,7 @@ export default function ParentDashboard() {
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h3 className="text-xl font-bold text-slate-900 tracking-tight">Academic Standing</h3>
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Refined Performance Matrix</p>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Performance Summary</p>
                         </div>
                         <div className="flex items-center gap-2">
                              <Button variant="ghost" className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -169,7 +169,7 @@ export default function ParentDashboard() {
 
                     <div className="space-y-10">
                         <ParentProgressItem 
-                            label="Attendance Ledger" 
+                            label="Total Attendance" 
                             current={performance.attendance} 
                             target={75} 
                             unit="%" 
@@ -221,7 +221,7 @@ export default function ParentDashboard() {
                 <div className="space-y-6">
                     <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-slate-400" />
-                        Institutional Correspondence
+                        School Notices
                     </h3>
                     <div className="space-y-3">
                         <NotificationsList recipientId={student.id} />
@@ -311,7 +311,7 @@ function StatusBadge({ status }: { status: string }) {
             "px-8 py-4 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl",
             status === 'risk' ? "bg-rose-500 text-white shadow-rose-200" : "bg-emerald-500 text-white shadow-emerald-200"
         )}>
-            {status === 'risk' ? "At Academic Risk" : "Stability Locked"}
+            {status === 'risk' ? "Needs Attention" : "Performing Well"}
         </div>
     );
 }

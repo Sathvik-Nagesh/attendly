@@ -4,8 +4,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
-export function Header({ title = "Overview" }: { title?: React.ReactNode }) {
+export function Header({ title = "Overview", showBack = false }: { title?: React.ReactNode, showBack?: boolean }) {
+  const router = useRouter();
   const [userProfile, setUserProfile] = useState<{ name: string, id: string } | null>(null);
 
   useEffect(() => {
@@ -19,7 +23,7 @@ export function Header({ title = "Overview" }: { title?: React.ReactNode }) {
           .single();
 
         setUserProfile({
-          name: profile?.full_name || user.user_metadata?.full_name || "Institutional User",
+          name: profile?.full_name || user.user_metadata?.full_name || "User",
           id: profile?.faculty_id || profile?.roll_number || "N/A"
         });
       }
@@ -30,6 +34,16 @@ export function Header({ title = "Overview" }: { title?: React.ReactNode }) {
   return (
     <header className="h-12 md:h-16 px-4 md:px-8 flex items-center justify-between border-slate-100/50 md:border-b md:bg-white/50 md:backdrop-blur-sm relative">
       <div className="flex items-center gap-4">
+        {showBack && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => router.back()}
+            className="p-2 h-9 w-9 rounded-xl hover:bg-slate-100 text-slate-500"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
+        )}
         <h1 className="text-sm md:text-2xl font-black text-slate-900 tracking-tight uppercase">{title}</h1>
       </div>
 

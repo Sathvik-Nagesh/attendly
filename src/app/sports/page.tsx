@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { academicService } from "@/services/academic";
 
 interface EventEntry {
   id?: string;
@@ -23,12 +24,13 @@ interface EventEntry {
 export default function SportsEntryPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [classes, setClasses] = useState<any[]>([]);
   const [entries, setEntries] = useState<EventEntry[]>([]);
-  const [categories] = useState([
+  const [classes, setClasses] = useState<any[]>([]);
+  const [categories, setCategories] = useState([
     "100m Sprint", "200m Sprint", "Relay Race", "Tug of War", 
     "Long Jump", "High Jump", "Cricket", "Football", "Volleyball", "Chess"
   ]);
+  const [newCategory, setNewCategory] = useState("");
 
   const fetchInitialData = async () => {
     try {
@@ -71,20 +73,30 @@ export default function SportsEntryPage() {
   };
 
   const handleSave = async () => {
+    if (entries.length === 0) return;
     try {
       setSaving(true);
-      // In a real scenario, we'd save to an 'event_points' table
-      // For now, we'll simulate the success
-      await new Promise(r => setTimeout(r, 1500));
-      toast.success("Sports & Events records synchronized", {
-        description: `Successfully archived ${entries.length} institutional achievements.`
+      await academicService.saveSportsPoints(entries);
+      toast.success("Sports achievements saved", {
+        description: `Successfully recorded ${entries.length} achievements.`
       });
       setEntries([]);
     } catch (err) {
-      toast.error("Synchronization failed");
+      toast.error("Failed to save records");
     } finally {
       setSaving(false);
     }
+  };
+
+  const addNewCategory = () => {
+    if (!newCategory.trim()) return;
+    if (categories.includes(newCategory.trim())) {
+      toast.error("Sport already exists");
+      return;
+    }
+    setCategories([...categories, newCategory.trim()]);
+    setNewCategory("");
+    toast.success("Sport added to list");
   };
 
   if (loading) return (
@@ -97,7 +109,7 @@ export default function SportsEntryPage() {
   return (
     <PageTransition>
       <div className="flex flex-col min-h-full">
-        <Header title="Event Points Registry" />
+        <Header title="Add Sports Points" showBack />
         
         <div className="flex-1 py-10 space-y-10 px-6 md:px-0">
           
@@ -109,8 +121,8 @@ export default function SportsEntryPage() {
                     <Trophy className="w-20 h-20" />
                   </div>
                   <div className="relative z-10">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 mb-2">Registry Actions</p>
-                    <h3 className="text-xl font-black mb-6">Archive Results</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 mb-2">Actions</p>
+                    <h3 className="text-xl font-black mb-6">Save Results</h3>
                     <div className="space-y-4">
                       <Button 
                         onClick={addEntry}
@@ -124,9 +136,28 @@ export default function SportsEntryPage() {
                         className="w-full h-14 rounded-2xl bg-blue-600 text-white font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all gap-3 shadow-lg shadow-blue-500/20 disabled:opacity-50"
                       >
                         {saving ? <RefreshCcw className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} 
-                        {saving ? "Syncing..." : "Commit Registry"}
+                        {saving ? "Saving..." : "Save to Database"}
                       </Button>
                     </div>
+                  </div>
+               </Card>
+
+               <Card className="p-8 rounded-[2rem] border-none bg-slate-50 border border-slate-100 shadow-sm">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Add New Sport</p>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="e.g. Swimming" 
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      className="h-12 rounded-xl border-slate-200 bg-white"
+                    />
+                    <Button 
+                      onClick={addNewCategory}
+                      variant="outline"
+                      className="h-12 w-12 p-0 rounded-xl border-slate-200"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </Button>
                   </div>
                </Card>
 

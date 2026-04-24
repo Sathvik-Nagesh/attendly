@@ -158,7 +158,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-slate-50">
                 <RefreshCcw className="w-10 h-10 text-blue-600 animate-spin" />
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Synchronizing Institutional Calendar</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Loading Schedule</p>
             </div>
         );
     }
@@ -175,7 +175,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
     return (
         <PageTransition>
             <div className="flex flex-col min-h-screen w-full overflow-x-hidden bg-slate-50">
-                <Header title={isParentView ? "Academic Coordinates" : (isTeacherView ? "Logistics Command" : "My Schedule")} />
+                <Header title={isParentView ? "Class Timetable" : (isTeacherView ? "Manage Schedule" : "Timetable")} showBack />
 
                 {/* ── Centered page content ── */}
                 <div className="flex-1 w-full max-w-4xl mx-auto px-4 md:px-6 py-5 md:py-8 space-y-5">
@@ -210,7 +210,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                         {isTeacherView && (
                             <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
                                 <div className="space-y-1.5">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block text-center">Required CSV Schema:</span>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block text-center">CSV Column Titles:</span>
                                     <div className="flex flex-wrap justify-center gap-1.5">
                                         {['class', 'section', 'day', 'subject', 'faculty', 'room', 'start', 'end'].map(col => (
                                             <span key={col} className="px-2 py-0.5 bg-slate-50 border border-slate-200 rounded-md text-[8px] font-bold text-slate-500 lowercase">{col}</span>
@@ -312,7 +312,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
                                 <div className="relative z-10 p-5 md:p-6">
                                     <h3 className="text-sm font-black uppercase tracking-tight">Final Exam</h3>
-                                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-0.5 mb-4">Institutional Milestone</p>
+                                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-0.5 mb-4">Upcoming Exam</p>
                                     {exams.length > 0 ? (
                                         <div className="p-3.5 rounded-2xl bg-white/10 border border-white/10 space-y-2.5">
                                             <div className="flex items-center justify-between gap-2">
@@ -337,7 +337,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                                 <div className="p-5 md:p-6">
                                     <h3 className="text-[9px] font-black text-slate-900 mb-4 flex items-center gap-2 uppercase tracking-widest">
                                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                        Live Intelligence
+                                        Latest Notices
                                     </h3>
                                     <div className="space-y-3.5">
                                         {alerts.map((alert) => (
@@ -350,7 +350,7 @@ export default function StudentTimetable({ isParentView = false, isTeacherView =
                                             </div>
                                         ))}
                                         {alerts.length === 0 && (
-                                            <p className="text-center py-6 text-slate-300 font-black uppercase text-[8px] tracking-widest">All Nodes Silent</p>
+                                            <p className="text-center py-6 text-slate-300 font-black uppercase text-[8px] tracking-widest">No new notices</p>
                                         )}
                                     </div>
                                 </div>

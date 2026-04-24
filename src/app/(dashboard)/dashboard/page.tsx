@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Header } from "@/components/layout/header";
 import { PageTransition } from "@/components/ui/page-transition";
 import { Card } from "@/components/ui/card";
-import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight, MessageSquare, AlertCircle, Loader2, Shield, Bell, BookOpen, Trophy, Award as AwardIcon, Medal } from "lucide-react";
+import { Users, UserX, UserCheck, TrendingUp, Clock, CheckCircle, FileText, FileSpreadsheet, BarChart3, ArrowRight, MessageSquare, AlertCircle, Loader2, Shield, Bell, BookOpen, Trophy, Award as AwardIcon, Medal, Activity } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -280,15 +280,70 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
-                <div className="mb-8 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-50 rounded-lg border border-slate-100">
-                        <TrendingUp className="w-4 h-4 text-slate-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white group hover:shadow-lg transition-all border border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Live Attendance</p>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{stats?.attendanceRate}%</h2>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                    <Activity className="w-6 h-6" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[9px] font-bold uppercase tracking-tighter border border-emerald-100">
+                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse inline-block mr-1" />
+                    Trial Pulse
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Live System</span>
+                </div>
+              </Card>
+
+              <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white group hover:shadow-lg transition-all border border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Students</p>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{stats?.totalStudents}</h2>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg shadow-slate-200">
+                    <Users className="w-6 h-6" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                   <div className="flex -space-x-2">
+                      {[1,2,3].map(i => <div key={i} className="w-5 h-5 rounded-full bg-slate-100 border-2 border-white" />)}
+                   </div>
+                   <span className="text-[10px] font-bold text-slate-400 uppercase">Registered</span>
+                </div>
+              </Card>
+
+              <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white group hover:shadow-lg transition-all border border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Absentees Today</p>
+                    <h2 className="text-3xl font-black text-rose-600 tracking-tighter">{stats?.absenteesToday}</h2>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 shadow-lg shadow-rose-100">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                   <span className="text-[10px] font-bold text-rose-500 uppercase">Action Required</span>
+                </div>
+              </Card>
+            </div>
+
+            <Card className="p-8 border-slate-200 shadow-sm rounded-2xl bg-white mb-10 border border-slate-100">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                        <TrendingUp className="w-6 h-6" />
                     </div>
-                    <h3 className="text-base font-bold text-slate-900">Attendance Statistics</h3>
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-900">Attendance Trends</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Analytics</p>
+                    </div>
                   </div>
                   <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-100">
                     <button 
@@ -302,9 +357,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 
-                <div className="h-[300px] w-full mt-4" style={{ minHeight: '300px' }}>
+                <div className="h-[300px] w-full mt-4">
                   {isMounted ? (
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} aspect={2}>
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={activeData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }} dy={10} />
@@ -356,7 +411,7 @@ export default function DashboardPage() {
                 </Card>
                 
                 <Card className="p-6 border-slate-200 shadow-sm rounded-xl bg-white">
-                  <h3 className="text-sm font-bold text-slate-900 mb-4">Institutional Quick Actions</h3>
+                  <h3 className="text-sm font-bold text-slate-900 mb-4">Quick Actions</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <Button 
                         variant="outline" 
@@ -479,10 +534,8 @@ export default function DashboardPage() {
                       ))}
                   </div>
               </Card>
-            </div>
           </div>
         </div>
-      </div>
-    </PageTransition>
-  );
+      </PageTransition>
+    );
 }

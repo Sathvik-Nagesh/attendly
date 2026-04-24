@@ -113,7 +113,7 @@ export default function StudentDashboard() {
   if (loading) return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-6">
           <RefreshCcw className="w-10 h-10 text-blue-600 animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Synchronizing Identity</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Loading Profile</p>
       </div>
   );
 
@@ -128,8 +128,8 @@ export default function StudentDashboard() {
                     <GraduationCap className="w-7 h-7" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-[1000] text-slate-900 tracking-tighter">Academic Hub</h1>
-                    <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">Institutional Access • {student?.name}</p>
+                    <h1 className="text-3xl font-[1000] text-slate-900 tracking-tighter">Student Dashboard</h1>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">Logged in as • {student?.name}</p>
                 </div>
             </div>
             <div className="text-right">
@@ -162,7 +162,7 @@ export default function StudentDashboard() {
                                     isEligible ? "bg-white/10 text-white" : "bg-rose-500 text-white"
                                 )}>
                                     {isEligible ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-                                    {isEligible ? "Course Eligibility: Granted" : "Regularity: Critical Alert"}
+                                    {isEligible ? "Attendance Status: Good" : "Attendance Status: Low"}
                                 </div>
                                 <h2 className="text-5xl font-black tracking-tighter pt-4">
                                     {isEligible ? "Hall Ticket" : "Access Blocked"}
@@ -230,9 +230,9 @@ export default function StudentDashboard() {
             <Card className="p-10 border-slate-100 rounded-[3.5rem] bg-slate-50 border-none shadow-sm min-h-[600px] flex flex-col">
                 <h3 className="text-sm font-black text-slate-900 mb-8 uppercase tracking-widest">Notice Feed</h3>
                 <div className="space-y-8 flex-1">
-                    <AlertItem title="Trial Period Active" time="Day 1/3" color="blue" />
+                    <AlertItem title="System Active" time="Day 1/3" color="blue" />
                     <AlertItem title="Hall Ticket Window" time="Closing Soon" color="amber" />
-                    <AlertItem title="Institutional Update" time="L4 Cancelled" color="rose" />
+                    <AlertItem title="System Update" time="L4 Cancelled" color="rose" />
                 </div>
                 
                 <div className="mt-auto pt-10">
@@ -243,9 +243,9 @@ export default function StudentDashboard() {
                         )}>
                             <TrophyIcon className="w-8 h-8" />
                         </div>
-                        <p className="text-xs font-black text-slate-900 uppercase tracking-widest mb-2">Hall Access Protocol</p>
+                        <p className="text-xs font-black text-slate-900 uppercase tracking-widest mb-2">Exam Hall Ticket</p>
                         <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-tighter">
-                            {isEligible ? "Your digital entry token is active" : "Blocked due to attendance shortage"}
+                            {isEligible ? "Your digital entry token is active" : "Blocked due to low attendance"}
                         </p>
                     </div>
                 </div>

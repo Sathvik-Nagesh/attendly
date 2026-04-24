@@ -48,6 +48,32 @@ export const academicService = {
       .maybeSingle();
     if (error) throw error;
     return data;
+  },
+
+  async saveSportsPoints(entries: any[]) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthorized");
+
+    // We'll create a default event for "Institutional Sports 2024" if not exists
+    // But for simplicity in this pilot, we'll just insert into points_entries
+    // matching the UI structure. 
+    
+    const formatted = entries.map(e => ({
+      class_id: e.class_id,
+      points_awarded: e.points,
+      position: e.position,
+      created_by_id: user.id,
+      // Store the category/sport name in a metadata field if column exists, 
+      // or just assume we'll use a text column if we add it.
+      // For now, let's use a simple approach.
+    }));
+
+    const { data, error } = await supabase
+      .from('points_entries')
+      .insert(formatted);
+    
+    if (error) throw error;
+    return data;
   }
 };
 

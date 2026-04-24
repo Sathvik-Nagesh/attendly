@@ -56,12 +56,12 @@ interface SidebarLink {
 
 const ADMIN_LINKS: SidebarLink[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Campus Pulse", href: "/pulse", icon: Activity },
+  { name: "Live Attendance", href: "/pulse", icon: Activity },
   { name: "Students", href: "/students", icon: Users },
   { name: "Classes", href: "/classes", icon: GraduationCap },
-  { name: "Subject Registry", href: "/subjects", icon: Library },
-  { name: "Promotion Center", href: "/promotion", icon: RefreshCcw },
-  { name: "Pattern Audit", href: "/audit", icon: SearchCode },
+  { name: "Subjects", href: "/subjects", icon: Library },
+  { name: "Promotions", href: "/promotion", icon: RefreshCcw },
+  { name: "Audit Logs", href: "/audit", icon: SearchCode },
   { name: "Notifications", href: "/notifications", icon: Bell },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
   { name: "Sports & Events", href: "/sports", icon: Medal },
@@ -193,7 +193,7 @@ export function UnifiedSidebar({ variant }: UnifiedSidebarProps) {
       <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto custom-scrollbar no-scrollbar">
         {!isCollapsed && (
           <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 px-3">
-            Principal Menu
+            Main Menu
           </div>
         )}
 

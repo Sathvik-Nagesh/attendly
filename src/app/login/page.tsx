@@ -52,8 +52,8 @@ export default function LoginPage() {
 
       if (error) throw error;
 
-      toast.success("Identity Authorized", {
-          description: "Welcome back to your academic workstation."
+      toast.success("Login Successful", {
+          description: "Welcome back!"
       });
       
       const { data: profile } = await supabase
@@ -67,8 +67,8 @@ export default function LoginPage() {
       
       router.push(redirectPath);
     } catch (err: any) {
-        toast.error("Authorization Failed", {
-            description: err.message || "Please verify your credentials or contact tech support."
+        toast.error("Login Failed", {
+            description: err.message || "Please check your credentials or contact support."
         });
     } finally {
         setIsLoading(false);
@@ -80,8 +80,8 @@ export default function LoginPage() {
     if (success) {
       // In a real app, the authenticateWithPasskey would return a user object or token.
       // For this implementation, we simulate the redirect to the dashboard.
-      toast.success("Biometric Sovereignty Authorized", {
-          description: "Access granted via trusted hardware."
+      toast.success("Biometric Login Successful", {
+          description: "Access granted."
       });
       router.push("/dashboard");
     }
@@ -90,7 +90,7 @@ export default function LoginPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden p-6">
+      <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden p-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
         {/* Background Decorative Elements */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-50 rounded-full blur-[120px] opacity-60" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-50 rounded-full blur-[120px] opacity-60" />
@@ -101,7 +101,7 @@ export default function LoginPage() {
                <img src={branding.logoUrl} alt={branding.name} className="w-full h-auto rounded-2xl" />
             </div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight text-center">{branding.name}</h1>
-            <p className="text-[10px] font-black text-slate-400 mt-2 text-center uppercase tracking-[0.3em]">Institutional Secure Login</p>
+            <p className="text-[10px] font-black text-slate-400 mt-2 text-center uppercase tracking-[0.3em]">Secure Login</p>
           </div>
 
           <Card className="p-8 md:p-10 border-slate-100 bg-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] rounded-[2.5rem] md:rounded-[3rem] border border-slate-100">
@@ -123,7 +123,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
               <div className="space-y-3">
-                <Label htmlFor="identifier" className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Institutional Identifier</Label>
+                <Label htmlFor="identifier" className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Login ID</Label>
                 <Input
                   id="identifier"
                   type="text"
