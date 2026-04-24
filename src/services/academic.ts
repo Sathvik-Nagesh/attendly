@@ -62,10 +62,8 @@ export const academicService = {
       class_id: e.class_id,
       points_awarded: e.points,
       position: e.position,
+      sport_name: e.category,
       created_by_id: user.id,
-      // Store the category/sport name in a metadata field if column exists, 
-      // or just assume we'll use a text column if we add it.
-      // For now, let's use a simple approach.
     }));
 
     const { data, error } = await supabase

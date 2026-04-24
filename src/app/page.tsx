@@ -21,8 +21,34 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  const [checkingPWA, setCheckingPWA] = useState(true);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandaloneMode) {
+      setIsStandalone(true);
+      router.push('/login');
+    } else {
+      setCheckingPWA(false);
+    }
+  }, [router]);
+
+  if (isStandalone || checkingPWA) return (
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-6">
+        <div className="w-16 h-16 bg-blue-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-blue-200 animate-pulse">
+          <Zap className="w-8 h-8 fill-current" />
+        </div>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Initializing Attendex</p>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-900 flex flex-col pt-[env(safe-area-inset-top)]">
       {/* Navigation */}

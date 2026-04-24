@@ -32,8 +32,8 @@ export function Header({ title = "Overview", showBack = false }: { title?: React
   }, []);
 
   return (
-    <header className="h-12 md:h-16 px-4 md:px-8 flex items-center justify-between border-slate-100/50 md:border-b md:bg-white/50 md:backdrop-blur-sm relative">
-      <div className="flex items-center gap-4">
+    <header className="pt-[env(safe-area-inset-top)] md:pt-0 h-auto md:h-16 px-4 md:px-8 flex items-center justify-between border-slate-100/50 md:border-b md:bg-white/50 md:backdrop-blur-sm relative">
+      <div className="flex items-center gap-4 py-3 md:py-0">
         {showBack && (
           <Button 
             variant="ghost" 

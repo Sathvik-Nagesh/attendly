@@ -120,6 +120,44 @@ export const registryService = {
     });
   },
 
+  async getStudentsByClassWithMarks(classId: string, subjectId: string) {
+    const { data: students, error } = await supabase
+      .from('students')
+      .select('*, student_marks(*)')
+      .eq('class_id', classId)
+      .eq('student_marks.subject_id', subjectId)
+      .order('roll_number', { ascending: true });
+    
+    if (error) throw error;
+
+    // Fetch consolidated attendance
+    const { data: subj } = await supabase.from('subjects').select('code').eq('id', subjectId).single();
+    const filterCode = subj?.code;
+
+    const { data: consolidated } = await supabase
+      .from('consolidated_attendance')
+      .select('student_id, total_tc, total_tp, subject_code')
+      .in('student_id', (students || []).map(s => s.id));
+
+    const studentStats: Record<string, { total: number, present: number }> = {};
+    consolidated?.forEach(c => {
+        if (filterCode && c.subject_code !== filterCode) return;
+        if (!studentStats[c.student_id]) studentStats[c.student_id] = { total: 0, present: 0 };
+        studentStats[c.student_id].total += Number(c.total_tc);
+        studentStats[c.student_id].present += Number(c.total_tp);
+    });
+    
+    return (students || []).map(s => {
+        const stats = studentStats[s.id] || { total: 0, present: 0 };
+        const m = s.student_marks?.[0] || { cia1: 0, cia2: 0, test1: 0, test2: 0, assignment_marks: 0 };
+        return {
+            ...s,
+            attendance: stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 100,
+            marks: m
+        };
+    });
+  },
+
   async addStudent(student: any) {
     const { data, error } = await supabase
       .from('students')
@@ -194,13 +232,16 @@ export const registryService = {
   },
 
   // --- Marks ---
-  async updateStudentMarks(studentId: string, marks: any) {
+  async updateStudentMarks(studentId: string, subjectId: string, marks: any) {
     const { data, error } = await supabase
-      .from('marks')
+      .from('student_marks')
       .upsert({ 
         student_id: studentId, 
+        subject_id: subjectId,
         ...marks, 
         updated_at: new Date().toISOString() 
+      }, {
+        onConflict: 'student_id,subject_id'
       })
       .select()
       .single();
@@ -209,12 +250,18 @@ export const registryService = {
     return data;
   },
 
-  async getStudentMarks(studentId: string) {
-    return supabase
-      .from('marks')
+  async getStudentMarks(studentId: string, subjectId?: string) {
+    let query = supabase
+      .from('student_marks')
       .select('*')
-      .eq('student_id', studentId)
-      .maybeSingle();
+      .eq('student_id', studentId);
+    
+    if (subjectId) {
+        query = query.eq('subject_id', subjectId);
+        return query.maybeSingle();
+    }
+    
+    return query;
   },
 
   async getStudentByRoll(roll: string) {

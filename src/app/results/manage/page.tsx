@@ -18,9 +18,12 @@ export default function MarksManagementPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [classes, setClasses] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [students, setStudents] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [claims, setClaims] = useState<any[]>([]);
 
   const fetchClasses = async () => {
     try {
@@ -29,14 +32,18 @@ export default function MarksManagementPage() {
       if (!user) return;
 
       // Fetch classes claimed by this teacher
-      const { data: claims } = await supabase
+      const { data: claimsData } = await supabase
         .from('class_claims')
-        .select('*, classes(*)')
+        .select('*, classes(*), subjects(*)')
         .eq('teacher_id', user.id);
       
-      const teacherClasses = (claims || []).map(c => c.classes).filter(Boolean);
+      setClaims(claimsData || []);
+      const teacherClasses = Array.from(new Set((claimsData || []).map(c => JSON.stringify(c.classes)))).map(s => JSON.parse(s)).filter(Boolean);
+      
       setClasses(teacherClasses);
-      if (teacherClasses.length > 0) setSelectedClass(teacherClasses[0].id);
+      if (teacherClasses.length > 0) {
+        setSelectedClass(teacherClasses[0].id);
+      }
     } catch (err) {
       toast.error("Failed to load faculty assignments");
     } finally {
@@ -44,28 +51,33 @@ export default function MarksManagementPage() {
     }
   };
 
+  useEffect(() => {
+    const classSubjects = claims
+        .filter(c => c.class_id === selectedClass)
+        .map(c => c.subjects)
+        .filter(Boolean);
+    setSubjects(classSubjects);
+    if (classSubjects.length > 0) setSelectedSubject(classSubjects[0].id);
+    else setSelectedSubject("");
+  }, [selectedClass, claims]);
+
   const fetchStudents = async () => {
-    if (!selectedClass) return;
+    if (!selectedClass || !selectedSubject) {
+        setStudents([]);
+        return;
+    }
     try {
       setLoading(true);
-      const data = await registryService.getStudentsByClass(selectedClass);
+      const data = await registryService.getStudentsByClassWithMarks(selectedClass, selectedSubject);
       
-      // Fetch existing marks for these students
-      const { data: existingMarks } = await supabase
-        .from('marks')
-        .select('*')
-        .in('student_id', data.map(s => s.id));
-
-      const marksMap = (existingMarks || []).reduce((acc, m) => ({ ...acc, [m.student_id]: m }), {});
-
       const studentsWithMarks = data.map(s => {
-        const m = marksMap[s.id] || {};
+        const m = s.marks || {};
         return {
           ...s,
-          cia1: m.cia1 || 0,
-          cia2: m.cia2 || 0,
-          test1: m.test1 || 0,
-          test2: m.test2 || 0,
+          cia1: Number(m.cia1) || 0,
+          cia2: Number(m.cia2) || 0,
+          test1: Number(m.test1) || 0,
+          test2: Number(m.test2) || 0,
           attendancePercentage: s.attendance || 100
         };
       });
@@ -84,7 +96,7 @@ export default function MarksManagementPage() {
 
   useEffect(() => {
     fetchStudents();
-  }, [selectedClass]);
+  }, [selectedClass, selectedSubject]);
 
   const updateMark = (studentId: string, field: string, value: number) => {
     setStudents(prev => prev.map(s => 
@@ -101,7 +113,7 @@ export default function MarksManagementPage() {
         const testScore = calculateTestMarks(s.test1, s.test2);
         const finalMarks = calculateFinalMarks(attendanceMarks, ciaTotal, testScore);
 
-        return registryService.updateStudentMarks(s.id, {
+        return registryService.updateStudentMarks(s.id, selectedSubject, {
           cia1: s.cia1,
           cia2: s.cia2,
           test1: s.test1,
@@ -151,12 +163,23 @@ export default function MarksManagementPage() {
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 w-full lg:w-auto">
                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 min-w-[240px]">
                   <GraduationCap className="w-6 h-6 text-blue-400" />
-                  <select 
+                   <select 
                     className="bg-transparent border-none text-white font-black uppercase tracking-widest text-xs focus:ring-0 cursor-pointer w-full"
                     value={selectedClass}
                     onChange={(e) => setSelectedClass(e.target.value)}
                   >
                     {classes.map(c => <option key={c.id} value={c.id} className="bg-slate-900">{c.name} {c.section}</option>)}
+                  </select>
+               </div>
+
+               <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 min-w-[240px]">
+                  <BookOpen className="w-6 h-6 text-emerald-400" />
+                  <select 
+                    className="bg-transparent border-none text-white font-black uppercase tracking-widest text-xs focus:ring-0 cursor-pointer w-full"
+                    value={selectedSubject}
+                    onChange={(e) => setSelectedSubject(e.target.value)}
+                  >
+                    {subjects.map(s => <option key={s.id} value={s.id} className="bg-slate-900">{s.name}</option>)}
                   </select>
                </div>
 

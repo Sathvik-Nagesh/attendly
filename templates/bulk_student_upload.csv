@@ -1,0 +1,3 @@
+name,roll_number,email,parent_email,department,batch
+John Doe,U03FS25C0001,john@example.com,parent@example.com,BCOM,C
+Jane Smith,U03FS25C0002,jane@example.com,parent2@example.com,BCOM,C
